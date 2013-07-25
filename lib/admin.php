@@ -28,7 +28,7 @@ class SP_Admin {
 
 	public function setup() {
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
-		add_action( 'admin_print_styles-tools_page_elasticsearch_sync', array( $this, 'admin_styles' ) );
+		add_action( 'admin_print_styles-tools_page_searchpress_sync', array( $this, 'admin_styles' ) );
 		add_action( 'admin_post_sp_full_sync', array( $this, 'full_sync' ) );
 		add_action( 'admin_post_sp_cancel_sync', array( $this, 'cancel_sync' ) );
 		add_action( 'admin_post_sp_settings', array( $this, 'save_settings' ) );
@@ -38,7 +38,7 @@ class SP_Admin {
 
 	public function admin_menu() {
 		// Add new admin menu and save returned page hook
-		$hook_suffix = add_management_page( __('Elasticsearch Sync'), __('Elasticsearch'), 'manage_options', 'elasticsearch_sync', array( $this, 'sync' ) );
+		$hook_suffix = add_management_page( __( 'SearchPress' ), __( 'SearchPress' ), 'manage_options', 'searchpress_sync', array( $this, 'sync' ) );
 	}
 
 
@@ -47,7 +47,7 @@ class SP_Admin {
 		$sync = SP_Sync_Meta();
 		?>
 		<div class="wrap">
-			<h2>Elasticsearch</h2>
+			<h2>SearchPress</h2>
 
 				<h3>Settings</h3>
 				<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
@@ -105,7 +105,7 @@ class SP_Admin {
 					Exactly how long this will take will vary on a number of factors, like your server's CPU and memory,
 					connection speed, current traffic, average post length, and associated terms and post meta.
 				</p>
-				<p>Your site will not use elasticsearch until the indexing is complete.</p>
+				<p>Your site will not use SearchPress until the indexing is complete.</p>
 
 				<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
 					<input type="hidden" name="action" value="sp_full_sync" />
@@ -129,7 +129,7 @@ class SP_Admin {
 
 			SP_Config()->update_settings( $updates );
 
-			wp_redirect( admin_url( 'tools.php?page=elasticsearch_sync&save=1' ) );
+			wp_redirect( admin_url( 'tools.php?page=searchpress_sync&save=1' ) );
 			exit;
 		}
 	}
@@ -139,7 +139,7 @@ class SP_Admin {
 			wp_die( 'You are not authorized to perform that action' );
 		} else {
 			SP_Sync_Manager()->do_cron_reindex();
-			wp_redirect( admin_url( 'tools.php?page=elasticsearch_sync' ) );
+			wp_redirect( admin_url( 'tools.php?page=searchpress_sync' ) );
 			exit;
 		}
 	}
@@ -149,7 +149,7 @@ class SP_Admin {
 			wp_die( 'You are not authorized to perform that action' );
 		} else {
 			SP_Sync_Manager()->cancel_reindex();
-			wp_redirect( admin_url( 'tools.php?page=elasticsearch_sync&cancel=1' ) );
+			wp_redirect( admin_url( 'tools.php?page=searchpress_sync&cancel=1' ) );
 			exit;
 		}
 	}

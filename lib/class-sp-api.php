@@ -44,7 +44,7 @@ class SP_API {
 		$this->request_defaults = array(
 			'sslverify'          => false,
 			'timeout'            => 10,
-			'user-agent'         => 'Elasticsearch Sync 0.1 for WordPress',
+			'user-agent'         => 'SearchPress 0.1 for WordPress',
 			'reject_unsafe_urls' => false
 		);
 	}

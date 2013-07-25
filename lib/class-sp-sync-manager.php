@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Elasticsearch Sync Manager
+ * SearchPress Sync Manager
  *
  * Controls the data sync from WordPress to elasticsearch
  *

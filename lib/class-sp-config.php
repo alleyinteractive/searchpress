@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Elasticsearch configuration
+ * SearchPress configuration
  */
 
 if ( !class_exists( 'SP_Config' ) ) :
