@@ -52,29 +52,29 @@ class SP_API {
 	/**
 	 * GET wrapper for request.
 	 */
-	function get( $url = '', $body = '' ) {
-		return json_decode( $this->request( $url, 'GET', $body ) );
+	function get( $url = '', $body = '', $output = OBJECT ) {
+		return json_decode( $this->request( $url, 'GET', $body ), ( $output == ARRAY_A ) );
 	}
 
 	/**
 	 * POST wrapper for request.
 	 */
-	function post( $url = '', $body = '' ) {
-		return json_decode( $this->request( $url, 'POST', $body ) );
+	function post( $url = '', $body = '', $output = OBJECT ) {
+		return json_decode( $this->request( $url, 'POST', $body ), ( $output == ARRAY_A ) );
 	}
 
 	/**
 	 * DELETE wrapper for request.
 	 */
-	function delete( $url = '', $body = '' ) {
-		return json_decode( $this->request( $url, 'DELETE', $body ) );
+	function delete( $url = '', $body = '', $output = OBJECT ) {
+		return json_decode( $this->request( $url, 'DELETE', $body ), ( $output == ARRAY_A ) );
 	}
 
 	/**
 	 * POST wrapper for request.
 	 */
-	function put( $url = '', $body = '' ) {
-		return json_decode( $this->request( $url, 'PUT', $body ) );
+	function put( $url = '', $body = '', $output = OBJECT ) {
+		return json_decode( $this->request( $url, 'PUT', $body ), ( $output == ARRAY_A ) );
 	}
 
 
@@ -143,6 +143,13 @@ class SP_API {
 
 	public function delete_post( $post_id ) {
 		return $this->delete( "post/{$post_id}" );
+	}
+
+	public function search( $query, $args = array() ) {
+		$args = wp_parse_args( $args, array(
+			'output' => OBJECT
+		) );
+		return $this->post( 'post/_search', $query, $args['output'] );
 	}
 }
 
