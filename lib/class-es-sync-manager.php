@@ -5,7 +5,11 @@
  *
  * Controls the data sync from WordPress to elasticsearch
  *
- * @todo add user data
+ * Reminders and considerations while building this:
+ * @todo Trigger massive reindex (potentially) when indexed usermeta is edited
+ * @todo Trigger massive reindex when term data is edited
+ * @todo Changing permalinks should trigger full reindex?
+ *
  * @author Matthew Boynes
  */
 
@@ -15,7 +19,11 @@ class ES_Sync_Manager {
 
 	private static $instance;
 
-	const BATCH_SIZE = 25;
+	public $sync_meta;
+
+	public $published_posts = false;
+
+	public $batch_size = 25;
 
 	private function __construct() {
 		/* Don't do anything, needs to be initialized via instance() method */
@@ -35,7 +43,55 @@ class ES_Sync_Manager {
 
 
 	public function setup() {
-		# We're set.
+		# Nothing happening right now
+	}
+
+
+	/**
+	 * Sync a single post (on creation or update)
+	 *
+	 * @todo if post should not be added, it's deleted (to account for unpublishing, etc). Make that more elegant.
+	 * @todo remove error_log calls
+	 *
+	 * @param int $post_id
+	 * @return void
+	 */
+	public function sync_post( $post_id ) {
+		$post = new ES_Post( get_post( $post_id ) );
+		if ( $post->should_be_indexed() ) {
+			$response = ES_API()->index_post( $post );
+
+			if ( ! in_array( ES_API()->last_request['response_code'], array( 200, 201 ) ) ) {
+				# Should probably throw an error here or something
+				error_log( 'ES response failed' );
+				error_log( print_r( ES_API()->last_request, 1 ) );
+			} elseif ( ! is_object( $response ) || ! isset( $response->ok ) ) {
+				error_log( 'ES response not OK' );
+				error_log( print_r( $response, 1 ) );
+			} else {
+				# We're good
+			}
+		} else {
+			# This is excessive, figure out a better way around it
+			$this->delete_post( $post_id );
+		}
+	}
+
+
+	public function delete_post( $post_id ) {
+		$response = ES_API()->delete_post( $post_id );
+
+		# We're OK with 404 responses here because a post might not be in the index
+		if ( ! in_array( ES_API()->last_request['response_code'], array( 200, 404 ) ) ) {
+			# Should probably throw an error here or something
+			error_log( 'ES response failed' );
+			error_log( print_r( ES_API()->last_request, 1 ) );
+		} elseif ( ! is_object( $response ) || ! isset( $response->ok ) ) {
+			error_log( 'ES response not OK' );
+			error_log( print_r( $response, 1 ) );
+		} else {
+			# We're good
+		}
 	}
 
 
@@ -54,52 +110,39 @@ class ES_Sync_Manager {
 
 		set_transient( 'es_sync', array( 'start' => $start, 'limit' => $limit ), HOUR_IN_SECONDS );
 
-		$data = $this->get_json_range( $start, $limit );
+		$data = $this->get_range( $start, $limit );
 		# Do something with $data
 
 		delete_transient( 'es_sync' );
 	}
 
 
+
 	/**
-	 * Get all the posts in a given range as JSON data
+	 * Get all the posts in a given range and control for memory leaks
 	 *
 	 * @param int $start
 	 * @param int $limit
 	 * @return string JSON array
 	 */
-	public function get_json_range( $start, $limit ) {
+	public function get_range( $start, $limit ) {
+		error_log( "Getting $limit posts starting at $start" );
 		$posts = array();
 
 		# Run the loop in batches to contain memory leaks
 		while ( $limit > 0 ) {
-			$ceil = ( $limit >= self::BATCH_SIZE ) ? self::BATCH_SIZE : $limit;
-			$limit -= $ceil;
+			# Run at most $this->batch_size
+			$ceil = ( $limit >= $this->batch_size ) ? $this->batch_size : $limit;
+			// error_log( "Current batch: $ceil posts starting at $start" );
 			$posts = $posts + $this->get_posts( array(
 				'offset'         => $start,
 				'posts_per_page' => $ceil
 			) );
-			$start += self::BATCH_SIZE;
+			$start += $ceil;
+			$limit -= $ceil;
 			$this->contain_memory_leaks();
 		}
-		$data = json_encode( $posts );
-	}
-
-
-	/**
-	 * Get a single post as a JSON object
-	 *
-	 * @param int $post_id
-	 * @return string JSON object
-	 */
-	function get_post_json( $post_id ) {
-		$post = get_post( $post_id );
-		if ( $post ) {
-			$post->meta  = $this->get_meta( $post->ID );
-			$post->terms = $this->get_terms( $post );
-			return json_encode( $post );
-		}
-		return '{}';
+		return $posts;
 	}
 
 
@@ -116,75 +159,76 @@ class ES_Sync_Manager {
 			'suppress_filters' => false
 		) );
 
-		$posts = get_posts( $args );
-		$indexed_posts = array();
+		$query = new WP_Query;
+		$posts = $query->query( $args );
 
+		$this->published_posts = $query->found_posts;
+
+		$indexed_posts = array();
 		foreach ( $posts as $post ) {
-			$post->meta  = $this->get_meta( $post->ID );
-			$post->terms = $this->get_terms( $post );
-			$indexed_posts[ $post->ID ] = $post;
+			$indexed_posts[ $post->ID ] = new ES_Post( $post );
 		}
 		return $indexed_posts;
 	}
 
 
-	/**
-	 * Get post meta for a given post ID.
-	 * Some post meta is removed (you can filter it), and serialized data gets unserialized
-	 *
-	 * @param int $post_id
-	 * @return array 'meta_key' => array( value 1, value 2... )
-	 */
-	public function get_meta( $post_id ) {
-		$meta = (array) get_post_meta( $post_id );
+	public function do_index_loop() {
+		error_log( 'Looping!' );
+		$sync_meta = ES_Sync_Meta();
+		error_log( "Loaded sync_meta, page is {$sync_meta->page}" );
 
-		# Remove a filtered set of meta that we don't want indexed
-		$ignored_meta = apply_filters( 'es_sync_ignored_postmeta', array(
-			'_edit_lock',
-			'_edit_last',
-			'_wp_old_slug',
-			'_wp_trash_meta_time',
-			'_wp_trash_meta_status',
-			'_previous_revision',
-			'_wpas_done_all',
-			'_encloseme'
-		) );
-		foreach ( $ignored_meta as $key ) {
-			unset( $meta[ $key ] );
+		$start = $sync_meta->page++ * $sync_meta->bulk;
+		$posts = $this->get_range( $start, $sync_meta->bulk );
+
+		if ( !$posts || is_wp_error( $posts ) )
+			return false;
+
+		$response = ES_API()->index_posts( $posts );
+		// error_log( print_r( $response, 1 ) );
+		$sync_meta->current_count = count( $posts );
+		$sync_meta->processed += $sync_meta->current_count;
+
+		if ( '200' != ES_API()->last_request['response_code'] ) {
+			# Should probably throw an error here or something
+			error_log( 'ES response failed' );
+			$sync_meta->save();
+			return false;
+		} elseif ( ! is_object( $response ) || ! is_array( $response->items ) ) {
+			error_log( "!!! Error! Response:\n" . print_r( $response, 1 ) );
+		} else {
+			foreach ( $response->items as $post ) {
+				if ( ! isset( $post->index->ok ) || 1 != $post->index->ok ) {
+					$error = "Error indexing post {$post->index->_id}: {$post->index->error}";
+					error_log( $error );
+					$sync_meta->messages[] = $error;
+					$sync_meta->error++;
+				} else {
+					$sync_meta->success++;
+				}
+			}
 		}
 
-		# If post meta is serialized, unserialize it
-		foreach ( $meta as &$values ) {
-			$values = array_map( 'maybe_unserialize', $values );
+		error_log( "Saving sync_meta, page is {$sync_meta->page}" );
+
+		if ( $sync_meta->processed >= $sync_meta->total ) {
+			$sync_meta->running = false;
 		}
 
-		return $meta;
+		$sync_meta->save();
+		return true;
 	}
 
 
-	/**
-	 * Get all terms across all taxonomies for a given post
-	 *
-	 * @param object $post
-	 * @return array
-	 */
-	public function get_terms( $post ) {
-		$taxonomies = get_object_taxonomies( $post->post_type );
-		$object_terms = get_the_terms( $post->ID, $taxonomies );
-		if ( !$object_terms || is_wp_error( $object_terms ) )
-			return array();
+	public function do_cron_reindex() {
+		ES_Sync_Meta()->total = $this->count_posts();
+		ES_Sync_Meta()->start();
+		ES_Cron()->schedule_reindex();
+	}
 
-		$terms = array();
-		foreach ( (array) $object_terms as $term ) {
-			$terms[ $term->taxonomy ][] = array(
-				'term_id'     => $term->term_id,
-				'slug'        => $term->slug,
-				'name'        => $term->name,
-				'description' => $term->description,
-				'parent'      => $term->parent
-			);
-		}
-		return $terms;
+
+	public function cancel_reindex() {
+		ES_Cron()->cancel_reindex();
+		ES_Sync_Meta()->delete();
 	}
 
 
@@ -205,11 +249,35 @@ class ES_Sync_Manager {
 		if ( method_exists( $wp_object_cache, '__remoteset' ) )
 			$wp_object_cache->__remoteset();
 	}
+
+
+	public function count_posts( $args = array() ) {
+		if ( false === $this->published_posts ) {
+			$args = wp_parse_args( $args, array(
+				'post_type' => get_post_types( array( 'exclude_from_search' => false ) ),
+				'post_status' => 'publish',
+				'posts_per_page' => 1
+			) );
+			$query = new WP_Query( $args );
+			$this->published_posts = $query->found_posts;
+		}
+		return $this->published_posts;
+	}
+
 }
 
 function ES_Sync_Manager() {
 	return ES_Sync_Manager::instance();
 }
-add_action( 'after_setup_theme', 'ES_Sync_Manager' );
+
+
+/**
+ * ES_Sync_Manager only gets instantiated when necessary, so we register these hooks outside of the class
+ */
+add_action( 'save_post',       array( ES_Sync_Manager(), 'sync_post' ) );
+// add_action( 'untrashed_post',  array( ES_Sync_Manager(), 'sync_post' ) );
+add_action( 'delete_post',     array( ES_Sync_Manager(), 'delete_post' ) );
+add_action( 'trashed_post',    array( ES_Sync_Manager(), 'delete_post' ) );
+
 
 endif;

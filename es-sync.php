@@ -30,9 +30,25 @@ if ( !defined( 'ES_SYNC_PLUGIN_URL' ) )
 if ( !defined( 'ES_SYNC_PLUGIN_DIR' ) )
 	define( 'ES_SYNC_PLUGIN_DIR', __DIR__ );
 
+# To communicate with the ES API
+require_once ES_SYNC_PLUGIN_DIR . '/lib/class-es-api.php';
+
+# Settings, mappings, etc. for ES
+require_once ES_SYNC_PLUGIN_DIR . '/lib/class-es-config.php';
+
+# An object wrapper that becomes the indexed ES documents
+require_once ES_SYNC_PLUGIN_DIR . '/lib/class-es-post.php';
+
+# A controller for syncing content across to ES
 require_once ES_SYNC_PLUGIN_DIR . '/lib/class-es-sync-manager.php';
 
-if ( is_admin() && ( !defined( 'DOING_AJAX' ) || ! DOING_AJAX ) ) {
+# Manages all cron processes
+require_once ES_SYNC_PLUGIN_DIR . '/lib/class-es-cron.php';
+
+# Manages metadata for the syncing process
+require_once ES_SYNC_PLUGIN_DIR . '/lib/class-es-sync-meta.php';
+
+if ( is_admin() ) {
 	require_once ES_SYNC_PLUGIN_DIR . '/lib/admin.php';
 }
 
