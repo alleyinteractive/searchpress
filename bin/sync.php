@@ -1,6 +1,6 @@
 <?php
 
-define( 'ES_SYNC_CLI', true );
+define( 'SP_CLI', true );
 
 $options = getopt( '', array(
 	'flush::',
@@ -9,7 +9,7 @@ $options = getopt( '', array(
 	'bulk:',
 	'limit:',
 	'page:',
-	'es-host:'
+	'sp-host:'
 ) );
 $options = array_merge( array(
 	'bulk' => 1000,
@@ -57,8 +57,8 @@ else
 @ob_end_flush();
 @ob_implicit_flush( true );
 
-if ( isset( $options['es-host'] ) )
-	ES_API()->host = $options['es-host'];
+if ( isset( $options['sp-host'] ) )
+	SP_API()->host = $options['sp-host'];
 
 # Run the script
 exit( main() );
@@ -91,34 +91,34 @@ function main() {
 	$timestamp_start = microtime( true );
 
 	if ( isset( $options['flush'] ) ) {
-		$result = ES_Config()->flush();
-		if ( '200' == ES_API()->last_request['response_code'] ) {
+		$result = SP_Config()->flush();
+		if ( '200' == SP_API()->last_request['response_code'] ) {
 			echo "Successfully flushed Post index\n\n";
 		} else {
-			print_r( ES_API()->last_request );
+			print_r( SP_API()->last_request );
 			print_r( $result );
 		}
 	}
 
 	if ( isset( $options['put-mapping'] ) ) {
-		$result = ES_Config()->create_mapping();
-		if ( '200' == ES_API()->last_request['response_code'] ) {
+		$result = SP_Config()->create_mapping();
+		if ( '200' == SP_API()->last_request['response_code'] ) {
 			echo "Successfully added Post mapping\n\n";
 		} else {
-			print_r( ES_API()->last_request );
+			print_r( SP_API()->last_request );
 			print_r( $result );
 		}
 	}
 
 	if ( isset( $options['index'] ) ) {
 		# Keep tabs on where we are and what we've done
-		$sync_meta = ES_Sync_Meta();
+		$sync_meta = SP_Sync_Meta();
 		$sync_meta->page = $options['page'];
 		$sync_meta->bulk = $options['bulk'];
 		$sync_meta->limit = $options['limit'];
 		do {
 
-			ES_Sync_Manager()->do_index_loop();
+			SP_Sync_Manager()->do_index_loop();
 
 			echo "\nCompleted page {$sync_meta->page}\nCurrent memory usage is " . round( memory_get_usage() / 1024 / 1024, 2 ) . "M / " . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . "\n";
 

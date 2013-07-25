@@ -4,9 +4,9 @@
  * Basic WordPress-oriented Elasticsearch API client
  */
 
-if ( !class_exists( 'ES_API' ) ) :
+if ( !class_exists( 'SP_API' ) ) :
 
-class ES_API {
+class SP_API {
 
 	private static $instance;
 
@@ -26,13 +26,13 @@ class ES_API {
 		/* Don't do anything, needs to be initialized via instance() method */
 	}
 
-	public function __clone() { wp_die( "Please don't __clone ES_API" ); }
+	public function __clone() { wp_die( "Please don't __clone SP_API" ); }
 
-	public function __wakeup() { wp_die( "Please don't __wakeup ES_API" ); }
+	public function __wakeup() { wp_die( "Please don't __wakeup SP_API" ); }
 
 	public static function instance() {
 		if ( ! isset( self::$instance ) ) {
-			self::$instance = new ES_API;
+			self::$instance = new SP_API;
 			self::$instance->setup();
 		}
 		return self::$instance;
@@ -40,7 +40,7 @@ class ES_API {
 
 	public function setup() {
 		$this->index = get_current_blog_id();
-		$this->host = ES_Config()->get_setting( 'host' );
+		$this->host = SP_Config()->get_setting( 'host' );
 		$this->request_defaults = array(
 			'sslverify'          => false,
 			'timeout'            => 10,
@@ -146,8 +146,8 @@ class ES_API {
 	}
 }
 
-function ES_API() {
-	return ES_API::instance();
+function SP_API() {
+	return SP_API::instance();
 }
 
 endif;

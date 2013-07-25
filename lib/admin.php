@@ -4,9 +4,9 @@
  *
  */
 
-if ( !class_exists( 'ES_Admin' ) ) :
+if ( !class_exists( 'SP_Admin' ) ) :
 
-class ES_Admin {
+class SP_Admin {
 
 	private static $instance;
 
@@ -14,13 +14,13 @@ class ES_Admin {
 		/* Don't do anything, needs to be initialized via instance() method */
 	}
 
-	public function __clone() { wp_die( "Please don't __clone ES_Admin" ); }
+	public function __clone() { wp_die( "Please don't __clone SP_Admin" ); }
 
-	public function __wakeup() { wp_die( "Please don't __wakeup ES_Admin" ); }
+	public function __wakeup() { wp_die( "Please don't __wakeup SP_Admin" ); }
 
 	public static function instance() {
 		if ( ! isset( self::$instance ) ) {
-			self::$instance = new ES_Admin;
+			self::$instance = new SP_Admin;
 			self::$instance->setup();
 		}
 		return self::$instance;
@@ -29,10 +29,10 @@ class ES_Admin {
 	public function setup() {
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 		add_action( 'admin_print_styles-tools_page_elasticsearch_sync', array( $this, 'admin_styles' ) );
-		add_action( 'admin_post_es_full_sync', array( $this, 'full_sync' ) );
-		add_action( 'admin_post_es_cancel_sync', array( $this, 'cancel_sync' ) );
-		add_action( 'admin_post_es_settings', array( $this, 'save_settings' ) );
-		add_action( 'wp_ajax_es_sync_status', array( $this, 'es_sync_status' ) );
+		add_action( 'admin_post_sp_full_sync', array( $this, 'full_sync' ) );
+		add_action( 'admin_post_sp_cancel_sync', array( $this, 'cancel_sync' ) );
+		add_action( 'admin_post_sp_settings', array( $this, 'save_settings' ) );
+		add_action( 'wp_ajax_sp_sync_status', array( $this, 'sp_sync_status' ) );
 	}
 
 
@@ -44,17 +44,17 @@ class ES_Admin {
 
 	public function sync() {
 		if ( !current_user_can( 'manage_options' ) ) wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
-		$sync = ES_Sync_Meta();
+		$sync = SP_Sync_Meta();
 		?>
 		<div class="wrap">
 			<h2>Elasticsearch</h2>
 
 				<h3>Settings</h3>
 				<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
-					<input type="hidden" name="action" value="es_settings" />
-					<?php wp_nonce_field( 'es_settings', 'es_settings_nonce' ); ?>
+					<input type="hidden" name="action" value="sp_settings" />
+					<?php wp_nonce_field( 'sp_settings', 'sp_settings_nonce' ); ?>
 					<p>
-						<input type="text" name="es_host" value="<?php echo esc_url( ES_Config()->get_setting( 'host' ) ) ?>" style="width:100%;max-width:500px" />
+						<input type="text" name="sp_host" value="<?php echo esc_url( SP_Config()->get_setting( 'host' ) ) ?>" style="width:100%;max-width:500px" />
 					</p>
 					<?php submit_button( 'Save Settings', 'primary' ) ?>
 				</form>
@@ -74,7 +74,7 @@ class ES_Admin {
 						progress_total = $( '.progress-bar' ).data( 'total' ) - 0;;
 						progress_processed = $( '.progress-bar' ).data( 'processed' ) - 0;
 						setInterval( function() {
-							$.get( ajaxurl, { action : 'es_sync_status' }, function( data ) {
+							$.get( ajaxurl, { action : 'sp_sync_status' }, function( data ) {
 								if ( data.processed ) {
 									if ( data.processed > progress_processed ) {
 										progress_processed = data.processed;
@@ -88,8 +88,8 @@ class ES_Admin {
 					} );
 				</script>
 				<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
-					<input type="hidden" name="action" value="es_cancel_sync" />
-					<?php wp_nonce_field( 'es_sync', 'es_sync_nonce' ); ?>
+					<input type="hidden" name="action" value="sp_cancel_sync" />
+					<?php wp_nonce_field( 'sp_sync', 'sp_sync_nonce' ); ?>
 					<?php submit_button( 'Cancel Sync', 'delete' ) ?>
 				</form>
 
@@ -98,8 +98,8 @@ class ES_Admin {
 				<h3>Full Sync</h3>
 				<p>Running a full sync will wipe the current index if there is one and rebuild it from scratch.</p>
 				<p>
-					Your site has <?php echo number_format( intval( ES_Sync_Manager()->count_posts() ) ) ?> posts to index.
-					<?php if ( ES_Sync_Manager()->count_posts() > 25000 ) : ?>
+					Your site has <?php echo number_format( intval( SP_Sync_Manager()->count_posts() ) ) ?> posts to index.
+					<?php if ( SP_Sync_Manager()->count_posts() > 25000 ) : ?>
 						As a result of there being so many posts, this may take a long time to index.
 					<?php endif ?>
 					Exactly how long this will take will vary on a number of factors, like your server's CPU and memory,
@@ -108,8 +108,8 @@ class ES_Admin {
 				<p>Your site will not use elasticsearch until the indexing is complete.</p>
 
 				<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
-					<input type="hidden" name="action" value="es_full_sync" />
-					<?php wp_nonce_field( 'es_sync', 'es_sync_nonce' ); ?>
+					<input type="hidden" name="action" value="sp_full_sync" />
+					<?php wp_nonce_field( 'sp_sync', 'sp_sync_nonce' ); ?>
 					<?php submit_button( 'Run Full Sync', 'delete' ) ?>
 				</form>
 
@@ -119,15 +119,15 @@ class ES_Admin {
 	}
 
 	public function save_settings() {
-		if ( !isset( $_POST['es_settings_nonce'] ) || ! wp_verify_nonce( $_POST['es_settings_nonce'], 'es_settings' ) ) {
+		if ( !isset( $_POST['sp_settings_nonce'] ) || ! wp_verify_nonce( $_POST['sp_settings_nonce'], 'sp_settings' ) ) {
 			wp_die( 'You are not authorized to perform that action' );
 		} else {
 			$updates = array();
 
-			if ( isset( $_POST['es_host'] ) )
-				$updates['host'] = esc_url( $_POST['es_host'] );
+			if ( isset( $_POST['sp_host'] ) )
+				$updates['host'] = esc_url( $_POST['sp_host'] );
 
-			ES_Config()->update_settings( $updates );
+			SP_Config()->update_settings( $updates );
 
 			wp_redirect( admin_url( 'tools.php?page=elasticsearch_sync&save=1' ) );
 			exit;
@@ -135,29 +135,29 @@ class ES_Admin {
 	}
 
 	public function full_sync() {
-		if ( !isset( $_POST['es_sync_nonce'] ) || ! wp_verify_nonce( $_POST['es_sync_nonce'], 'es_sync' ) ) {
+		if ( !isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( $_POST['sp_sync_nonce'], 'sp_sync' ) ) {
 			wp_die( 'You are not authorized to perform that action' );
 		} else {
-			ES_Sync_Manager()->do_cron_reindex();
+			SP_Sync_Manager()->do_cron_reindex();
 			wp_redirect( admin_url( 'tools.php?page=elasticsearch_sync' ) );
 			exit;
 		}
 	}
 
 	public function cancel_sync() {
-		if ( !isset( $_POST['es_sync_nonce'] ) || ! wp_verify_nonce( $_POST['es_sync_nonce'], 'es_sync' ) ) {
+		if ( !isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( $_POST['sp_sync_nonce'], 'sp_sync' ) ) {
 			wp_die( 'You are not authorized to perform that action' );
 		} else {
-			ES_Sync_Manager()->cancel_reindex();
+			SP_Sync_Manager()->cancel_reindex();
 			wp_redirect( admin_url( 'tools.php?page=elasticsearch_sync&cancel=1' ) );
 			exit;
 		}
 	}
 
-	public function es_sync_status() {
+	public function sp_sync_status() {
 		echo json_encode( array(
-			'processed' => ES_Sync_Meta()->processed,
-			'page' => ES_Sync_Meta()->page
+			'processed' => SP_Sync_Meta()->processed,
+			'page' => SP_Sync_Meta()->page
 		) );
 		exit;
 	}
@@ -194,9 +194,9 @@ class ES_Admin {
 	}
 }
 
-function ES_Admin() {
-	return ES_Admin::instance();
+function SP_Admin() {
+	return SP_Admin::instance();
 }
-add_action( 'after_setup_theme', 'ES_Admin' );
+add_action( 'after_setup_theme', 'SP_Admin' );
 
 endif;

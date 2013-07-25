@@ -4,9 +4,9 @@
  * Elasticsearch configuration
  */
 
-if ( !class_exists( 'ES_Config' ) ) :
+if ( !class_exists( 'SP_Config' ) ) :
 
-class ES_Config {
+class SP_Config {
 
 	private static $instance;
 
@@ -16,13 +16,13 @@ class ES_Config {
 		/* Don't do anything, needs to be initialized via instance() method */
 	}
 
-	public function __clone() { wp_die( "Please don't __clone ES_Config" ); }
+	public function __clone() { wp_die( "Please don't __clone SP_Config" ); }
 
-	public function __wakeup() { wp_die( "Please don't __wakeup ES_Config" ); }
+	public function __wakeup() { wp_die( "Please don't __wakeup SP_Config" ); }
 
 	public static function instance() {
 		if ( ! isset( self::$instance ) ) {
-			self::$instance = new ES_Config;
+			self::$instance = new SP_Config;
 			self::$instance->setup();
 		}
 		return self::$instance;
@@ -33,11 +33,11 @@ class ES_Config {
 	}
 
 	public function sync_statuses() {
-		return apply_filters( 'es_config_sync_statuses', array( 'publish' ) );
+		return apply_filters( 'sp_config_sync_statuses', array( 'publish' ) );
 	}
 
 	public function sync_post_types() {
-		return apply_filters( 'es_config_sync_post_types', get_post_types( array( 'exclude_from_search' => false ) ) );
+		return apply_filters( 'sp_config_sync_post_types', get_post_types( array( 'exclude_from_search' => false ) ) );
 	}
 
 	public function create_mapping() {
@@ -226,12 +226,12 @@ class ES_Config {
 				)
 			)
 		);
-		$mapping = apply_filters( 'es_config_mapping', $mapping );
-		return ES_API()->put( '', json_encode( $mapping ) );
+		$mapping = apply_filters( 'sp_config_mapping', $mapping );
+		return SP_API()->put( '', json_encode( $mapping ) );
 	}
 
 	public function flush() {
-		return ES_API()->delete();
+		return SP_API()->delete();
 	}
 
 	/**
@@ -246,7 +246,7 @@ class ES_Config {
 
 
 	public function get_settings() {
-		$settings = get_option( 'es_settings' );
+		$settings = get_option( 'sp_settings' );
 		$this->settings = wp_parse_args( $settings, array(
 			'host' => 'http://localhost:9200'
 		) );
@@ -263,12 +263,12 @@ class ES_Config {
 		if ( ! $this->settings )
 			$this->get_settings();
 		$this->settings = wp_parse_args( $new_settings, $this->settings );
-		update_option( 'es_settings', $this->settings )	;
+		update_option( 'sp_settings', $this->settings )	;
 	}
 }
 
-function ES_Config() {
-	return ES_Config::instance();
+function SP_Config() {
+	return SP_Config::instance();
 }
 
 endif;

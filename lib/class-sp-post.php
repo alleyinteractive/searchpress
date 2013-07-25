@@ -5,7 +5,7 @@
 *
 * @todo should we index paginated posts differently? Would be nice to click a search result and go to correct page
 */
-class ES_Post {
+class SP_Post {
 
 	# Core post fields
 	public $post_id;
@@ -54,7 +54,7 @@ class ES_Post {
 	 * @return void
 	 */
 	public function fill( $post ) {
-		$apply_filters = apply_filters( 'es_post_index_filtered_data', false );
+		$apply_filters = apply_filters( 'sp_post_index_filtered_data', false );
 
 		$this->post_id           = $post->ID;
 		# We're storing the login here instead of user ID, as that's more flexible
@@ -89,7 +89,7 @@ class ES_Post {
 		$meta = (array) get_post_meta( $post_id );
 
 		# Remove a filtered set of meta that we don't want indexed
-		$ignored_meta = apply_filters( 'es_post_ignored_postmeta', array(
+		$ignored_meta = apply_filters( 'sp_post_ignored_postmeta', array(
 			'_edit_lock',
 			'_edit_last',
 			'_wp_old_slug',
@@ -103,7 +103,7 @@ class ES_Post {
 			unset( $meta[ $key ] );
 		}
 
-		if ( ES_Config()->unserialize_meta() ) {
+		if ( SP_Config()->unserialize_meta() ) {
 			# If post meta is serialized, unserialize it
 			foreach ( $meta as &$values ) {
 				$values = array_map( 'maybe_unserialize', $values );
@@ -166,20 +166,20 @@ class ES_Post {
 	 * @return string
 	 */
 	public function to_json() {
-		return json_encode( apply_filters( 'es_post_pre_index', $this ) );
+		return json_encode( apply_filters( 'sp_post_pre_index', $this ) );
 	}
 
 
 	public function should_be_indexed() {
 		# Check post type
-		if ( ! in_array( $this->post_type, ES_Config()->sync_post_types() ) )
+		if ( ! in_array( $this->post_type, SP_Config()->sync_post_types() ) )
 			return false;
 
 		# Check post status
-		if ( ! in_array( $this->post_status, ES_Config()->sync_statuses() ) )
+		if ( ! in_array( $this->post_status, SP_Config()->sync_statuses() ) )
 			return false;
 
-		return apply_filters( 'es_post_should_be_indexed', true, $this );
+		return apply_filters( 'sp_post_should_be_indexed', true, $this );
 	}
 
 }

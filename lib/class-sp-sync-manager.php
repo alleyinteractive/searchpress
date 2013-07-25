@@ -13,9 +13,9 @@
  * @author Matthew Boynes
  */
 
-if ( !class_exists( 'ES_Sync_Manager' ) ) :
+if ( !class_exists( 'SP_Sync_Manager' ) ) :
 
-class ES_Sync_Manager {
+class SP_Sync_Manager {
 
 	private static $instance;
 
@@ -29,13 +29,13 @@ class ES_Sync_Manager {
 		/* Don't do anything, needs to be initialized via instance() method */
 	}
 
-	public function __clone() { wp_die( "Please don't __clone ES_Sync_Manager" ); }
+	public function __clone() { wp_die( "Please don't __clone SP_Sync_Manager" ); }
 
-	public function __wakeup() { wp_die( "Please don't __wakeup ES_Sync_Manager" ); }
+	public function __wakeup() { wp_die( "Please don't __wakeup SP_Sync_Manager" ); }
 
 	public static function instance() {
 		if ( ! isset( self::$instance ) ) {
-			self::$instance = new ES_Sync_Manager;
+			self::$instance = new SP_Sync_Manager;
 			self::$instance->setup();
 		}
 		return self::$instance;
@@ -57,14 +57,14 @@ class ES_Sync_Manager {
 	 * @return void
 	 */
 	public function sync_post( $post_id ) {
-		$post = new ES_Post( get_post( $post_id ) );
+		$post = new SP_Post( get_post( $post_id ) );
 		if ( $post->should_be_indexed() ) {
-			$response = ES_API()->index_post( $post );
+			$response = SP_API()->index_post( $post );
 
-			if ( ! in_array( ES_API()->last_request['response_code'], array( 200, 201 ) ) ) {
+			if ( ! in_array( SP_API()->last_request['response_code'], array( 200, 201 ) ) ) {
 				# Should probably throw an error here or something
 				error_log( 'ES response failed' );
-				error_log( print_r( ES_API()->last_request, 1 ) );
+				error_log( print_r( SP_API()->last_request, 1 ) );
 			} elseif ( ! is_object( $response ) || ! isset( $response->ok ) ) {
 				error_log( 'ES response not OK' );
 				error_log( print_r( $response, 1 ) );
@@ -79,13 +79,13 @@ class ES_Sync_Manager {
 
 
 	public function delete_post( $post_id ) {
-		$response = ES_API()->delete_post( $post_id );
+		$response = SP_API()->delete_post( $post_id );
 
 		# We're OK with 404 responses here because a post might not be in the index
-		if ( ! in_array( ES_API()->last_request['response_code'], array( 200, 404 ) ) ) {
+		if ( ! in_array( SP_API()->last_request['response_code'], array( 200, 404 ) ) ) {
 			# Should probably throw an error here or something
 			error_log( 'ES response failed' );
-			error_log( print_r( ES_API()->last_request, 1 ) );
+			error_log( print_r( SP_API()->last_request, 1 ) );
 		} elseif ( ! is_object( $response ) || ! isset( $response->ok ) ) {
 			error_log( 'ES response not OK' );
 			error_log( print_r( $response, 1 ) );
@@ -103,17 +103,17 @@ class ES_Sync_Manager {
 	 * @return void
 	 */
 	public function sync( $start, $limit ) {
-		if ( false !== ( $previous_sync = get_transient( 'es_sync' ) ) ) {
+		if ( false !== ( $previous_sync = get_transient( 'sp_sync' ) ) ) {
 			# Sync is running, or died. Do something about it.
 			return $previous_sync;
 		}
 
-		set_transient( 'es_sync', array( 'start' => $start, 'limit' => $limit ), HOUR_IN_SECONDS );
+		set_transient( 'sp_sync', array( 'start' => $start, 'limit' => $limit ), HOUR_IN_SECONDS );
 
 		$data = $this->get_range( $start, $limit );
 		# Do something with $data
 
-		delete_transient( 'es_sync' );
+		delete_transient( 'sp_sync' );
 	}
 
 
@@ -166,7 +166,7 @@ class ES_Sync_Manager {
 
 		$indexed_posts = array();
 		foreach ( $posts as $post ) {
-			$indexed_posts[ $post->ID ] = new ES_Post( $post );
+			$indexed_posts[ $post->ID ] = new SP_Post( $post );
 		}
 		return $indexed_posts;
 	}
@@ -174,7 +174,7 @@ class ES_Sync_Manager {
 
 	public function do_index_loop() {
 		error_log( 'Looping!' );
-		$sync_meta = ES_Sync_Meta();
+		$sync_meta = SP_Sync_Meta();
 		error_log( "Loaded sync_meta, page is {$sync_meta->page}" );
 
 		$start = $sync_meta->page++ * $sync_meta->bulk;
@@ -183,12 +183,12 @@ class ES_Sync_Manager {
 		if ( !$posts || is_wp_error( $posts ) )
 			return false;
 
-		$response = ES_API()->index_posts( $posts );
+		$response = SP_API()->index_posts( $posts );
 		// error_log( print_r( $response, 1 ) );
 		$sync_meta->current_count = count( $posts );
 		$sync_meta->processed += $sync_meta->current_count;
 
-		if ( '200' != ES_API()->last_request['response_code'] ) {
+		if ( '200' != SP_API()->last_request['response_code'] ) {
 			# Should probably throw an error here or something
 			error_log( 'ES response failed' );
 			$sync_meta->save();
@@ -220,15 +220,15 @@ class ES_Sync_Manager {
 
 
 	public function do_cron_reindex() {
-		ES_Sync_Meta()->total = $this->count_posts();
-		ES_Sync_Meta()->start();
-		ES_Cron()->schedule_reindex();
+		SP_Sync_Meta()->total = $this->count_posts();
+		SP_Sync_Meta()->start();
+		SP_Cron()->schedule_reindex();
 	}
 
 
 	public function cancel_reindex() {
-		ES_Cron()->cancel_reindex();
-		ES_Sync_Meta()->delete();
+		SP_Cron()->cancel_reindex();
+		SP_Sync_Meta()->delete();
 	}
 
 
@@ -266,18 +266,17 @@ class ES_Sync_Manager {
 
 }
 
-function ES_Sync_Manager() {
-	return ES_Sync_Manager::instance();
+function SP_Sync_Manager() {
+	return SP_Sync_Manager::instance();
 }
 
 
 /**
- * ES_Sync_Manager only gets instantiated when necessary, so we register these hooks outside of the class
+ * SP_Sync_Manager only gets instantiated when necessary, so we register these hooks outside of the class
  */
-add_action( 'save_post',       array( ES_Sync_Manager(), 'sync_post' ) );
-// add_action( 'untrashed_post',  array( ES_Sync_Manager(), 'sync_post' ) );
-add_action( 'delete_post',     array( ES_Sync_Manager(), 'delete_post' ) );
-add_action( 'trashed_post',    array( ES_Sync_Manager(), 'delete_post' ) );
+add_action( 'save_post',       array( SP_Sync_Manager(), 'sync_post' ) );
+add_action( 'delete_post',     array( SP_Sync_Manager(), 'delete_post' ) );
+add_action( 'trashed_post',    array( SP_Sync_Manager(), 'delete_post' ) );
 
 
 endif;

@@ -1,11 +1,11 @@
 <?php
 
 /*
-	Plugin Name: Elasticsearch Sync
-	Plugin URI: http://www.alleyinteractive.com/
-	Description: A data synchronization plugin to index WordPress data in elasticsearch
+	Plugin Name: SearchPress
+	Plugin URI: http://searchpress.org/
+	Description: Elasticsearch for WordPress.
 	Version: 0.1
-	Author: Matthew Boynes
+	Author: Matthew Boynes, Alley Interactive
 	Author URI: http://www.alleyinteractive.com/
 */
 /*  This program is free software; you can redistribute it and/or modify
@@ -25,31 +25,31 @@
 
 
 
-if ( !defined( 'ES_SYNC_PLUGIN_URL' ) )
-	define( 'ES_SYNC_PLUGIN_URL', plugins_url( '/', __FILE__ ) );
-if ( !defined( 'ES_SYNC_PLUGIN_DIR' ) )
-	define( 'ES_SYNC_PLUGIN_DIR', __DIR__ );
+if ( !defined( 'SP_PLUGIN_URL' ) )
+	define( 'SP_PLUGIN_URL', plugins_url( '/', __FILE__ ) );
+if ( !defined( 'SP_PLUGIN_DIR' ) )
+	define( 'SP_PLUGIN_DIR', __DIR__ );
 
 # To communicate with the ES API
-require_once ES_SYNC_PLUGIN_DIR . '/lib/class-es-api.php';
+require_once SP_PLUGIN_DIR . '/lib/class-sp-api.php';
 
 # Settings, mappings, etc. for ES
-require_once ES_SYNC_PLUGIN_DIR . '/lib/class-es-config.php';
+require_once SP_PLUGIN_DIR . '/lib/class-sp-config.php';
 
 # An object wrapper that becomes the indexed ES documents
-require_once ES_SYNC_PLUGIN_DIR . '/lib/class-es-post.php';
+require_once SP_PLUGIN_DIR . '/lib/class-sp-post.php';
 
 # A controller for syncing content across to ES
-require_once ES_SYNC_PLUGIN_DIR . '/lib/class-es-sync-manager.php';
+require_once SP_PLUGIN_DIR . '/lib/class-sp-sync-manager.php';
 
 # Manages all cron processes
-require_once ES_SYNC_PLUGIN_DIR . '/lib/class-es-cron.php';
+require_once SP_PLUGIN_DIR . '/lib/class-sp-cron.php';
 
 # Manages metadata for the syncing process
-require_once ES_SYNC_PLUGIN_DIR . '/lib/class-es-sync-meta.php';
+require_once SP_PLUGIN_DIR . '/lib/class-sp-sync-meta.php';
 
 if ( is_admin() ) {
-	require_once ES_SYNC_PLUGIN_DIR . '/lib/admin.php';
+	require_once SP_PLUGIN_DIR . '/lib/admin.php';
 }
 
 

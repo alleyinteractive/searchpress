@@ -5,9 +5,9 @@
  *
  * @author Matthew Boynes
  */
-if ( !class_exists( 'ES_Sync_Meta' ) ) :
+if ( !class_exists( 'SP_Sync_Meta' ) ) :
 
-class ES_Sync_Meta {
+class SP_Sync_Meta {
 
 	private static $instance;
 	public $running       = false;
@@ -26,23 +26,23 @@ class ES_Sync_Meta {
 		/* Don't do anything, needs to be initialized via instance() method */
 	}
 
-	public function __clone() { wp_die( "Please don't __clone ES_Sync_Meta" ); }
+	public function __clone() { wp_die( "Please don't __clone SP_Sync_Meta" ); }
 
-	public function __wakeup() { wp_die( "Please don't __wakeup ES_Sync_Meta" ); }
+	public function __wakeup() { wp_die( "Please don't __wakeup SP_Sync_Meta" ); }
 
 	public static function instance() {
 		if ( ! isset( self::$instance ) ) {
-			self::$instance = new ES_Sync_Meta;
+			self::$instance = new SP_Sync_Meta;
 			self::$instance->setup();
 		}
 		return self::$instance;
 	}
 
 	public function setup() {
-		if ( defined( 'ES_SYNC_CLI' ) && ES_SYNC_CLI )
+		if ( defined( 'SP_CLI' ) && SP_CLI )
 			return;
 
-		if ( false != ( $sync_meta = get_option( 'es_sync_meta' ) ) ) {
+		if ( false != ( $sync_meta = get_option( 'sp_sync_meta' ) ) ) {
 			foreach ( $sync_meta as $key => $value ) {
 				$this->$key = $value;
 			}
@@ -57,7 +57,7 @@ class ES_Sync_Meta {
 
 
 	public function save() {
-		update_option( 'es_sync_meta', array(
+		update_option( 'sp_sync_meta', array(
 			'running'   => $this->running,
 			'start'     => $this->start,
 			'bulk'      => $this->bulk,
@@ -72,7 +72,7 @@ class ES_Sync_Meta {
 
 
 	public function delete() {
-		delete_option( 'es_sync_meta' );
+		delete_option( 'sp_sync_meta' );
 	}
 
 
@@ -82,8 +82,8 @@ class ES_Sync_Meta {
 
 }
 
-function ES_Sync_Meta() {
-	return ES_Sync_Meta::instance();
+function SP_Sync_Meta() {
+	return SP_Sync_Meta::instance();
 }
 
 endif;
