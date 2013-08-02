@@ -27,27 +27,36 @@ class SP_Admin {
 	}
 
 	public function setup() {
-		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
-		add_action( 'admin_print_styles-tools_page_searchpress_sync', array( $this, 'admin_styles' ) );
-		add_action( 'admin_post_sp_full_sync', array( $this, 'full_sync' ) );
-		add_action( 'admin_post_sp_cancel_sync', array( $this, 'cancel_sync' ) );
-		add_action( 'admin_post_sp_settings', array( $this, 'save_settings' ) );
-		add_action( 'wp_ajax_sp_sync_status', array( $this, 'sp_sync_status' ) );
+		add_action( 'admin_menu',                                     array( $this, 'admin_menu' )     );
+		add_action( 'admin_print_styles-tools_page_searchpress_sync', array( $this, 'admin_styles' )   );
+		add_action( 'admin_post_sp_full_sync',                        array( $this, 'full_sync' )      );
+		add_action( 'admin_post_sp_cancel_sync',                      array( $this, 'cancel_sync' )    );
+		add_action( 'admin_post_sp_settings',                         array( $this, 'save_settings' )  );
+		add_action( 'wp_ajax_sp_sync_status',                         array( $this, 'sp_sync_status' ) );
+		add_action( 'admin_notices',                                  array( $this, 'admin_notices' )  );
 	}
 
 
 	public function admin_menu() {
 		// Add new admin menu and save returned page hook
-		$hook_suffix = add_management_page( __( 'SearchPress' ), __( 'SearchPress' ), 'manage_options', 'searchpress_sync', array( $this, 'sync' ) );
+		$hook_suffix = add_management_page( __( 'SearchPress', SP_I18N ), __( 'SearchPress', SP_I18N ), 'manage_options', 'searchpress_sync', array( $this, 'sync' ) );
 	}
 
 
 	public function sync() {
-		if ( !current_user_can( 'manage_options' ) ) wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+		if ( !current_user_can( 'manage_options' ) ) wp_die( __( 'You do not have sufficient permissions to access this page.', SP_I18N ) );
 		$sync = SP_Sync_Meta();
 		?>
 		<div class="wrap">
 			<h2>SearchPress</h2>
+
+				<?php if ( isset( $_GET['error'] ) ) : ?>
+					<div class="error updated"><p><?php printf( __( 'An error has occurred: %s', SP_I18N ), esc_html( $this->get_error( $_GET['error'] ) ) ) ?></p></div>
+				<?php endif ?>
+
+				<?php if ( isset( $_GET['complete'] ) ) : ?>
+					<div class="updated success"><p><?php _e( 'Sync complete!', SP_I18N ); ?></p></div>
+				<?php endif ?>
 
 				<h3>Settings</h3>
 				<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
@@ -63,20 +72,24 @@ class SP_Admin {
 
 			<?php if ( $sync->running ) : ?>
 
-				<h3>Sync in progress</h3>
+				<h3><?php _e( 'Sync in progress', SP_I18N ); ?></h3>
+				<p><?php _e( 'You do not need to stay on this page while the sync runs.', SP_I18N ); ?></p>
 				<div class="progress">
 					<div class="progress-text"><span id="sync-processed"><?php echo number_format( intval( $sync->processed ) ) ?></span> / <span id="sync-total"><?php echo number_format( intval( $sync->total ) ) ?></span></div>
 					<div class="progress-bar" data-processed="<?php echo intval( $sync->processed ) ?>" data-total="<?php echo intval( $sync->total ) ?>" style="width:<?php echo intval( round( 100 * $sync->processed / $sync->total ) ) ?>%;"></div>
 				</div>
 				<script type="text/javascript">
 					var progress_total, progress_processed;
+					var sp_url = '<?php echo admin_url( 'tools.php?page=searchpress_sync&complete=1' ) ?>';
 					jQuery( function( $ ) {
 						progress_total = $( '.progress-bar' ).data( 'total' ) - 0;;
 						progress_processed = $( '.progress-bar' ).data( 'processed' ) - 0;
 						setInterval( function() {
 							$.get( ajaxurl, { action : 'sp_sync_status' }, function( data ) {
 								if ( data.processed ) {
-									if ( data.processed > progress_processed ) {
+									if ( data.processed == 'complete' ) {
+										document.location = sp_url;
+									} else if ( data.processed > progress_processed ) {
 										progress_processed = data.processed;
 										$( '#sync-processed' ).text( data.processed );
 										var new_width = Math.round( data.processed / progress_total * 100 );
@@ -95,17 +108,16 @@ class SP_Admin {
 
 			<?php else : ?>
 
-				<h3>Full Sync</h3>
-				<p>Running a full sync will wipe the current index if there is one and rebuild it from scratch.</p>
+				<h3><?php _e( 'Full Sync', SP_I18N ); ?></h3>
+				<p><?php _e( 'Running a full sync will wipe the current index if there is one and rebuild it from scratch.', SP_I18N ); ?></p>
 				<p>
-					Your site has <?php echo number_format( intval( SP_Sync_Manager()->count_posts() ) ) ?> posts to index.
+					<?php printf( _n( 'Your site has %s post to index.', 'Your site has %s posts to index.', intval( SP_Sync_Manager()->count_posts() ), SP_I18N ), number_format( intval( SP_Sync_Manager()->count_posts() ) ) ) ?>
 					<?php if ( SP_Sync_Manager()->count_posts() > 25000 ) : ?>
-						As a result of there being so many posts, this may take a long time to index.
+						<?php _e( 'As a result of there being so many posts, this may take a long time to index.', SP_I18N ); ?>
 					<?php endif ?>
-					Exactly how long this will take will vary on a number of factors, like your server's CPU and memory,
-					connection speed, current traffic, average post length, and associated terms and post meta.
+					<?php _e( "Exactly how long this will take will vary on a number of factors, like your server's CPU and memory, connection speed, current traffic, average post length, and associated terms and post meta.", SP_I18N ); ?>
 				</p>
-				<p>Your site will not use SearchPress until the indexing is complete.</p>
+				<p><?php _e( 'Your site will not use SearchPress until the indexing is complete.', SP_I18N ); ?></p>
 
 				<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
 					<input type="hidden" name="action" value="sp_full_sync" />
@@ -138,15 +150,20 @@ class SP_Admin {
 		if ( !isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( $_POST['sp_sync_nonce'], 'sp_sync' ) ) {
 			wp_die( 'You are not authorized to perform that action' );
 		} else {
-			SP_Sync_Manager()->do_cron_reindex();
-			wp_redirect( admin_url( 'tools.php?page=searchpress_sync' ) );
+			$result = SP_Config()->flush();
+			if ( ! isset( SP_API()->last_request['response_code'] ) || '200' != SP_API()->last_request['response_code'] ) {
+				wp_redirect( admin_url( 'tools.php?page=searchpress_sync&error=100' ) );
+			} else {
+				SP_Sync_Manager()->do_cron_reindex();
+				wp_redirect( admin_url( 'tools.php?page=searchpress_sync' ) );
+			}
 			exit;
 		}
 	}
 
 	public function cancel_sync() {
 		if ( !isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( $_POST['sp_sync_nonce'], 'sp_sync' ) ) {
-			wp_die( 'You are not authorized to perform that action' );
+			wp_die( __( 'You are not authorized to perform that action', SP_I18N ) );
 		} else {
 			SP_Sync_Manager()->cancel_reindex();
 			wp_redirect( admin_url( 'tools.php?page=searchpress_sync&cancel=1' ) );
@@ -155,10 +172,15 @@ class SP_Admin {
 	}
 
 	public function sp_sync_status() {
-		echo json_encode( array(
-			'processed' => SP_Sync_Meta()->processed,
-			'page' => SP_Sync_Meta()->page
-		) );
+		if ( SP_Sync_Meta()->running )
+			echo json_encode( array(
+				'processed' => SP_Sync_Meta()->processed,
+				'page' => SP_Sync_Meta()->page
+			) );
+		else
+			echo json_encode( array(
+				'processed' => 'complete'
+			) );
 		exit;
 	}
 
@@ -191,6 +213,33 @@ class SP_Admin {
 			}
 		</style>
 		<?php
+	}
+
+	public function get_error( $code ) {
+		switch ( $code ) {
+			case SP_ERROR_FLUSH_FAIL : return __( 'SearchPress could not flush the old data', SP_I18N );
+		}
+		return __( 'Unknown error', SP_I18N );
+	}
+
+	public function admin_notices() {
+		if ( 'searchpress_sync' == $_GET['page'] ) {
+			return;
+		} elseif ( SP_Sync_Meta()->running ) {
+			printf(
+				'<div class="updated"><p>%s <a href="%s">%s</a></p></div>',
+				__( 'SearchPress sync is currently running.', SP_I18N ),
+				admin_url( 'tools.php?page=searchpress_sync' ),
+				__( 'View status', SP_I18N )
+			);
+		} elseif ( SP_Sync_Meta()->first_run ) {
+			printf(
+				'<div class="updated error"><p>%s <a href="%s">%s</a></p></div>',
+				__( 'SearchPress needs to be configured and synced before you can use it.', SP_I18N ),
+				admin_url( 'tools.php?page=searchpress_sync' ),
+				__( 'Go to SearchPress Settings', SP_I18N )
+			);
+		}
 	}
 }
 

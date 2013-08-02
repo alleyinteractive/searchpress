@@ -211,10 +211,10 @@ class SP_Sync_Manager {
 		error_log( "Saving sync_meta, page is {$sync_meta->page}" );
 
 		if ( $sync_meta->processed >= $sync_meta->total ) {
-			$sync_meta->running = false;
+			$this->cancel_reindex();
+		} else {
+			$sync_meta->save();
 		}
-
-		$sync_meta->save();
 		return true;
 	}
 

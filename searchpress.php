@@ -31,6 +31,9 @@ if ( !defined( 'SP_PLUGIN_DIR' ) )
 	define( 'SP_PLUGIN_DIR', __DIR__ );
 
 # To communicate with the ES API
+require_once SP_PLUGIN_DIR . '/lib/globals.php';
+
+# To communicate with the ES API
 require_once SP_PLUGIN_DIR . '/lib/class-sp-api.php';
 
 # Settings, mappings, etc. for ES
