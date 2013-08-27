@@ -28,17 +28,21 @@ class SP_Config {
 		return self::$instance;
 	}
 
+
 	public function setup() {
 		# initialize anything for the singleton here
 	}
+
 
 	public function sync_statuses() {
 		return apply_filters( 'sp_config_sync_statuses', array( 'publish' ) );
 	}
 
+
 	public function sync_post_types() {
 		return apply_filters( 'sp_config_sync_post_types', get_post_types( array( 'exclude_from_search' => false ) ) );
 	}
+
 
 	public function create_mapping() {
 		$mapping = array(
@@ -230,9 +234,11 @@ class SP_Config {
 		return SP_API()->put( '', json_encode( $mapping ) );
 	}
 
+
 	public function flush() {
 		return SP_API()->delete();
 	}
+
 
 	/**
 	 * Should we attempt to unserialize post meta?
@@ -241,17 +247,21 @@ class SP_Config {
 	 * @todo implement this as a site option
 	 */
 	public function unserialize_meta() {
-		return false;
+		return apply_filters( 'sp_config_unserialize_meta', false );
 	}
 
 
 	public function get_settings() {
 		$settings = get_option( 'sp_settings' );
 		$this->settings = wp_parse_args( $settings, array(
-			'host' => 'http://localhost:9200'
+			'host'      => 'http://localhost:9200',
+			'must_init' => true,
+			'active'    => false,
+			'last_beat' => false
 		) );
 		return $this->settings;
 	}
+
 
 	public function get_setting( $key ) {
 		if ( ! $this->settings )
@@ -259,12 +269,19 @@ class SP_Config {
 		return isset( $this->settings[ $key ] ) ? $this->settings[ $key ] : null;
 	}
 
+
+	public function __call( $method, $value ) {
+		return $this->get_setting( $method );
+	}
+
+
 	public function update_settings( $new_settings = array() ) {
 		if ( ! $this->settings )
 			$this->get_settings();
 		$this->settings = wp_parse_args( $new_settings, $this->settings );
 		update_option( 'sp_settings', $this->settings )	;
 	}
+
 }
 
 function SP_Config() {

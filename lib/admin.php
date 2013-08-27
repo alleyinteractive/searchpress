@@ -65,6 +65,9 @@ class SP_Admin {
 					<p>
 						<input type="text" name="sp_host" value="<?php echo esc_url( SP_Config()->get_setting( 'host' ) ) ?>" style="width:100%;max-width:500px" />
 					</p>
+					<p>
+						<label for="sp_reindex"><input type="checkbox" name="sp_reindex" id="sp_reindex" value="1" /> <?php _e( 'Immediately initiate a full sync', SP_I18N ); ?>
+					</p>
 					<?php submit_button( 'Save Settings', 'primary' ) ?>
 				</form>
 
@@ -136,12 +139,24 @@ class SP_Admin {
 		} else {
 			$updates = array();
 
-			if ( isset( $_POST['sp_host'] ) )
-				$updates['host'] = esc_url( $_POST['sp_host'] );
+			if ( isset( $_POST['sp_host'] ) ) {
+				$updates['host']      = esc_url( $_POST['sp_host'] );
+			}
+			$do_full_sync = isset( $_POST['sp_reindex'] ) && '1' == $_POST['sp_reindex'];
+			if ( $do_full_sync ) {
+				$updates['active']    = false;
+				$updates['last_beat'] = false;
+
+				# We need this for the full sync
+				$_POST['sp_sync_nonce'] = wp_create_nonce( 'sp_sync' );
+			}
 
 			SP_Config()->update_settings( $updates );
 
-			wp_redirect( admin_url( 'tools.php?page=searchpress_sync&save=1' ) );
+			if ( $do_full_sync )
+				$this->full_sync();
+			else
+				wp_redirect( admin_url( 'tools.php?page=searchpress_sync&save=1' ) );
 			exit;
 		}
 	}
@@ -223,7 +238,7 @@ class SP_Admin {
 	}
 
 	public function admin_notices() {
-		if ( 'searchpress_sync' == $_GET['page'] ) {
+		if ( isset( $_GET['page'] ) && 'searchpress_sync' == $_GET['page'] ) {
 			return;
 		} elseif ( SP_Sync_Meta()->running ) {
 			printf(
@@ -232,7 +247,7 @@ class SP_Admin {
 				admin_url( 'tools.php?page=searchpress_sync' ),
 				__( 'View status', SP_I18N )
 			);
-		} elseif ( SP_Sync_Meta()->first_run ) {
+		} elseif ( SP_Config()->must_init() ) {
 			printf(
 				'<div class="updated error"><p>%s <a href="%s">%s</a></p></div>',
 				__( 'SearchPress needs to be configured and synced before you can use it.', SP_I18N ),

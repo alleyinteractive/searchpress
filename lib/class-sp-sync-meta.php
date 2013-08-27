@@ -10,7 +10,6 @@ if ( !class_exists( 'SP_Sync_Meta' ) ) :
 class SP_Sync_Meta {
 
 	private static $instance;
-	public $first_run     = false;
 	public $running       = false;
 	public $start         = 0;
 	public $bulk          = 500;
@@ -59,7 +58,6 @@ class SP_Sync_Meta {
 
 	public function save() {
 		update_option( 'sp_sync_meta', array(
-			'first_run' => $this->first_run,
 			'running'   => $this->running,
 			'start'     => $this->start,
 			'bulk'      => $this->bulk,

@@ -53,7 +53,7 @@ class SP_Search {
 	}
 
 	public function setup() {
-		if ( ! is_admin() ) {
+		if ( ! is_admin() && SP_Config()->active() ) {
 			$this->init_hooks();
 		}
 	}
