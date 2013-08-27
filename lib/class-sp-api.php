@@ -39,7 +39,8 @@ class SP_API {
 	}
 
 	public function setup() {
-		$this->index = get_current_blog_id();
+		$url = get_site_url();
+		$this->index = preg_replace( '#^.*?//(.*?)/?$#', '$1', $url );
 		$this->host = SP_Config()->get_setting( 'host' );
 		$this->request_defaults = array(
 			'sslverify'          => false,
