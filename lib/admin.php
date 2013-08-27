@@ -180,17 +180,18 @@ class SP_Admin {
 	}
 
 	public function sp_sync_status() {
-		if ( SP_Sync_Meta()->running )
+		if ( SP_Sync_Meta()->running ) {
 			echo json_encode( array(
 				'processed' => SP_Sync_Meta()->processed,
 				'page' => SP_Sync_Meta()->page
 			) );
-		else
+		} else {
 			SP_Config()->update_settings( array( 'active' => true ) );
 
 			echo json_encode( array(
 				'processed' => 'complete'
 			) );
+		}
 		exit;
 	}
 
