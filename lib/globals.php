@@ -3,7 +3,7 @@
 /**
  * Miscellaneous Constants
  */
-define( 'SP_I18N', 'searchpress' );
+
 
 
 /**
