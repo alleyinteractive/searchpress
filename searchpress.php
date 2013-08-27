@@ -61,7 +61,7 @@ require_once SP_PLUGIN_DIR . '/lib/class-sp-cron.php';
 # Manages metadata for the syncing process
 require_once SP_PLUGIN_DIR . '/lib/class-sp-sync-meta.php';
 
-# Manages metadata for the syncing process
+# Runs the search process
 require_once SP_PLUGIN_DIR . '/lib/class-sp-search.php';
 
 if ( is_admin() ) {

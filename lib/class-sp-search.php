@@ -93,7 +93,7 @@ class SP_Search {
 			'query'          => null,    // Search phrase
 			'query_fields'   => array( 'post_title', 'post_content', 'post_author_name', 'post_excerpt' ),
 
-			'post_type'      => 'post',  // string or an array
+			'post_type'      => null,  // string or an array
 			'terms'          => array(), // ex: array( 'taxonomy-1' => array( 'slug' ), 'taxonomy-2' => array( 'slug-a', 'slug-b' ) )
 
 			'author'         => null,    // id or an array of ids
