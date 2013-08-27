@@ -91,7 +91,8 @@ class SP_Admin {
 							$.get( ajaxurl, { action : 'sp_sync_status' }, function( data ) {
 								if ( data.processed ) {
 									if ( data.processed == 'complete' ) {
-										document.location = sp_url;
+										$( '#sync-processed' ).text( progress_total );
+										$( '.progress-bar' ).animate( { width: '100%' }, 1000, 'swing', function() { document.location = sp_url; } );
 									} else if ( data.processed > progress_processed ) {
 										progress_processed = data.processed;
 										$( '#sync-processed' ).text( data.processed );
@@ -137,36 +138,28 @@ class SP_Admin {
 		if ( !isset( $_POST['sp_settings_nonce'] ) || ! wp_verify_nonce( $_POST['sp_settings_nonce'], 'sp_settings' ) ) {
 			wp_die( 'You are not authorized to perform that action' );
 		} else {
-			$updates = array();
-
 			if ( isset( $_POST['sp_host'] ) ) {
-				$updates['host']      = esc_url( $_POST['sp_host'] );
+				SP_Config()->update_settings( array( 'host' => esc_url( $_POST['sp_host'] ) ) );
 			}
-			$do_full_sync = isset( $_POST['sp_reindex'] ) && '1' == $_POST['sp_reindex'];
-			if ( $do_full_sync ) {
-				$updates['active']    = false;
-				$updates['last_beat'] = false;
-
-				# We need this for the full sync
+			if ( isset( $_POST['sp_reindex'] ) && '1' == $_POST['sp_reindex'] ) {
+				# The full sync process checks the nonce, so we have to insert it into the postdata
 				$_POST['sp_sync_nonce'] = wp_create_nonce( 'sp_sync' );
-			}
-
-			SP_Config()->update_settings( $updates );
-
-			if ( $do_full_sync )
 				$this->full_sync();
-			else
+			} else {
 				wp_redirect( admin_url( 'tools.php?page=searchpress_sync&save=1' ) );
-			exit;
+			}
 		}
+
+		exit;
 	}
 
 	public function full_sync() {
 		if ( !isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( $_POST['sp_sync_nonce'], 'sp_sync' ) ) {
 			wp_die( 'You are not authorized to perform that action' );
 		} else {
+			SP_Config()->update_settings( array( 'must_init' => false, 'active' => false, 'last_beat' => false ) );
 			$result = SP_Config()->flush();
-			if ( ! isset( SP_API()->last_request['response_code'] ) || '200' != SP_API()->last_request['response_code'] ) {
+			if ( ! isset( SP_API()->last_request['response_code'] ) || ! in_array( SP_API()->last_request['response_code'], array( 200, 404 ) ) ) {
 				wp_redirect( admin_url( 'tools.php?page=searchpress_sync&error=100' ) );
 			} else {
 				SP_Sync_Manager()->do_cron_reindex();
@@ -193,6 +186,8 @@ class SP_Admin {
 				'page' => SP_Sync_Meta()->page
 			) );
 		else
+			SP_Config()->update_settings( array( 'active' => true ) );
+
 			echo json_encode( array(
 				'processed' => 'complete'
 			) );
