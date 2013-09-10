@@ -88,20 +88,20 @@ class SP_Admin {
 						progress_total = $( '.progress-bar' ).data( 'total' ) - 0;;
 						progress_processed = $( '.progress-bar' ).data( 'processed' ) - 0;
 						setInterval( function() {
-							$.get( ajaxurl, { action : 'sp_sync_status' }, function( data ) {
+							jQuery.get( ajaxurl, { action : 'sp_sync_status', t : new Date().getTime() }, function( data ) {
 								if ( data.processed ) {
 									if ( data.processed == 'complete' ) {
-										$( '#sync-processed' ).text( progress_total );
-										$( '.progress-bar' ).animate( { width: '100%' }, 1000, 'swing', function() { document.location = sp_url; } );
+										jQuery( '#sync-processed' ).text( progress_total );
+										jQuery( '.progress-bar' ).animate( { width: '100%' }, 1000, 'swing', function() { document.location = sp_url; } );
 									} else if ( data.processed > progress_processed ) {
 										progress_processed = data.processed;
-										$( '#sync-processed' ).text( data.processed );
+										jQuery( '#sync-processed' ).text( data.processed );
 										var new_width = Math.round( data.processed / progress_total * 100 );
-										$( '.progress-bar' ).animate( { width: new_width + '%' }, 1000 );
+										jQuery( '.progress-bar' ).animate( { width: new_width + '%' }, 1000 );
 									}
 								}
 							}, 'json' );
-						}, 5000);
+						}, 5000 );
 					} );
 				</script>
 				<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
@@ -162,6 +162,7 @@ class SP_Admin {
 			if ( ! isset( SP_API()->last_request['response_code'] ) || ! in_array( SP_API()->last_request['response_code'], array( 200, 404 ) ) ) {
 				wp_redirect( admin_url( 'tools.php?page=searchpress_sync&error=100' ) );
 			} else {
+				SP_Config()->create_mapping();
 				SP_Sync_Manager()->do_cron_reindex();
 				wp_redirect( admin_url( 'tools.php?page=searchpress_sync' ) );
 			}

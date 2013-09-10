@@ -31,7 +31,7 @@ class SP_Cron {
 	}
 
 	public function reindex() {
-		error_log( 'cron reindexing!' );
+		// error_log( 'cron reindexing!' );
 		SP_Sync_Manager()->do_index_loop();
 		if ( SP_Sync_Meta()->running )
 			$this->schedule_reindex();
@@ -45,7 +45,7 @@ class SP_Cron {
 
 	public function cancel_reindex() {
 		wp_clear_scheduled_hook( 'sp_reindex' );
-		SP_Sync_Meta()->delete();
+		SP_Sync_Meta()->delete( 'init' );
 	}
 }
 

@@ -75,7 +75,7 @@ class SP_Config {
 			# 'index' => array( 'query' => 'default_field' )
 			'mappings' => array(
 				'post' => array(
-					'date_detection' => false,
+					"date_detection" => false,
 					"dynamic_templates" => array(
 						array(
 							"template_meta" => array(

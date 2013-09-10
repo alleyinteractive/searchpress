@@ -22,6 +22,8 @@ class SP_Sync_Manager {
 	public $sync_meta;
 
 	public $published_posts = false;
+	public $total_pages = 1;
+	public $batch_pages = 1;
 
 	public $batch_size = 25;
 
@@ -117,7 +119,6 @@ class SP_Sync_Manager {
 	}
 
 
-
 	/**
 	 * Get all the posts in a given range and control for memory leaks
 	 *
@@ -126,7 +127,7 @@ class SP_Sync_Manager {
 	 * @return string JSON array
 	 */
 	public function get_range( $start, $limit ) {
-		error_log( "Getting $limit posts starting at $start" );
+		// error_log( "Process: Getting $limit posts starting at $start" );
 		$posts = array();
 
 		# Run the loop in batches to contain memory leaks
@@ -142,6 +143,7 @@ class SP_Sync_Manager {
 			$limit -= $ceil;
 			$this->contain_memory_leaks();
 		}
+		// error_log( "Process: Received " . count( $posts ) . " posts" );
 		return $posts;
 	}
 
@@ -156,13 +158,15 @@ class SP_Sync_Manager {
 		$args = wp_parse_args( $args, array(
 			'post_status'      => 'publish',
 			'post_type'        => get_post_types( array( 'exclude_from_search' => false ) ),
-			'suppress_filters' => false
+			'orderby'          => 'ID',
+			'order'            => 'ASC'
 		) );
 
 		$query = new WP_Query;
 		$posts = $query->query( $args );
 
 		$this->published_posts = $query->found_posts;
+		$this->batch_pages = $query->max_num_pages;
 
 		$indexed_posts = array();
 		foreach ( $posts as $post ) {
@@ -173,18 +177,25 @@ class SP_Sync_Manager {
 
 
 	public function do_index_loop() {
-		error_log( 'Looping!' );
+		// error_log( 'Looping!' );
 		$sync_meta = SP_Sync_Meta();
-		error_log( "Loaded sync_meta, page is {$sync_meta->page}" );
+		// error_log( "Loaded sync_meta, page is {$sync_meta->page}" );
 
-		$start = $sync_meta->page++ * $sync_meta->bulk;
+		$start = $sync_meta->page * $sync_meta->bulk;
 		$posts = $this->get_range( $start, $sync_meta->bulk );
+		// Reload the sync meta to ensure it hasn't been canceled while we were getting those posts
+		$sync_meta->reload();
 
-		if ( !$posts || is_wp_error( $posts ) )
+		if ( !$posts || is_wp_error( $posts ) || ! $sync_meta->running )
 			return false;
 
 		$response = SP_API()->index_posts( $posts );
 		// error_log( print_r( $response, 1 ) );
+
+		$sync_meta->reload();
+		if ( ! $sync_meta->running )
+			return false;
+
 		$sync_meta->current_count = count( $posts );
 		$sync_meta->processed += $sync_meta->current_count;
 
@@ -208,9 +219,11 @@ class SP_Sync_Manager {
 			}
 		}
 
-		error_log( "Saving sync_meta, page is {$sync_meta->page}" );
+		$this->total_pages = ceil( $this->published_posts / $sync_meta->bulk );
+		$sync_meta->page++;
+		// error_log( "Saving sync_meta, page is {$sync_meta->page}" );
 
-		if ( $sync_meta->processed >= $sync_meta->total ) {
+		if ( $sync_meta->processed >= $sync_meta->total || $sync_meta->page > $this->total_pages ) {
 			$this->cancel_reindex();
 		} else {
 			$sync_meta->save();
@@ -228,7 +241,6 @@ class SP_Sync_Manager {
 
 	public function cancel_reindex() {
 		SP_Cron()->cancel_reindex();
-		SP_Sync_Meta()->delete();
 	}
 
 

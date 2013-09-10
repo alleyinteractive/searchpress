@@ -10,17 +10,17 @@ if ( !class_exists( 'SP_Sync_Meta' ) ) :
 class SP_Sync_Meta {
 
 	private static $instance;
-	public $running       = false;
-	public $start         = 0;
-	public $bulk          = 500;
-	public $limit         = false;
-	public $page          = 0;
-	public $total         = 0;
-	public $processed     = 0;
-	public $success       = 0;
-	public $error         = 0;
-	public $current_count = 0;
-	public $messages      = array();
+	public $running;
+	public $start;
+	public $bulk;
+	public $limit;
+	public $page;
+	public $total;
+	public $processed;
+	public $success;
+	public $error;
+	public $current_count;
+	public $messages;
 
 	private function __construct() {
 		/* Don't do anything, needs to be initialized via instance() method */
@@ -38,15 +38,33 @@ class SP_Sync_Meta {
 		return self::$instance;
 	}
 
+
 	public function setup() {
 		if ( defined( 'SP_CLI' ) && SP_CLI )
 			return;
+
+		$this->init();
 
 		if ( false != ( $sync_meta = get_option( 'sp_sync_meta' ) ) ) {
 			foreach ( $sync_meta as $key => $value ) {
 				$this->$key = $value;
 			}
 		}
+	}
+
+
+	private function init() {
+		$this->running       = false;
+		$this->start         = 0;
+		$this->bulk          = 500;
+		$this->limit         = false;
+		$this->page          = 0;
+		$this->total         = 0;
+		$this->processed     = 0;
+		$this->success       = 0;
+		$this->error         = 0;
+		$this->current_count = 0;
+		$this->messages      = array();
 	}
 
 
@@ -57,7 +75,8 @@ class SP_Sync_Meta {
 
 
 	public function save() {
-		update_option( 'sp_sync_meta', array(
+		$this->delete();
+		add_option( 'sp_sync_meta', array(
 			'running'   => $this->running,
 			'start'     => $this->start,
 			'bulk'      => $this->bulk,
@@ -67,16 +86,19 @@ class SP_Sync_Meta {
 			'processed' => $this->processed,
 			'success'   => $this->success,
 			'error'     => $this->error
-		) );
+		), '', 'no' );
 	}
 
 
-	public function delete() {
+	public function delete( $do_init = '' ) {
 		delete_option( 'sp_sync_meta' );
+		if ( 'init' == $do_init )
+			$this->init();
 	}
 
 
 	public function reload() {
+		wp_cache_delete( 'sp_sync_meta', 'options' );
 		$this->setup();
 	}
 
