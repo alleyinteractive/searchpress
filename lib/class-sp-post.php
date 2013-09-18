@@ -7,29 +7,8 @@
 */
 class SP_Post {
 
-	# Core post fields
-	public $post_id;
-	public $post_author;
-	public $post_date;
-	public $post_date_gmt;
-	public $post_content;
-	public $post_title;
-	public $post_excerpt;
-	public $post_status;
-	public $post_name;
-	public $post_modified;
-	public $post_modified_gmt;
-	public $post_parent;
-	public $post_type;
-	public $post_mime_type;
-
-	# Linked objects
-	public $terms;
-	public $post_meta;
-
-	# Additional attributes
-	public $permalink;
-
+	# This stores what will eventually become our JSON
+	public $data = array();
 
 	/**
 	 * Instantiate the class
@@ -48,6 +27,35 @@ class SP_Post {
 
 
 	/**
+	 * Use magic methods to make the normal post properties available in
+	 * OOP style accessing
+	 *
+	 * @param string $property
+	 * @param mixed $value
+	 * @return void
+	 */
+	public function __set( $property, $value ) {
+		$this->data[ $property ] = $value;
+	}
+
+	/**
+	 * Use magic methods to make the normal post properties available in
+	 * OOP style accessing
+	 *
+	 * @param string $property
+	 * @param mixed $value
+	 * @return void
+	 */
+	public function __get( $property ) {
+		# let the post ID be accessed either way
+		if ( 'ID' == $property )
+			$property = 'post_id';
+
+		return isset( $this->data[ $property ] ) ? $this->data[ $property ] : null;
+	}
+
+
+	/**
 	 * Populate this object with all of the post's properties
 	 *
 	 * @param object $post
@@ -56,25 +64,25 @@ class SP_Post {
 	public function fill( $post ) {
 		$apply_filters = apply_filters( 'sp_post_index_filtered_data', false );
 
-		$this->post_id           = $post->ID;
+		$this->data['post_id']           = $post->ID;
 		# We're storing the login here instead of user ID, as that's more flexible
-		$this->post_author       = $this->get_user( $post->post_author );
-		$this->post_date         = $post->post_date;
-		$this->post_date_gmt     = $post->post_date_gmt;
-		$this->post_content      = $apply_filters ? str_replace( ']]>', ']]&gt;', apply_filters( 'the_content', $post->post_content ) ) : $post->post_content;
-		$this->post_title        = $apply_filters ? get_the_title( $post->ID ) : $post->post_title;
-		$this->post_excerpt      = $post->post_excerpt;
-		$this->post_status       = $post->post_status;
-		$this->post_name         = $post->post_name;
-		$this->post_modified     = $post->post_modified;
-		$this->post_modified_gmt = $post->post_modified_gmt;
-		$this->post_parent       = $post->post_parent;
-		$this->post_type         = $post->post_type;
-		$this->post_mime_type    = $post->post_mime_type;
-		$this->permalink         = get_permalink( $post->ID );
+		$this->data['post_author']       = $this->get_user( $post->post_author );
+		$this->data['post_date']         = $post->post_date;
+		$this->data['post_date_gmt']     = $post->post_date_gmt;
+		$this->data['post_title']        = $apply_filters ? get_the_title( $post->ID ) : $post->post_title;
+		$this->data['post_excerpt']      = $post->post_excerpt;
+		$this->data['post_content']      = $apply_filters ? str_replace( ']]>', ']]&gt;', apply_filters( 'the_content', $post->post_content ) ) : $post->post_content;
+		$this->data['post_status']       = $post->post_status;
+		$this->data['post_name']         = $post->post_name;
+		$this->data['post_modified']     = $post->post_modified;
+		$this->data['post_modified_gmt'] = $post->post_modified_gmt;
+		$this->data['post_parent']       = $post->post_parent;
+		$this->data['post_type']         = $post->post_type;
+		$this->data['post_mime_type']    = $post->post_mime_type;
+		$this->data['permalink']         = get_permalink( $post->ID );
 
-		$this->terms             = $this->get_terms( $post );
-		$this->post_meta         = $this->get_meta( $post->ID );
+		$this->data['terms']             = $this->get_terms( $post );
+		$this->data['post_meta']         = $this->get_meta( $post->ID );
 	}
 
 
@@ -129,10 +137,10 @@ class SP_Post {
 		$terms = array();
 		foreach ( (array) $object_terms as $term ) {
 			$terms[ $term->taxonomy ][] = array(
-				'term_id'     => $term->term_id,
-				'slug'        => $term->slug,
-				'name'        => $term->name,
-				'parent'      => $term->parent
+				'term_id' => $term->term_id,
+				'slug'    => $term->slug,
+				'name'    => $term->name,
+				'parent'  => $term->parent
 			);
 		}
 		return $terms;
@@ -166,20 +174,19 @@ class SP_Post {
 	 * @return string
 	 */
 	public function to_json() {
-		return json_encode( apply_filters( 'sp_post_pre_index', $this ) );
+		return json_encode( apply_filters( 'sp_post_pre_index', $this->data ) );
 	}
 
 
 	public function should_be_indexed() {
 		# Check post type
-		if ( ! in_array( $this->post_type, SP_Config()->sync_post_types() ) )
+		if ( ! in_array( $this->data['post_type'], SP_Config()->sync_post_types() ) )
 			return false;
 
 		# Check post status
-		if ( ! in_array( $this->post_status, SP_Config()->sync_statuses() ) )
+		if ( ! in_array( $this->data['post_status'], SP_Config()->sync_statuses() ) )
 			return false;
 
 		return apply_filters( 'sp_post_should_be_indexed', true, $this );
 	}
-
 }
