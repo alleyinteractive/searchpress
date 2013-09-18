@@ -30,9 +30,12 @@ class SP_Search {
 	public $facets = array();
 
 	private $do_found_posts;
+
 	private $found_posts = 0;
 
 	private $search_result;
+
+	private $sp;
 
 	private static $instance;
 
@@ -59,26 +62,68 @@ class SP_Search {
 	}
 
 	public function init_hooks() {
-		// Checks to see if we need to worry about found_posts
+		# Checks to see if we need to worry about found_posts
 		add_filter( 'post_limits_request', array( $this, 'filter__post_limits_request' ), 999, 2 );
 
-		// Replaces the standard search query with one that fetches the posts based on post IDs supplied by ES
+		# Replaces the standard search query with one that fetches the posts based on post IDs supplied by ES
 		add_filter( 'posts_request',       array( $this, 'filter__posts_request' ),         5, 2 );
 
-		// Nukes the FOUND_ROWS() database query
+		# Nukes the FOUND_ROWS() database query
 		add_filter( 'found_posts_query',   array( $this, 'filter__found_posts_query' ),     5, 2 );
 
-		// Since the FOUND_ROWS() query was nuked, we need to supply the total number of found posts
+		# Since the FOUND_ROWS() query was nuked, we need to supply the total number of found posts
 		add_filter( 'found_posts',         array( $this, 'filter__found_posts' ),           5, 2 );
+
+		# Add our custom query var for advanced searches
+		add_filter( 'query_vars',          array( $this, 'query_vars' ) );
+
+		# Force the search template if ?sp[force]=1
+		add_action( 'parse_query',         array( $this, 'force_search_template' ), 5 );
+	}
+
+
+	/**
+	 * Add a query var for holding advanced search fields
+	 *
+	 * @param array $qv
+	 * @return array
+	 */
+	public function query_vars( $qv ) {
+		$qv[] = 'sp';
+		return $qv;
+	}
+
+
+	/**
+	 * Set a faceted search as a search (and thus force the search template). A hook for the parse_query action.
+	 *
+	 * @param object $wp_query The current WP_Query. Passed by reference and modified if necessary.
+	 * @return void
+	 * @author Matthew Boynes
+	 */
+	public function force_search_template( &$wp_query ) {
+		if ( ! $wp_query->is_main_query() )
+			return;
+
+		# Load our sp query string variable
+		$this->sp = get_query_var( 'sp' );
+
+		# If this is a search, but not a keyword search, we have to fake it
+		if ( ! $wp_query->is_search() && ! empty( $this->sp ) && '1' == $this->sp['force'] ) {
+			# First, we'll set the search string to something phony
+			$wp_query->set( 's', '1441f19754335ca4638bfdf1aea00c6d' );
+			$wp_query->is_search = true;
+			$wp_query->is_home = false;
+		}
 	}
 
 
 	public function search( $es_args ) {
 		$es_args = apply_filters( 'sp_search_query_args', $es_args );
-		// sp_dump( $es_args );
+		# sp_dump( $es_args );
 		return SP_API()->search( json_encode( $es_args ), array( 'output' => ARRAY_A ) );
 		# Do something with the results
-		// sp_dump( $results );
+		# sp_dump( $results );
 	}
 
 	public function wp_search( $wp_args ) {
@@ -91,10 +136,17 @@ class SP_Search {
 	public function wp_to_es_args( $args ) {
 		$defaults = array(
 			'query'          => null,    // Search phrase
-			'query_fields'   => array( 'post_title', 'post_content', 'post_author_name', 'post_excerpt' ),
+			'query_fields'   => array(
+				'post_title^3',
+				'post_excerpt^2',
+				'post_content',
+				'post_author_name',
+				'terms.category.name',
+				'terms.post_tag.name'
+			),
 
 			'post_type'      => null,  // string or an array
-			'terms'          => array(), // ex: array( 'taxonomy-1' => array( 'slug' ), 'taxonomy-2' => array( 'slug-a', 'slug-b' ) )
+			'terms'          => array(), // ex: array( 'taxonomy-1' => 'slug', 'taxonomy-2' => 'slug-a,slug-b', 'taxonomy-3' => 'slug-c+slug-d+slug-e' )
 
 			'author'         => null,    // id or an array of ids
 			'author_name'    => array(), // string or an array
@@ -174,22 +226,26 @@ class SP_Search {
 
 		if ( is_array( $args['terms'] ) ) {
 			foreach ( $args['terms'] as $tax => $terms ) {
+				if ( strpos( $terms, ',' ) ) {
+					$terms = explode( ',', $terms );
+					$comp = 'or';
+				} else {
+					$terms = explode( '+', $terms );
+					$comp = 'and';
+				}
+
 				$terms = (array) $terms;
 				if ( count( $terms ) ) {
-					switch ( $tax ) {
-						case 'post_tag':
-							$tax_fld = 'tag.slug';
-							break;
-						case 'category':
-							$tax_fld = 'category.slug';
-							break;
-						default:
-							$tax_fld = 'taxonomy.' . $tax . '.slug';
-							break;
-					}
+					$tax_fld = 'terms.' . $tax . '.slug';
 					foreach ( $terms as $term ) {
-						$filters[] = array( 'term' => array( $tax_fld => $term ) );
+						if ( 'and' == $comp )
+							$filters[] = array( 'term' => array( $tax_fld => $term ) );
+						else
+							$or[] = array( 'term' => array( $tax_fld => $term ) );
 					}
+
+					if ( 'or' == $comp )
+						$filters[] = array( 'or' => $or );
 				}
 			}
 		}
@@ -205,11 +261,15 @@ class SP_Search {
 		//  todo: add fuzzy searching to correct for spelling mistakes
 		//  todo: boost title, tag, and category matches
 		if ( $args['query'] ) {
-			$es_query_args['query'] = array( 'multi_match' => array(
-				'query'  => $args['query'],
-				'fields' => $args['query_fields'],
-				'operator'  => 'and',
-			) );
+			$multi_match = array( array( 'multi_match' => array(
+				'query'    => $args['query'],
+				'fields'   => $args['query_fields'],
+				'operator' => 'and'
+			) ) );
+
+			$multi_match = $this->setup_multi_match_query( $multi_match );
+
+			$es_query_args['query']['bool']['must'] = $multi_match;
 
 			if ( ! $args['orderby'] ) {
 				$args['orderby'] = array( 'relevance' );
@@ -240,10 +300,11 @@ class SP_Search {
 					$es_query_args['sort'][] = array( '_score' => array( 'order' => $args['order'] ) );
 					break;
 				case 'date' :
-					$es_query_args['sort'][] = array( 'date' => array( 'order' => $args['order'] ) );
+					$es_query_args['sort'][] = array( 'post_date' => array( 'order' => $args['order'] ) );
 					break;
 				case 'ID' :
-					$es_query_args['sort'][] = array( 'id' => array( 'order' => $args['order'] ) );
+				case 'id' :
+					$es_query_args['sort'][] = array( 'post_id' => array( 'order' => $args['order'] ) );
 					break;
 				case 'author' :
 					$es_query_args['sort'][] = array( 'author.raw' => array( 'order' => $args['order'] ) );
@@ -259,24 +320,9 @@ class SP_Search {
 				switch ( $facet['type'] ) {
 
 					case 'taxonomy':
-						switch ( $facet['taxonomy'] ) {
-
-							case 'post_tag':
-								$field = 'tag';
-								break;
-
-							case 'category':
-								$field = 'category';
-								break;
-
-							default:
-								$field = 'taxonomy.' . $facet['taxonomy'];
-								break;
-						} // switch $facet['taxonomy']
-
-						$es_query_args['facets'][$label] = array(
+						$es_query_args['facets'][ $label ] = array(
 							'terms' => array(
-								'field' => $field . '.term_id',
+								'field' => "terms.{$facet['taxonomy']}.slug",
 								'size' => $facet['count'],
 							),
 						);
@@ -284,7 +330,7 @@ class SP_Search {
 						break;
 
 					case 'post_type':
-						$es_query_args['facets'][$label] = array(
+						$es_query_args['facets'][ $label ] = array(
 							'terms' => array(
 								'field' => 'post_type',
 								'size' => $facet['count'],
@@ -294,7 +340,7 @@ class SP_Search {
 						break;
 
 					case 'date_histogram':
-						$es_query_args['facets'][$label] = array(
+						$es_query_args['facets'][ $label ] = array(
 							'date_histogram' => array(
 								'interval' => $facet['interval'],
 								'field'    => ( ! empty( $facet['field'] ) && 'post_date_gmt' == $facet['field'] ) ? 'date_gmt' : 'date',
@@ -323,13 +369,17 @@ class SP_Search {
 		return $limits;
 	}
 
-	public function filter__posts_request( $sql, $query ) {
+	public function filter__posts_request( $sql, &$query ) {
 		global $wpdb;
 
 		if ( ! $query->is_main_query() || ! $query->is_search() )
 			return $sql;
 
 		$page = ( $query->get( 'paged' ) ) ? absint( $query->get( 'paged' ) ) : 1;
+
+		# If we put in a phony search term, remove it now
+		if ( '1441f19754335ca4638bfdf1aea00c6d' == $query->get( 's' ) )
+			$query->set( 's', '' );
 
 		// Start building the WP-style search query args
 		// They'll be translated to ES format args later
@@ -339,64 +389,16 @@ class SP_Search {
 			'paged'          => $page,
 		);
 
-		// Look for query variables that match registered and supported facets
-		foreach ( $this->facets as $label => $facet ) {
-			switch ( $facet['type'] ) {
-				case 'taxonomy':
-					$query_var = $this->get_taxonomy_query_var( $this->facets[ $label ]['taxonomy'] );
+		$query_vars = $this->parse_query( $query );
 
-					if ( ! $query_var )
-						continue 2;  // switch() is considered a looping structure
+		# Set taxonomy terms
+		if ( ! empty( $query_vars['terms'] ) )
+			$es_wp_query_args['terms'] = $query_vars['terms'];
 
-					if ( $query->get( $query_var ) )
-						$es_wp_query_args['terms'][ $this->facets[ $label ]['taxonomy'] ] = explode( ',', $query->get( $query_var ) );
+		# Set post types
+		$es_wp_query_args['post_type'] = $query_vars['post_type'];
 
-					// This plugon's custom "categery" isn't a real query_var, so manually handle it
-					if ( 'category' == $query_var && ! empty( $_GET[ $query_var ] ) ) {
-						$slugs = explode( ',', $_GET[ $query_var ] );
-
-						foreach ( $slugs as $slug ) {
-							$es_wp_query_args['terms'][ $this->facets[ $label ]['taxonomy'] ][] = $slug;
-						}
-					}
-
-					break;
-
-				case 'post_type':
-					if ( $query->get( 'post_type' ) && 'any' != $query->get( 'post_type' ) ) {
-						$post_types_via_user = $query->get( 'post_type' );
-					}
-					elseif ( ! empty( $_GET['post_type'] ) ) {
-						$post_types_via_user = explode( ',', $_GET['post_type'] );
-					} else {
-						$post_types_via_user = false;
-					}
-
-					$post_types = array();
-
-					// Validate post types, making sure they exist and are public
-					if ( $post_types_via_user ) {
-						foreach ( (array) $post_types_via_user as $post_type_via_user ) {
-							$post_type_object = get_post_type_object( $post_type_via_user );
-
-							if ( ! $post_type_object || $post_type_object->exclude_from_search )
-								continue;
-
-							$post_types[] = $post_type_via_user;
-						}
-					}
-
-					// Default to all non-excluded from search post types
-					if ( empty( $post_types ) )
-						$post_types = array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
-
-					$es_wp_query_args['post_type'] = $post_types;
-
-					break;
-			}
-		}
-
-		// Date
+		# Set date range
 		if ( $query->get( 'year' ) ) {
 			if ( $query->get( 'monthnum' ) ) {
 				// Padding
@@ -419,8 +421,23 @@ class SP_Search {
 				$date_end   = $query->get( 'year' ) . '-12-31 23:59:59';
 			}
 
-			$es_wp_query_args['date_range'] = array( 'field' => 'date', 'gte' => $date_start, 'lte' => $date_end );
+			$es_wp_query_args['date_range'] = array( 'gte' => $date_start, 'lte' => $date_end );
 		}
+
+		# Advanced search fields
+		if ( ! empty( $this->sp ) ) {
+			# Date from and to
+			if ( ! empty( $this->sp['f'] ) && $gte = strtotime( $this->sp['f'] ) ) {
+				$es_wp_query_args['date_range']['gte'] = date( 'Y-m-d 00:00:00', $gte );
+			}
+			if ( ! empty( $this->sp['t'] ) && $lte = strtotime( $this->sp['t'] ) ) {
+				$es_wp_query_args['date_range']['lte'] = date( 'Y-m-d 23:59:59', $lte );
+			}
+		}
+
+		if ( ! empty( $es_wp_query_args['date_range'] ) && empty( $es_wp_query_args['date_range']['field'] ) )
+			$es_wp_query_args['date_range']['field'] = 'post_date';
+
 
 		// Facets
 		if ( ! empty( $this->facets ) ) {
@@ -479,7 +496,6 @@ class SP_Search {
 	public function filter__found_posts( $found_posts, $query ) {
 		if ( ! $query->is_main_query() || ! $query->is_search() )
 			return $found_posts;
-
 		return $this->found_posts;
 	}
 
@@ -635,116 +651,6 @@ class SP_Search {
 		return $facets_data;
 	}
 
-	public function get_current_filters() {
-		$filters = array();
-
-		// Process dynamic query string keys (i.e. taxonomies)
-		foreach ( $this->facets as $label => $facet ) {
-			switch ( $facet['type'] ) {
-				case 'taxonomy':
-					$query_var = $this->get_taxonomy_query_var( $facet['taxonomy'] );
-
-					if ( ! $query_var || empty( $_GET[ $query_var ] ) )
-						continue 2;  // switch() is considered a looping structure
-
-					$slugs = explode( ',', $_GET[ $query_var ] );
-
-					$slug_count = count( $slugs );
-
-					foreach ( $slugs as $slug ) {
-						// Todo: caching here
-						$term = get_term_by( 'slug', $slug, $facet['taxonomy'] );
-
-						if ( ! $term || is_wp_error( $term ) )
-							continue;
-
-						$url = ( $slug_count > 1 ) ? add_query_arg( $query_var, implode( ',', array_diff( $slugs, array( $slug ) ) ) ) : remove_query_arg( $query_var );
-
-						$filters[] = array(
-							'url'  => $url,
-							'name' => $term->name,
-							'type' => ( ! empty( $facet['singular_title'] ) ) ? $facet['singular_title'] : get_taxonomy( $facet['taxonomy'] )->labels->singular_name,
-						);
-					}
-
-					break;
-
-				case 'post_type':
-					if ( empty( $_GET['post_type'] ) )
-						continue 2;
-
-					$post_types = explode( ',', $_GET[ 'post_type' ] );
-
-					$post_type_count = count( $post_types );
-
-					foreach ( $post_types as $post_type ) {
-						$post_type_object = get_post_type_object( $post_type );
-
-						if ( ! $post_type_object )
-							continue;
-
-						$url = ( $post_type_count > 1 ) ? add_query_arg( 'post_type', implode( ',', array_diff( $post_types, array( $post_type ) ) ) ) : remove_query_arg( 'post_type' );
-
-						$filters[] = array(
-							'url'  => $url,
-							'name' => $post_type_object->labels->singular_name,
-							'type' => ( ! empty( $facet['singular_title'] ) ) ? $facet['singular_title'] : $label,
-						);
-					}
-
-					break;
-
-				case 'date_histogram':
-					switch ( $facet['interval'] ) {
-						case 'year':
-							if ( empty( $_GET['year'] ) )
-								continue 3;
-
-							$filters[] = array(
-								'url'  => remove_query_arg( array( 'year', 'monthnum', 'day' ) ),
-								'name' => absint( $_GET['year'] ),
-								'type' => __( 'Year', 'wpcom-elasticsearch' ),
-							);
-
-							break;
-
-						case 'month':
-							if ( empty( $_GET['year'] ) || empty( $_GET['monthnum'] ) )
-								continue;
-
-							$filters[] = array(
-								'url'  => remove_query_arg( array( 'monthnum', 'day' ) ),
-								'name' => date( 'F Y', mktime( 0, 0, 0, absint( $_GET['monthnum'] ), 14, absint( $_GET['year'] ) ) ),
-								'type' => __( 'Month', 'wpcom-elasticsearch' ),
-							);
-
-							break;
-
-						case 'day':
-
-							if ( empty( $_GET['year'] ) || empty( $_GET['monthnum'] ) || empty( $_GET['day'] ) )
-								continue;
-
-							$filters[] = array(
-								'url'  => remove_query_arg( 'day' ),
-								'name' => date( 'F jS, Y', mktime( 0, 0, 0, absint( $_GET['monthnum'] ), absint( $_GET['day'] ), absint( $_GET['year'] ) ) ),
-								'type' => __( 'Day', 'wpcom-elasticsearch' ),
-							);
-
-							break;
-
-						default:
-							continue 3;
-					}
-
-					break;
-
-			} // end switch()
-		}
-
-		return $filters;
-	}
-
 	public function get_taxonomy_query_var( $taxonomy_name ) {
 		$taxonomy = get_taxonomy( $taxonomy_name );
 
@@ -757,6 +663,86 @@ class SP_Search {
 
 		return $taxonomy->query_var;
 	}
+
+	public function get_valid_taxonomy_query_vars( $query = false ) {
+		$taxonomies = get_taxonomies( array( 'public' => true ), $output = 'objects' );
+		$query_vars = wp_list_pluck( $taxonomies, 'query_var' );
+		if ( $query ) {
+			$return = array();
+			foreach ( $query->query as $qv => $value ) {
+				if ( in_array( $qv, $query_vars ) ) {
+					$taxonomy = array_search( $qv, $query_vars );
+					$return[ $taxonomy ] = $value;
+				}
+			}
+			return $return;
+		}
+		return $query_vars;
+	}
+
+	public function parse_query( $query ) {
+		$vars = array();
+
+		# Taxonomy filters
+		$terms = $this->get_valid_taxonomy_query_vars( $query );
+		if ( ! empty( $terms ) ) {
+			$vars['terms'] = $terms;
+		}
+		# Post type filters
+		$public_post_types = array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
+
+		if ( $query->get( 'post_type' ) && 'any' != $query->get( 'post_type' ) ) {
+			$post_types = (array) $query->get( 'post_type' );
+		} elseif ( ! empty( $_GET['post_type'] ) ) {
+			$post_types = explode( ',', $_GET['post_type'] );
+		} else {
+			$post_types = false;
+		}
+
+		$vars['post_type'] = array();
+
+		# Validate post types, making sure they exist and are not excluded from search
+		if ( $post_types ) {
+			foreach ( (array) $post_types as $post_type ) {
+				if ( in_array( $post_type, $public_post_types ) ) {
+					$vars['post_type'][] = $post_type;
+				}
+			}
+		}
+
+		if ( empty( $vars['post_type'] ) )
+			$vars['post_type'] = $public_post_types;
+
+		return $vars;
+	}
+
+	/**
+	 * Ugly hack to search across all fields for each word in the query. By default, multi_match requires that each
+	 * word in a phrase exist in the same field. This is not ideal for our purposes; we'd rather each word exist in
+	 * any of the fields. There's no clean way to accomplish that, so we create a massive bool query.
+	 *
+	 * @return array
+	 */
+	public function setup_multi_match_query( $multi_match ) {
+		if ( $words = preg_split( '/\s+/', $multi_match[0]['multi_match']['query'] ) ) {
+			$matches = array();
+			$base = $multi_match[0]['multi_match'];
+			# Stopwords will break this hack, because if a query just has a stopword, that's like searching for nothing
+			$stopwords = array( "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into", "is", "it", "no", "not", "of", "on", "or", "such", "that", "the", "their", "then", "there", "these", "they", "this", "to", "was", "will", "with" );
+			foreach ( $words as $word ) {
+				# Make sure that the "word" isn't empty, isn't a stopword, and has at least one letter or number in it
+				if ( empty( $word ) || in_array( strtolower( $word ), $stopwords ) || ! preg_match( '/[a-z0-9]/i', $word ) )
+					continue;
+				$matches[] = array( 'multi_match' => array_merge( $base, array( 'query' => $word ) ) );
+			}
+			if ( ! empty( $matches ) ) {
+				return $matches;
+			}
+		}
+
+		return $multi_match;
+	}
+
 
 }
 
