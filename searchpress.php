@@ -68,6 +68,9 @@ if ( is_admin() ) {
 	require_once SP_PLUGIN_DIR . '/lib/admin.php';
 }
 
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+    include SP_PLUGIN_DIR . '/bin/wp-cli.php';
+}
 
 function sp_dump() {
     echo "<pre>", print_r( func_get_args(), 1 ), "</pre>";
