@@ -90,7 +90,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 		$assoc_args = array_merge( array(
 			'bulk'  => 2000,
 			'limit' => 0,
-			'page'  => 0
+			'page'  => 1
 		), $assoc_args );
 
 		if ( $assoc_args['limit'] && $assoc_args['limit'] < $assoc_args['bulk'] )
@@ -102,26 +102,27 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 
 		# Keep tabs on where we are and what we've done
 		$sync_meta = SP_Sync_Meta();
-		$sync_meta->page = $assoc_args['page'];
+		$sync_meta->page = intval( $assoc_args['page'] ) - 1;
 		$sync_meta->bulk = $assoc_args['bulk'];
 		$sync_meta->limit = $assoc_args['limit'];
 		$sync_meta->running = true;
 
 		$total_pages = $limit_number / $sync_meta->bulk;
 		$total_pages_ceil = ceil( $total_pages );
+		$start_page = $sync_meta->page;
 
 		do {
 			$lap = microtime( true );
 			SP_Sync_Manager()->do_index_loop();
 
-			$seconds_per_page = ( microtime( true ) - $timestamp_start ) / $sync_meta->page;
+			$seconds_per_page = ( microtime( true ) - $timestamp_start ) / ( $sync_meta->page - $start_page );
 			WP_CLI::line( "Completed page {$sync_meta->page}/{$total_pages_ceil} (" . number_format( ( microtime( true ) - $lap), 2 ) . 's / ' . round( memory_get_usage() / 1024 / 1024, 2 ) . 'M current / ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'M max), ' . $this->time_format( ( $total_pages - $sync_meta->page ) * $seconds_per_page ) . ' remaining' );
 
 			$this->contain_memory_leaks();
 
 			if ( $assoc_args['limit'] > 0 && $sync_meta->processed >= $assoc_args['limit'] )
 				break;
-		} while ( $assoc_args['bulk'] == $sync_meta->current_count );
+		} while ( $sync_meta->page < $total_pages_ceil );
 
 
 		WP_CLI::success( "Index complete!\n{$sync_meta->processed}\tposts processed\n{$sync_meta->success}\tposts added\n{$sync_meta->error}\tposts skipped" );
