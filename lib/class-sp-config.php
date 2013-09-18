@@ -141,9 +141,6 @@ class SP_Config {
 								)
 							)
 						),
-						'post_author_name' => array(
-							'type' => 'string'
-						),
 						'post_date' => array(
 							'type' => 'date',
 							'format' => 'YYYY-MM-dd HH:mm:ss',
