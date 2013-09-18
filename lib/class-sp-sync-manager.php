@@ -25,8 +25,6 @@ class SP_Sync_Manager {
 	public $total_pages = 1;
 	public $batch_pages = 1;
 
-	public $batch_size = 25;
-
 	private function __construct() {
 		/* Don't do anything, needs to be initialized via instance() method */
 	}
@@ -120,31 +118,17 @@ class SP_Sync_Manager {
 
 
 	/**
-	 * Get all the posts in a given range and control for memory leaks
+	 * Get all the posts in a given range
 	 *
 	 * @param int $start
 	 * @param int $limit
 	 * @return string JSON array
 	 */
 	public function get_range( $start, $limit ) {
-		// error_log( "Process: Getting $limit posts starting at $start" );
-		$posts = array();
-
-		# Run the loop in batches to contain memory leaks
-		while ( $limit > 0 ) {
-			# Run at most $this->batch_size
-			$ceil = ( $limit >= $this->batch_size ) ? $this->batch_size : $limit;
-			// error_log( "Current batch: $ceil posts starting at $start" );
-			$posts = $posts + $this->get_posts( array(
-				'offset'         => $start,
-				'posts_per_page' => $ceil
-			) );
-			$start += $ceil;
-			$limit -= $ceil;
-			$this->contain_memory_leaks();
-		}
-		// error_log( "Process: Received " . count( $posts ) . " posts" );
-		return $posts;
+		return $this->get_posts( array(
+			'offset'         => $start,
+			'posts_per_page' => $limit
+		) );
 	}
 
 
@@ -205,7 +189,11 @@ class SP_Sync_Manager {
 			$sync_meta->save();
 			return false;
 		} elseif ( ! is_object( $response ) || ! is_array( $response->items ) ) {
-			error_log( "!!! Error! Response:\n" . print_r( $response, 1 ) );
+			if ( defined( 'WP_CLI' ) || ! WP_CLI ) {
+				WP_CLI::error( "Error indexing data! Response:\n" . print_r( $response, 1 ) );
+			} else {
+				error_log( "Error indexing data! Response:\n" . print_r( $response, 1 ) );
+			}
 		} else {
 			foreach ( $response->items as $post ) {
 				if ( ! isset( $post->index->ok ) || 1 != $post->index->ok ) {
@@ -223,10 +211,12 @@ class SP_Sync_Manager {
 		$sync_meta->page++;
 		// error_log( "Saving sync_meta, page is {$sync_meta->page}" );
 
-		if ( $sync_meta->processed >= $sync_meta->total || $sync_meta->page > $this->total_pages ) {
-			$this->cancel_reindex();
-		} else {
-			$sync_meta->save();
+		if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
+			if ( $sync_meta->processed >= $sync_meta->total || $sync_meta->page > $this->total_pages ) {
+				$this->cancel_reindex();
+			} else {
+				$sync_meta->save();
+			}
 		}
 		return true;
 	}
@@ -241,25 +231,6 @@ class SP_Sync_Manager {
 
 	public function cancel_reindex() {
 		SP_Cron()->cancel_reindex();
-	}
-
-
-	/**
-	 * Prevent memory leaks from growing out of control
-	 *
-	 * @return void
-	 */
-	public function contain_memory_leaks() {
-		global $wpdb, $wp_object_cache;
-		$wpdb->queries = array();
-		if ( !is_object( $wp_object_cache ) )
-			return;
-		$wp_object_cache->group_ops = array();
-		$wp_object_cache->stats = array();
-		$wp_object_cache->memcache_debug = array();
-		$wp_object_cache->cache = array();
-		if ( method_exists( $wp_object_cache, '__remoteset' ) )
-			$wp_object_cache->__remoteset();
 	}
 
 
