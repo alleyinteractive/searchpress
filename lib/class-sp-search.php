@@ -439,6 +439,20 @@ class SP_Search {
 			$es_wp_query_args['date_range']['field'] = 'post_date';
 
 
+		/** Ordering */
+		# Set results sorting
+		if ( $orderby = $query->get( 'orderby' ) ) {
+			if ( in_array( $orderby, array( 'date', 'relevance' ) ) )
+				$es_wp_query_args['orderby'] = $orderby;
+		}
+
+		# Set sort ordering
+		if ( $order = strtolower( $query->get( 'order' ) ) ) {
+			if ( 'date' == $es_wp_query_args['orderby'] && in_array( $order, array( 'asc', 'desc' ) ) )
+				$es_wp_query_args['order'] = $order;
+		}
+
+
 		// Facets
 		if ( ! empty( $this->facets ) ) {
 			$es_wp_query_args['facets'] = $this->facets;
