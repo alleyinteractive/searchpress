@@ -46,32 +46,32 @@ class SP_Config {
 
 	public function create_mapping() {
 		$mapping = array(
-			# 'settings' => array(
-			# 	'index' => array(
-			# 		'number_of_replicas' => 1,
-			# 		'number_of_shards' => 1
-			# 	),
-			# 	'analysis' => array(
-			# 		'analyzer' => array(
-			# 			'default' => array(
-			# 				'type'  => 'snowball',
-			# 				'language'  => 'English'
-			# 			),
-			# 			'autocomplete' => array(
-			# 				'tokenizer' => 'lowercase',
-			# 				'filter' => array( 'edge_ngram' )
-			# 			)
-			# 		),
-			# 		'filter' => array(
-			# 			'edge_ngram' => array(
-			# 				'side' => 'front',
-			# 				'max_gram' => 10,
-			# 				'min_gram' => 3,
-			# 				'type' => 'edgeNGram'
-			# 			)
-			# 		)
-			# 	)
-			# ),
+			'settings' => array(
+				# 'index' => array(
+				# 	'number_of_replicas' => 1,
+				# 	'number_of_shards' => 1
+				# ),
+				'analysis' => array(
+					'analyzer' => array(
+						'default' => array(
+							'type'  => 'snowball',
+							'language'  => 'English'
+						),
+						# 'autocomplete' => array(
+						# 	'tokenizer' => 'lowercase',
+						# 	'filter' => array( 'edge_ngram' )
+						# )
+					),
+					# 'filter' => array(
+					# 	'edge_ngram' => array(
+					# 		'side' => 'front',
+					# 		'max_gram' => 10,
+					# 		'min_gram' => 3,
+					# 		'type' => 'edgeNGram'
+					# 	)
+					# )
+				)
+			),
 			# 'index' => array( 'query' => 'default_field' )
 			'mappings' => array(
 				'post' => array(
