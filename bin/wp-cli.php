@@ -93,10 +93,11 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 * : Which page to start on. This is helpful if you encountered an error on
 	 * page 145/150 or if you want to have multiple processes running at once
 	 *
-	 * [<post_id> ...]
+	 * [<post-id>]
 	 * : By default, this subcommand will query posts based on ID and pagination.
-	 * Instead, you can specify one or more individual post IDs to process. Note
-	 * that if you do, the --bulk, --limit, and --page arguments are ignored.
+	 * Instead, you can specify one or more individual post IDs to process. Multiple
+	 * post IDs should be space-delimited (see examples)
+	 * If present, the --bulk, --limit, and --page arguments are ignored.
 	 *
 	 * ## EXAMPLES
 	 *
@@ -116,7 +117,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 *      wp searchpress index 12340 12341 12342 12343 12344 12345
 	 *
 	 *
-	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [<post_id> <post_id> ...]
+	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [<post-id>]
 	 */
 	public function index( $args, $assoc_args ) {
 		$timestamp_start = microtime( true );
