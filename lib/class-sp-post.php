@@ -154,17 +154,24 @@ class SP_Post {
 	 * @return array
 	 */
 	public function get_user( $user_id ) {
+		if ( ! empty( SP_Sync_Manager()->users[ $user_id ] ) )
+			return SP_Sync_Manager()->users[ $user_id ];
+
 		$user = get_userdata( $user_id );
 		if ( $user instanceof WP_User ) {
-			return array(
+			$data = array(
 				'login'        => $user->user_login,
 				'display_name' => $user->display_name
 			);
+		} else {
+			$data = array(
+				'login'        => '',
+				'display_name' => ''
+			);
 		}
-		return array(
-			'login'        => '',
-			'display_name' => ''
-		);
+		SP_Sync_Manager()->users[ $user_id ] = $data;
+
+		return $data;
 	}
 
 

@@ -19,6 +19,8 @@ class SP_Sync_Manager {
 
 	private static $instance;
 
+	public $users = array();
+
 	public $sync_meta;
 
 	public $published_posts = false;
