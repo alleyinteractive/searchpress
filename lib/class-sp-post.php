@@ -62,6 +62,7 @@ class SP_Post {
 	 * @return void
 	 */
 	public function fill( $post ) {
+		do_action( 'sp_debug', '[SP_Post] Populating Post' );
 		$apply_filters = apply_filters( 'sp_post_index_filtered_data', false );
 
 		$this->data['post_id']           = $post->ID;
@@ -118,6 +119,7 @@ class SP_Post {
 			}
 		}
 
+		do_action( 'sp_debug', '[SP_Post] Compiled Meta', $meta );
 		return $meta;
 	}
 
@@ -143,6 +145,7 @@ class SP_Post {
 				'parent'  => $term->parent
 			);
 		}
+		do_action( 'sp_debug', '[SP_Post] Compiled Terms', $meta );
 		return $terms;
 	}
 
@@ -170,6 +173,7 @@ class SP_Post {
 			);
 		}
 		SP_Sync_Manager()->users[ $user_id ] = $data;
+		do_action( 'sp_debug', '[SP_Post] Compiled User', $meta );
 
 		return $data;
 	}
