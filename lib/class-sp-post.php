@@ -131,6 +131,9 @@ class SP_Post {
 	 * @return array
 	 */
 	public static function get_terms( $post ) {
+		if ( defined( 'WP_CLI' ) && WP_CLI )
+			return self::get_terms_efficiently( $post );
+
 		$taxonomies = get_object_taxonomies( $post->post_type );
 		$object_terms = get_the_terms( $post->ID, $taxonomies );
 		if ( !$object_terms || is_wp_error( $object_terms ) )
@@ -145,7 +148,41 @@ class SP_Post {
 				'parent'  => $term->parent
 			);
 		}
+
 		do_action( 'sp_debug', '[SP_Post] Compiled Terms', $meta );
+		return $terms;
+	}
+
+
+	/**
+	 * Does the same thing as get_terms but in 1 query instead of <num of taxonomies> + 1
+	 *
+	 * @param object $post
+	 * @return object
+	 */
+	private static function get_terms_efficiently( $post ) {
+		global $wpdb;
+
+		$taxonomies = get_object_taxonomies( $post->post_type );
+		$taxonomies = "'" . implode("', '", $taxonomies) . "'";
+		$post_id = intval( $post->ID );
+		$query = "SELECT t.*, tt.* FROM $wpdb->terms AS t INNER JOIN $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id INNER JOIN $wpdb->term_relationships AS tr ON tr.term_taxonomy_id = tt.term_taxonomy_id WHERE tt.taxonomy IN ($taxonomies) AND tr.object_id = $post_id ORDER BY t.term_id";
+
+		$object_terms = $wpdb->get_results( $query );
+		if ( !$object_terms || is_wp_error( $object_terms ) )
+			return array();
+
+		$terms = array();
+		foreach ( (array) $object_terms as $term ) {
+			$terms[ $term->taxonomy ][] = array(
+				'term_id' => $term->term_id,
+				'slug'    => $term->slug,
+				'name'    => $term->name,
+				'parent'  => $term->parent
+			);
+		}
+
+		do_action( 'sp_debug', '[SP_Post] Compiled Terms Efficiently', $meta );
 		return $terms;
 	}
 
