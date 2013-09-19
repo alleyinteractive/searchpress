@@ -72,6 +72,10 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
     include SP_PLUGIN_DIR . '/bin/wp-cli.php';
 }
 
+if ( defined( 'SP_DEBUG' ) && SP_DEBUG ) {
+    include SP_PLUGIN_DIR . '/lib/class-sp-debug.php';
+}
+
 function sp_dump() {
     echo "<pre>", print_r( func_get_args(), 1 ), "</pre>";
     die;

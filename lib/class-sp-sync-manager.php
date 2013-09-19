@@ -62,6 +62,7 @@ class SP_Sync_Manager {
 		$post = new SP_Post( get_post( $post_id ) );
 		if ( $post->should_be_indexed() ) {
 			$response = SP_API()->index_post( $post );
+			do_action( 'sp_debug', '[SP_Sync_Manager] Indexed Post', $response );
 
 			if ( ! in_array( SP_API()->last_request['response_code'], array( 200, 201 ) ) ) {
 				# Should probably throw an error here or something
@@ -150,6 +151,7 @@ class SP_Sync_Manager {
 
 		$query = new WP_Query;
 		$posts = $query->query( $args );
+		do_action( 'sp_debug', '[SP_Sync_Manager] Queried Posts', $args );
 
 		$this->published_posts = $query->found_posts;
 		$this->batch_pages = $query->max_num_pages;
@@ -158,16 +160,17 @@ class SP_Sync_Manager {
 		foreach ( $posts as $post ) {
 			$indexed_posts[ $post->ID ] = new SP_Post( $post );
 		}
+		do_action( 'sp_debug', '[SP_Sync_Manager] Converted Posts' );
+
 		return $indexed_posts;
 	}
 
 
 	public function do_index_loop() {
-		// error_log( 'Looping!' );
 		$sync_meta = SP_Sync_Meta();
-		// error_log( "Loaded sync_meta, page is {$sync_meta->page}" );
 
 		$start = $sync_meta->page * $sync_meta->bulk;
+		do_action( 'sp_debug', '[SP_Sync_Manager] Getting Range' );
 		$posts = $this->get_range( $start, $sync_meta->bulk );
 		// Reload the sync meta to ensure it hasn't been canceled while we were getting those posts
 		$sync_meta->reload();
@@ -176,7 +179,7 @@ class SP_Sync_Manager {
 			return false;
 
 		$response = SP_API()->index_posts( $posts );
-		// error_log( print_r( $response, 1 ) );
+		do_action( 'sp_debug', '[SP_Sync_Manager] Indexed Posts', $response );
 
 		$sync_meta->reload();
 		if ( ! $sync_meta->running )
@@ -208,7 +211,6 @@ class SP_Sync_Manager {
 				}
 			}
 		}
-
 		$this->total_pages = ceil( $this->published_posts / $sync_meta->bulk );
 		$sync_meta->page++;
 		// error_log( "Saving sync_meta, page is {$sync_meta->page}" );
