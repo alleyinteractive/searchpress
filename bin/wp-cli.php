@@ -2,6 +2,9 @@
 
 WP_CLI::add_command( 'searchpress', 'Searchpress_CLI_Command' );
 
+/**
+ * CLI Commands for SearchPress
+ */
 class Searchpress_CLI_Command extends WP_CLI_Command {
 
 	/**
@@ -22,9 +25,8 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 
 
 	/**
-	 * Replacing the site's default search with SearchPress; this hsould only be done after indexing.
+	 * Replacing the site's default search with SearchPress; this should only be done after indexing.
 	 *
-	 * @subcommand activate
 	 */
 	public function activate() {
 		WP_CLI::line( "Replacing the default search with SearchPress..." );
@@ -53,9 +55,8 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 
 
 	/**
-	 * Flush the current index
+	 * Flush the current index. !!Warning!! This empties your elasticsearch index for the entire site.
 	 *
-	 * @subcommand flush
 	 */
 	public function flush() {
 		WP_CLI::line( "Flushing current index..." );
@@ -71,10 +72,51 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 
 
 	/**
-	 * Index the site in elasticsearch, optionally flushing any existing data and adding the document mapping
+	 * Index the current site or individual posts in elasticsearch, optionally flushing any existing data and adding the document mapping.
 	 *
-	 * @subcommand index
-	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>]
+	 * ## OPTIONS
+	 *
+	 * [--flush]
+	 * : Flushes out the current data
+	 *
+	 * [--put-mapping]
+	 * : Adds the document mapping in SP_Config()
+	 *
+	 * [--bulk=<num>]
+	 * : Process this many posts as a time. Defaults to 2,000, which seems to
+	 * be the fastest on average.
+	 *
+	 * [--limit=<num>]
+	 * : How many posts to process. Defaults to all posts.
+	 *
+	 * [--page=<num>]
+	 * : Which page to start on. This is helpful if you encountered an error on
+	 * page 145/150 or if you want to have multiple processes running at once
+	 *
+	 * [<post_id> ...]
+	 * : By default, this subcommand will query posts based on ID and pagination.
+	 * Instead, you can specify one or more individual post IDs to process. Note
+	 * that if you do, the --bulk, --limit, and --page arguments are ignored.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *      # Flush the current document index, add the mapping, and index the whole site
+	 *      wp searchpress index --flush --put-mapping
+	 *
+	 *      # Index the first 10 posts in the database
+	 *      wp searchpress index --bulk=10 --limit=10
+	 *
+	 *      # Index the whole site starting on page 145
+	 *      wp searchpress index --page=145
+	 *
+	 *      # Index a single post (post ID 12345)
+	 *      wp searchpress index 12345
+	 *
+	 *      # Index six specific posts
+	 *      wp searchpress index 12340 12341 12342 12343 12344 12345
+	 *
+	 *
+	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [<post_id> <post_id> ...]
 	 */
 	public function index( $args, $assoc_args ) {
 		$timestamp_start = microtime( true );
@@ -87,47 +129,92 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 			$this->put_mapping();
 		}
 
-		$assoc_args = array_merge( array(
-			'bulk'  => 2000,
-			'limit' => 0,
-			'page'  => 1
-		), $assoc_args );
+		if ( ! empty( $args ) ) {
+			# Individual post indexing
+			$num_posts = count( $args );
+			WP_CLI::line( sprintf( _n( "Indexing %d post", "Indexing %d posts", $num_posts ), $num_posts ) );
 
-		if ( $assoc_args['limit'] && $assoc_args['limit'] < $assoc_args['bulk'] )
-			$assoc_args['bulk'] = $assoc_args['limit'];
+			foreach ( $args as $post_id ) {
+				$post_id = intval( $post_id );
+				if ( ! $post_id )
+					continue;
 
-		$limit_number = $assoc_args['limit'] > 0 ? $assoc_args['limit'] : SP_Sync_Manager()->count_posts();
-		$limit_text = sprintf( _n( '%s post', '%s posts', $limit_number ), number_format( $limit_number ) );
-		WP_CLI::line( "Indexing {$limit_text}, " . number_format( $assoc_args['bulk'] ) . " at a time, starting on page {$assoc_args['page']}" );
+				WP_CLI::line( "Indexing post {$post_id}" );
+				SP_Sync_Manager()->sync_post( $post_id );
+			}
+			WP_CLI::success( "Index complete!" );
 
-		# Keep tabs on where we are and what we've done
-		$sync_meta = SP_Sync_Meta();
-		$sync_meta->page = intval( $assoc_args['page'] ) - 1;
-		$sync_meta->bulk = $assoc_args['bulk'];
-		$sync_meta->limit = $assoc_args['limit'];
-		$sync_meta->running = true;
+		} else {
+			# Bulk indexing
 
-		$total_pages = $limit_number / $sync_meta->bulk;
-		$total_pages_ceil = ceil( $total_pages );
-		$start_page = $sync_meta->page;
+			$assoc_args = array_merge( array(
+				'bulk'  => 2000,
+				'limit' => 0,
+				'page'  => 1
+			), $assoc_args );
 
-		do {
-			$lap = microtime( true );
-			SP_Sync_Manager()->do_index_loop();
+			if ( $assoc_args['limit'] && $assoc_args['limit'] < $assoc_args['bulk'] )
+				$assoc_args['bulk'] = $assoc_args['limit'];
 
-			$seconds_per_page = ( microtime( true ) - $timestamp_start ) / ( $sync_meta->page - $start_page );
-			WP_CLI::line( "Completed page {$sync_meta->page}/{$total_pages_ceil} (" . number_format( ( microtime( true ) - $lap), 2 ) . 's / ' . round( memory_get_usage() / 1024 / 1024, 2 ) . 'M current / ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'M max), ' . $this->time_format( ( $total_pages - $sync_meta->page ) * $seconds_per_page ) . ' remaining' );
+			$limit_number = $assoc_args['limit'] > 0 ? $assoc_args['limit'] : SP_Sync_Manager()->count_posts();
+			$limit_text = sprintf( _n( '%s post', '%s posts', $limit_number ), number_format( $limit_number ) );
+			WP_CLI::line( "Indexing {$limit_text}, " . number_format( $assoc_args['bulk'] ) . " at a time, starting on page {$assoc_args['page']}" );
 
-			$this->contain_memory_leaks();
+			# Keep tabs on where we are and what we've done
+			$sync_meta = SP_Sync_Meta();
+			$sync_meta->page = intval( $assoc_args['page'] ) - 1;
+			$sync_meta->bulk = $assoc_args['bulk'];
+			$sync_meta->limit = $assoc_args['limit'];
+			$sync_meta->running = true;
 
-			if ( $assoc_args['limit'] > 0 && $sync_meta->processed >= $assoc_args['limit'] )
-				break;
-		} while ( $sync_meta->page < $total_pages_ceil );
+			$total_pages = $limit_number / $sync_meta->bulk;
+			$total_pages_ceil = ceil( $total_pages );
+			$start_page = $sync_meta->page;
+
+			do {
+				$lap = microtime( true );
+				SP_Sync_Manager()->do_index_loop();
+
+				$seconds_per_page = ( microtime( true ) - $timestamp_start ) / ( $sync_meta->page - $start_page );
+				WP_CLI::line( "Completed page {$sync_meta->page}/{$total_pages_ceil} (" . number_format( ( microtime( true ) - $lap), 2 ) . 's / ' . round( memory_get_usage() / 1024 / 1024, 2 ) . 'M current / ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'M max), ' . $this->time_format( ( $total_pages - $sync_meta->page ) * $seconds_per_page ) . ' remaining' );
+
+				$this->contain_memory_leaks();
+
+				if ( $assoc_args['limit'] > 0 && $sync_meta->processed >= $assoc_args['limit'] )
+					break;
+			} while ( $sync_meta->page < $total_pages_ceil );
 
 
-		WP_CLI::success( "Index complete!\n{$sync_meta->processed}\tposts processed\n{$sync_meta->success}\tposts added\n{$sync_meta->error}\tposts skipped" );
+			WP_CLI::success( "Index complete!\n{$sync_meta->processed}\tposts processed\n{$sync_meta->success}\tposts added\n{$sync_meta->error}\tposts skipped" );
 
-		$this->activate();
+			$this->activate();
+		}
+
+		$this->finish( $timestamp_start );
+	}
+
+
+	/**
+	 * Index a single post in elasticsearch and output debugging information. You should enable SP_DEBUG and SAVEQUERIES before running this.
+	 *
+	 * @synopsis <post_id>
+	 */
+	public function debug( $args ) {
+		if ( empty( $args[0] ) )
+			WP_CLI::error( "Invalid post ID" );
+		$post_id = intval( $args[0] );
+		if ( ! $post_id )
+			WP_CLI::error( "Invalid post ID" );
+
+		global $wpdb;
+		$timestamp_start = microtime( true );
+
+		WP_CLI::line( "Indexing post {$post_id}" );
+
+		SP_Sync_Manager()->sync_post( $post_id );
+
+		WP_CLI::success( "Index complete!" );
+		print_r( $wpdb->queries );
 
 		$this->finish( $timestamp_start );
 	}
@@ -155,4 +242,5 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 		}
 		return $ret . ceil( $seconds ) . 's';
 	}
+
 }
