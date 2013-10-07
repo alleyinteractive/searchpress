@@ -211,11 +211,11 @@ class SP_Search {
 		if ( $args['post_type'] ) {
 			if ( !is_array( $args['post_type'] ) )
 				$args['post_type'] = array( $args['post_type'] );
-			$filters[] = array( 'terms' => array( 'post_type' => $args['post_type'] ) );
+			$filters[] = array( 'terms' => array( 'post_type.raw' => $args['post_type'] ) );
 		}
 
 		if ( $args['author_name'] ) {
-			$filters[] = array( 'terms' => array( 'author_login' => $args['author_name'] ) );
+			$filters[] = array( 'terms' => array( 'post_author.login' => $args['author_name'] ) );
 		}
 
 		if ( !empty( $args['date_range'] ) && isset( $args['date_range']['field'] ) ) {
