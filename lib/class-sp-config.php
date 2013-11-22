@@ -54,22 +54,31 @@ class SP_Config {
 				'analysis' => array(
 					'analyzer' => array(
 						'default' => array(
-							'type'  => 'snowball',
-							'language'  => 'English'
+							'tokenizer' => 'standard',
+							'filter' => array( 'standard', 'sp_word_delimiter', 'lowercase', 'stop', "sp_snowball" ),
+							'language' => 'English'
 						),
 						# 'autocomplete' => array(
 						# 	'tokenizer' => 'lowercase',
 						# 	'filter' => array( 'edge_ngram' )
 						# )
 					),
-					# 'filter' => array(
+					'filter' => array(
+						'sp_word_delimiter' => array(
+							'type' => 'word_delimiter',
+							'preserve_original' => true
+						),
+						'sp_snowball' => array(
+							'type' => 'snowball',
+							'language' => 'English'
+						),
 					# 	'edge_ngram' => array(
 					# 		'side' => 'front',
 					# 		'max_gram' => 10,
 					# 		'min_gram' => 3,
 					# 		'type' => 'edgeNGram'
 					# 	)
-					# )
+					)
 				)
 			),
 			# 'index' => array( 'query' => 'default_field' )
@@ -121,6 +130,9 @@ class SP_Config {
 								)
 							)
 						)
+					),
+					"_all" => array(
+						"analyzer" => "simple"
 					),
 					'properties' => array(
 						'post_id' => array(
