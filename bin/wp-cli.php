@@ -37,6 +37,18 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 
 
 	/**
+	 * Deactivate SearchPress
+	 *
+	 */
+	public function deactivate() {
+		WP_CLI::line( "Deactivating SearchPress..." );
+		SP_Config()->update_settings( array( 'active' => false, 'must_init' => true ) );
+		SP_Sync_Meta()->delete( '', 'force' );
+		WP_CLI::success( "Successfully deactivated SearchPress!\n" );
+	}
+
+
+	/**
 	 * Add the document mapping
 	 *
 	 * @subcommand put-mapping
