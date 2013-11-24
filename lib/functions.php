@@ -23,7 +23,7 @@ function sp_suggestion( $args = array() ) {
 	$suggestion = SP_Search()->get_suggestion();
 
 	if ( ! empty( $suggestion['text'] ) && ! empty( $suggestion['highlighted'] ) ) {
-		$html = '<a href="' . add_query_arg( 's', $suggestion['text'] ) . '">' . wp_kses( $suggestion['highlighted'], array( 'em' => array() ) ) . '</a>';
+		$html = '<a href="' . add_query_arg( 's', urlencode( $suggestion['text'] ) ) . '">' . wp_kses( $suggestion['highlighted'], array( 'em' => array() ) ) . '</a>';
 		if ( $args['echo'] ) {
 			printf( $args['template'], $html );
 		} else {
