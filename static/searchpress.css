@@ -40,16 +40,21 @@
 	border: solid 1px #DDD;
 	-webkit-border-radius: 3px;
 	border-radius: 3px;
-	margin-bottom: 5px;
+	margin-bottom: 10px;
 	background-color: #f5f5f5;
 }
+#sp_facets_wrap .sp-facets-title,
+#sp_facets_wrap .sp-facets-facet,
+#sp_facets_wrap .sp-facets-logic,
+#sp_facets_wrap .sp-facets-sort {
+	width: 200px;
+}
 #sp_facets_wrap .sp-facet-inner {
-	padding: 5px 10px;
+	padding: 0px 10px;
 }
 #sp_facets_wrap .sp-facet-label {
 	cursor: move;
 	padding: 5px;
-	margin: 0 0 5px 0;
 	border-bottom: 1px solid #DDD;
 	background-color: #DFDFDF;
 	background-image: -ms-linear-gradient(bottom,#DDD,#EEE);
@@ -78,4 +83,25 @@
 .sp-remove:hover {
 	color: #333;
 	background: #aaa;
+}
+.sp-field-label {
+	width: 150px;
+	float: left;
+	display: block;
+	margin-right: 10px;
+	height: 27px;
+	line-height: 27px;
+}
+.sp-field-wrapper label, .sp-facet label {
+	font-weight: bold;
+}
+.sp-checkboxes label {
+	margin: 0 0 7px 10px;
+	display: block;
+	font-weight: normal;
+}
+label.sp-checkboxes-label {
+	font-weight: bold;
+	font-size: 1.1em;
+	margin-left: 0;
 }

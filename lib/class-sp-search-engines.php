@@ -92,21 +92,22 @@ class SP_Search_Engines {
 				<li class="hide-if-no-js"><a href="#sp_engine_config_tab_facets">Search Facets</a></li>
 			</ul>
 			<div id="sp_engine_config_tab_basic" class="wp-tabs-panel sp-tabs-panel">
-				<div class="sp-field-wrapper">
+				<div class="sp-field-wrapper sp-checkboxes">
 					<p>
+						<label class="sp-checkboxes-label"><?php _e( 'Default Search', 'searchpress' ); ?></label>
 						<label for="sp_engine_default">
 							<input type="checkbox" name="sp[default]" id="sp_engine_default" value="1"<?php checked( $default ) ?> />
-							<?php _e( 'Use as default site search', 'searchpress' ); ?>
+							<?php _e( "Use as the site's default search", 'searchpress' ); ?>
 						</label>
 					</p>
 				</div>
 			</div>
 			<div id="sp_engine_config_tab_types" class="wp-tabs-panel sp-tabs-panel" style="display:none">
-				<div class="sp-field-wrapper">
+				<div class="sp-field-wrapper sp-checkboxes">
 					<p>
-						<label><?php _e( 'Content Types', 'searchpress' ); ?></label>
+						<label class="sp-checkboxes-label"><?php _e( 'Content Types', 'searchpress' ); ?></label>
 						<?php foreach ( $post_types as $type ) : ?>
-							<br /><label>
+							<label>
 								<input type="checkbox" name="sp[content_types][]" value="<?php echo esc_attr( $type->name ) ?>"<?php checked( in_array( $type->name, $options['content_types'] ) ) ?> />
 								<?php echo esc_html( $type->labels->name ); ?>
 							</label>
@@ -123,11 +124,11 @@ class SP_Search_Engines {
 					</div>
 					<div class="sp-facet-inner">
 						<p>
-							<label for="sp_facets_<%= i %>_title"><?php _e( 'Title', 'searchpress' ); ?></label>
+							<span class="sp-field-label"><label for="sp_facets_<%= i %>_title"><?php _e( 'Title', 'searchpress' ); ?></label></span>
 							<input type="text" name="sp[facets][<%= i %>][title]" id="sp_facets_<%= i %>_title" class="sp-facets-title" />
 						</p>
 						<p>
-							<label for="sp_facets_<%= i %>_facet"><?php _e( 'Facet Data', 'searchpress' ); ?></label>
+							<span class="sp-field-label"><label for="sp_facets_<%= i %>_facet"><?php _e( 'Facet Data', 'searchpress' ); ?></label></span>
 							<select name="sp[facets][<%= i %>][facet]" id="sp_facets_<%= i %>_facet" class="sp-facets-facet">
 								<option value=""><?php _e( 'Choose One', 'searchpress' ); ?></option>
 								<?php foreach ( $taxonomies as $tax ) : ?>
@@ -139,14 +140,14 @@ class SP_Search_Engines {
 							</select>
 						</p>
 						<p>
-							<label for="sp_facets_<%= i %>_logic"><?php _e( 'Facet Logic', 'searchpress' ); ?></label>
+							<span class="sp-field-label"><label for="sp_facets_<%= i %>_logic"><?php _e( 'Facet Logic', 'searchpress' ); ?></label></span>
 							<select name="sp[facets][<%= i %>][logic]" id="sp_facets_<%= i %>_logic" class="sp-facets-logic">
 								<option value="intersection">Intersection (and)</option>
 								<option value="union">Union (or)</option>
 							</select>
 						</p>
 						<p>
-							<label for="sp_facets_<%= i %>_sort"><?php _e( 'Facet Sorting', 'searchpress' ); ?></label>
+							<span class="sp-field-label"><label for="sp_facets_<%= i %>_sort"><?php _e( 'Facet Sorting', 'searchpress' ); ?></label></span>
 							<select name="sp[facets][<%= i %>][sort]" id="sp_facets_<%= i %>_sort" class="sp-facets-sort">
 								<option value="count">Post Count</option>
 								<option value="title">Title</option>
