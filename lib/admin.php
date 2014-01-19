@@ -27,13 +27,13 @@ class SP_Admin {
 	}
 
 	public function setup() {
-		add_action( 'admin_menu',                                     array( $this, 'admin_menu' )     );
-		add_action( 'admin_print_styles-tools_page_searchpress_sync', array( $this, 'admin_styles' )   );
-		add_action( 'admin_post_sp_full_sync',                        array( $this, 'full_sync' )      );
-		add_action( 'admin_post_sp_cancel_sync',                      array( $this, 'cancel_sync' )    );
-		add_action( 'admin_post_sp_settings',                         array( $this, 'save_settings' )  );
-		add_action( 'wp_ajax_sp_sync_status',                         array( $this, 'sp_sync_status' ) );
-		add_action( 'admin_notices',                                  array( $this, 'admin_notices' )  );
+		add_action( 'admin_menu',                array( $this, 'admin_menu' )     );
+		add_action( 'admin_enqueue_scripts',     array( $this, 'static_files' )   );
+		add_action( 'admin_post_sp_full_sync',   array( $this, 'full_sync' )      );
+		add_action( 'admin_post_sp_cancel_sync', array( $this, 'cancel_sync' )    );
+		add_action( 'admin_post_sp_settings',    array( $this, 'save_settings' )  );
+		add_action( 'wp_ajax_sp_sync_status',    array( $this, 'sp_sync_status' ) );
+		add_action( 'admin_notices',             array( $this, 'admin_notices' )  );
 	}
 
 
@@ -43,11 +43,17 @@ class SP_Admin {
 	}
 
 
+	public function static_files() {
+		wp_enqueue_style( 'searchpress', SP_PLUGIN_URL . '/static/searchpress.css', array(), '1.0.1' );
+		wp_enqueue_script( 'searchpress', SP_PLUGIN_URL . '/static/searchpress.js', array( 'jquery', 'underscore', 'jquery-ui-sortable' ), '1.0.1', true );
+	}
+
+
 	public function sync() {
 		if ( !current_user_can( 'manage_options' ) ) wp_die( __( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
 		$sync = SP_Sync_Meta();
 		?>
-		<div class="wrap">
+		<div class="wrap searchpress-sync">
 			<h2>SearchPress</h2>
 
 				<?php if ( isset( $_GET['error'] ) ) : ?>
@@ -194,37 +200,6 @@ class SP_Admin {
 			) );
 		}
 		exit;
-	}
-
-	public function admin_styles() {
-		?>
-		<style type="text/css">
-			div.progress {
-				position: relative;
-				height: 50px;
-				border: 2px solid #111;
-				background: #333;
-				margin: 9px 0 18px;
-			}
-			div.progress-bar {
-				background: #0074a2;
-				position: absolute;
-				left: 0;
-				top: 0;
-				height: 50px;
-				z-index: 1;
-			}
-			div.progress-text {
-				color: white;
-				text-shadow: 1px 1px 0 #333;
-				line-height: 50px;
-				text-align: center;
-				position: absolute;
-				width: 100%;
-				z-index: 2;
-			}
-		</style>
-		<?php
 	}
 
 	public function get_error( $code ) {

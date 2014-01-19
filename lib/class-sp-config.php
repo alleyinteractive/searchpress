@@ -266,7 +266,8 @@ class SP_Config {
 			'host'      => 'http://localhost:9200',
 			'must_init' => true,
 			'active'    => false,
-			'last_beat' => false
+			'last_beat' => false,
+			'engine'    => false
 		) );
 		return $this->settings;
 	}

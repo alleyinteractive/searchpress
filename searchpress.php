@@ -64,6 +64,9 @@ require_once SP_PLUGIN_DIR . '/lib/class-sp-sync-meta.php';
 # Runs the search process
 require_once SP_PLUGIN_DIR . '/lib/class-sp-search.php';
 
+# Runs the search process
+require_once SP_PLUGIN_DIR . '/lib/class-sp-search-engines.php';
+
 if ( is_admin() ) {
 	require_once SP_PLUGIN_DIR . '/lib/admin.php';
 }
