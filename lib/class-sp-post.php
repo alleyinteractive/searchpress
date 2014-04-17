@@ -134,10 +134,18 @@ class SP_Post {
 		if ( defined( 'WP_CLI' ) && WP_CLI )
 			return self::get_terms_efficiently( $post );
 
+		$object_terms = array();
 		$taxonomies = get_object_taxonomies( $post->post_type );
-		$object_terms = get_the_terms( $post->ID, $taxonomies );
-		if ( !$object_terms || is_wp_error( $object_terms ) )
-			return array();
+		foreach ( $taxonomies as $taxonomy ) {
+			$these_terms = get_the_terms( $post->ID, $taxonomy );
+			if ( $these_terms && ! is_wp_error( $these_terms ) ) {
+				$object_terms = array_merge( $object_terms, $these_terms );
+			}
+		}
+
+		if ( empty( $object_terms ) ) {
+			return;
+		}
 
 		$terms = array();
 		foreach ( (array) $object_terms as $term ) {
@@ -149,7 +157,7 @@ class SP_Post {
 			);
 		}
 
-		do_action( 'sp_debug', '[SP_Post] Compiled Terms', $meta );
+		do_action( 'sp_debug', '[SP_Post] Compiled Terms', $terms );
 		return $terms;
 	}
 
@@ -182,7 +190,7 @@ class SP_Post {
 			);
 		}
 
-		do_action( 'sp_debug', '[SP_Post] Compiled Terms Efficiently', $meta );
+		do_action( 'sp_debug', '[SP_Post] Compiled Terms Efficiently', $terms );
 		return $terms;
 	}
 
@@ -210,7 +218,7 @@ class SP_Post {
 			);
 		}
 		SP_Sync_Manager()->users[ $user_id ] = $data;
-		do_action( 'sp_debug', '[SP_Post] Compiled User', $meta );
+		do_action( 'sp_debug', '[SP_Post] Compiled User', $data );
 
 		return $data;
 	}
