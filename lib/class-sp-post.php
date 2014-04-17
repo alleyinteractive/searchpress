@@ -67,7 +67,8 @@ class SP_Post {
 
 		$this->data['post_id']           = $post->ID;
 		# We're storing the login here instead of user ID, as that's more flexible
-		$this->data['post_author']       = $this->get_user( $post->post_author );
+		$this->data['post_author']       = $post->post_author;
+		$this->data['author']            = $this->get_user( $post->post_author );
 		$this->data['post_date']         = $post->post_date;
 		$this->data['post_date_gmt']     = $post->post_date_gmt;
 		$this->data['post_title']        = $apply_filters ? get_the_title( $post->ID ) : $post->post_title;
@@ -80,6 +81,7 @@ class SP_Post {
 		$this->data['post_parent']       = $post->post_parent;
 		$this->data['post_type']         = $post->post_type;
 		$this->data['post_mime_type']    = $post->post_mime_type;
+		$this->data['post_password']     = $post->post_password;
 		$this->data['permalink']         = get_permalink( $post->ID );
 
 		$this->data['terms']             = $this->get_terms( $post );

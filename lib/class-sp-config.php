@@ -114,7 +114,17 @@ class SP_Config {
 									"path" => "full",
 									"properties" => array(
 										"name" => array(
-											"type" => "string"
+											'type' => 'multi_field',
+											'fields' => array(
+												'name' => array(
+													'type' => 'string'
+												),
+												'raw' => array(
+													'type' => 'string',
+													'index' => 'not_analyzed',
+													'include_in_all' => false
+												)
+											)
 										),
 										"term_id" => array(
 											"type" => "long"
@@ -141,6 +151,11 @@ class SP_Config {
 							'include_in_all' => false
 						),
 						'post_author' => array(
+							'type' => 'long',
+							'index' => 'not_analyzed',
+							'include_in_all' => false
+						),
+						'author' => array(
 							'type' => 'object',
 							'path' => 'full',
 							'properties' => array(
@@ -178,7 +193,8 @@ class SP_Config {
 						),
 						'post_status' => array(
 							'type' => 'string',
-							'index' => 'no'
+							'index' => 'not_analyzed',
+							'include_in_all' => false
 						),
 						'post_name' => array(
 							'type' => 'multi_field',
@@ -222,6 +238,11 @@ class SP_Config {
 							)
 						),
 						'post_mime_type' => array(
+							'type' => 'string',
+							'index' => 'not_analyzed',
+							'include_in_all' => false
+						),
+						'post_password' => array(
 							'type' => 'string',
 							'index' => 'not_analyzed',
 							'include_in_all' => false
