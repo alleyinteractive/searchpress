@@ -37,6 +37,8 @@ class SP_Search {
 
 	private $sp;
 
+	private $search_phrase;
+
 	private static $instance;
 
 	private function __construct() {
@@ -79,6 +81,11 @@ class SP_Search {
 
 		# Force the search template if ?sp[force]=1
 		add_action( 'parse_query',         array( $this, 'force_search_template' ), 5 );
+
+		# Enable the search suggestion if the theme supports it
+		if ( current_theme_supports( 'search-suggestion' ) ) {
+			add_filter( 'sp_search_query_args', array( $this, 'add_suggestor' ) );
+		}
 	}
 
 
@@ -256,11 +263,10 @@ class SP_Search {
 			$es_query_args['filter'] = array( 'match_all' => new stdClass() );
 		}
 
-		// Fill in the query
-		//  todo: add auto phrase searching
-		//  todo: add fuzzy searching to correct for spelling mistakes
-		//  todo: boost title, tag, and category matches
 		if ( $args['query'] ) {
+			# Record this for use elsewhere
+			$this->search_phrase = $args['query'];
+
 			$multi_match = array( array( 'multi_match' => array(
 				'query'    => $args['query'],
 				'fields'   => $args['query_fields'],
@@ -470,7 +476,7 @@ class SP_Search {
 		// Do the actual search query!
 		$this->search_result = $this->search( $es_query_args );
 
-		if ( is_wp_error( $this->search_result ) || ! is_array( $this->search_result ) || empty( $this->search_result['hits'] ) || empty( $this->search_result['hits']['hits'] ) ) {
+		if ( is_wp_error( $this->search_result ) || empty( $this->search_result['hits']['hits'] ) ) {
 			$this->found_posts = 0;
 			return "SELECT * FROM $wpdb->posts WHERE 1=0 /* SearchPress search results */";
 		}
@@ -730,6 +736,7 @@ class SP_Search {
 		return $vars;
 	}
 
+
 	/**
 	 * Ugly hack to search across all fields for each word in the query. By default, multi_match requires that each
 	 * word in a phrase exist in the same field. This is not ideal for our purposes; we'd rather each word exist in
@@ -758,11 +765,50 @@ class SP_Search {
 	}
 
 
+	/**
+	 * Add the 'suggest' query to the ES args.
+	 *
+	 * @param array $es_args ES query args.
+	 * @return array
+	 */
+	public function add_suggestor( $es_args ) {
+		if ( empty( $es_args['suggest'] ) && ! empty( $this->search_phrase ) ) {
+			$es_args['suggest'] = array(
+				'sp_suggest' => array(
+					'text'   => $this->search_phrase,
+					'phrase' => array(
+						'field'     => '_all',
+						'size'      => 1,
+						'highlight' => array(
+							'pre_tag'  => '<em>',
+							'post_tag' => '</em>'
+						)
+					)
+				)
+			);
+		}
+		return $es_args;
+	}
+
+
+	/**
+	 * Get the search suggestion from the raw ES response.
+	 *
+	 * @return array|null Returns the suggest array if present, otherwise null.
+	 */
+	public function get_suggestion() {
+		if ( 0 == $this->found_posts && ! empty( $this->search_result['suggest']['sp_suggest'][0]['options'][0]['text'] ) ) {
+			return $this->search_result['suggest']['sp_suggest'][0]['options'][0];
+		} else {
+			return null;
+		}
+	}
 }
 
 function SP_Search() {
 	return SP_Search::instance();
 }
 add_action( 'after_setup_theme', 'SP_Search' );
+
 
 endif;
