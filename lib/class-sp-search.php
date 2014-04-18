@@ -480,7 +480,8 @@ class SP_Search {
 		foreach ( (array) $this->search_result['hits']['hits'] as $result ) {
 			// Fields arg
 			if ( ! empty( $result['fields'] ) && ! empty( $result['fields']['post_id'] ) ) {
-				$post_ids[] = $result['fields']['post_id'];
+				$result['fields']['post_id'] = (array) $result['fields']['post_id'];
+				$post_ids[] = reset( $result['fields']['post_id'] );
 			}
 			// Full source objects
 			elseif ( ! empty( $result['_source'] ) && ! empty( $result['_source']['id'] ) ) {
