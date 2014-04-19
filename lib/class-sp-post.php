@@ -67,17 +67,16 @@ class SP_Post {
 
 		$this->data['post_id']           = $post->ID;
 		# We're storing the login here instead of user ID, as that's more flexible
-		$this->data['post_author']       = $post->post_author;
-		$this->data['author']            = $this->get_user( $post->post_author );
-		$this->data['post_date']         = $post->post_date;
-		$this->data['post_date_gmt']     = $post->post_date_gmt;
+		$this->data['post_author']       = $this->get_user( $post->post_author );
+		$this->data['post_date']         = $this->get_date( $post->post_date, 'post_date' );
+		$this->data['post_date_gmt']     = $this->get_date( $post->post_date_gmt, 'post_date_gmt' );
+		$this->data['post_modified']     = $this->get_date( $post->post_modified, 'post_modified' );
+		$this->data['post_modified_gmt'] = $this->get_date( $post->post_modified_gmt, 'post_modified_gmt' );
 		$this->data['post_title']        = $apply_filters ? get_the_title( $post->ID ) : $post->post_title;
 		$this->data['post_excerpt']      = $post->post_excerpt;
 		$this->data['post_content']      = $apply_filters ? str_replace( ']]>', ']]&gt;', apply_filters( 'the_content', $post->post_content ) ) : $post->post_content;
 		$this->data['post_status']       = $post->post_status;
 		$this->data['post_name']         = $post->post_name;
-		$this->data['post_modified']     = $post->post_modified;
-		$this->data['post_modified_gmt'] = $post->post_modified_gmt;
 		$this->data['post_parent']       = $post->post_parent;
 		$this->data['post_type']         = $post->post_type;
 		$this->data['post_mime_type']    = $post->post_mime_type;
@@ -210,11 +209,13 @@ class SP_Post {
 		$user = get_userdata( $user_id );
 		if ( $user instanceof WP_User ) {
 			$data = array(
+				'post_author'  => $user_id,
 				'login'        => $user->user_login,
 				'display_name' => $user->display_name
 			);
 		} else {
 			$data = array(
+				'post_author'  => $user_id,
 				'login'        => '',
 				'display_name' => ''
 			);
@@ -223,6 +224,30 @@ class SP_Post {
 		do_action( 'sp_debug', '[SP_Post] Compiled User', $data );
 
 		return $data;
+	}
+
+
+	/**
+	 * Parse out the properties of a date.
+	 *
+	 * @param  string $date  A date, expected to be in mysql format.
+	 * @param  string $field The field for which we're pulling this information.
+	 * @return array The parsed date.
+	 */
+	public function get_date( $date, $field ) {
+		$ts = strtotime( $date );
+		return array(
+			$field        => $date,
+			'year'        => date( 'Y', $ts ),
+			'month'       => date( 'm', $ts ),
+			'day'         => date( 'd', $ts ),
+			'hour'        => date( 'H', $ts ),
+			'minute'      => date( 'i', $ts ),
+			'second'      => date( 's', $ts ),
+			'week'        => date( 'W', $ts ),
+			'day_of_week' => date( 'w', $ts ),
+			'day_of_year' => date( 'z', $ts ),
+		);
 	}
 
 

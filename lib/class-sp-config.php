@@ -147,18 +147,15 @@ class SP_Config {
 					'properties' => array(
 						'post_id' => array(
 							'type' => 'long',
-							'index' => 'not_analyzed',
 							'include_in_all' => false
 						),
 						'post_author' => array(
-							'type' => 'long',
-							'index' => 'not_analyzed',
-							'include_in_all' => false
-						),
-						'author' => array(
 							'type' => 'object',
-							'path' => 'full',
 							'properties' => array(
+								'post_author' => array(
+									'type' => 'long',
+									'include_in_all' => false
+								),
 								'display_name' => array(
 									'type' => 'string'
 								),
@@ -169,14 +166,72 @@ class SP_Config {
 							)
 						),
 						'post_date' => array(
-							'type' => 'date',
-							'format' => 'YYYY-MM-dd HH:mm:ss',
-							'include_in_all' => false
+							'type' => 'object',
+							'include_in_all' => false,
+							'path' => 'full',
+							'properties' => array(
+								'post_date'   => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss' ),
+								'year'        => array( 'type' => 'short' ),
+								'month'       => array( 'type' => 'byte' ),
+								'day'         => array( 'type' => 'byte' ),
+								'hour'        => array( 'type' => 'byte' ),
+								'minute'      => array( 'type' => 'byte' ),
+								'second'      => array( 'type' => 'byte' ),
+								'week'        => array( 'type' => 'byte' ),
+								'day_of_week' => array( 'type' => 'byte' ),
+								'day_of_year' => array( 'type' => 'short' ),
+							),
 						),
 						'post_date_gmt' => array(
-							'type' => 'date',
-							'format' => 'YYYY-MM-dd HH:mm:ss',
-							'include_in_all' => false
+							'type' => 'object',
+							'include_in_all' => false,
+							'path' => 'full',
+							'properties' => array(
+								'post_date_gmt'   => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss' ),
+								'year'        => array( 'type' => 'short' ),
+								'month'       => array( 'type' => 'byte' ),
+								'day'         => array( 'type' => 'byte' ),
+								'hour'        => array( 'type' => 'byte' ),
+								'minute'      => array( 'type' => 'byte' ),
+								'second'      => array( 'type' => 'byte' ),
+								'week'        => array( 'type' => 'byte' ),
+								'day_of_week' => array( 'type' => 'byte' ),
+								'day_of_year' => array( 'type' => 'short' ),
+							),
+						),
+						'post_modified' => array(
+							'type' => 'object',
+							'include_in_all' => false,
+							'path' => 'full',
+							'properties' => array(
+								'post_modified'   => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss' ),
+								'year'        => array( 'type' => 'short' ),
+								'month'       => array( 'type' => 'byte' ),
+								'day'         => array( 'type' => 'byte' ),
+								'hour'        => array( 'type' => 'byte' ),
+								'minute'      => array( 'type' => 'byte' ),
+								'second'      => array( 'type' => 'byte' ),
+								'week'        => array( 'type' => 'byte' ),
+								'day_of_week' => array( 'type' => 'byte' ),
+								'day_of_year' => array( 'type' => 'short' ),
+							),
+						),
+						'post_modified_gmt' => array(
+							'type' => 'object',
+							'include_in_all' => false,
+							'path' => 'full',
+							'properties' => array(
+								'post_modified_gmt'   => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss' ),
+								'year'        => array( 'type' => 'short' ),
+								'month'       => array( 'type' => 'byte' ),
+								'day'         => array( 'type' => 'byte' ),
+								'hour'        => array( 'type' => 'byte' ),
+								'minute'      => array( 'type' => 'byte' ),
+								'second'      => array( 'type' => 'byte' ),
+								'week'        => array( 'type' => 'byte' ),
+								'day_of_week' => array( 'type' => 'byte' ),
+								'day_of_year' => array( 'type' => 'short' ),
+							),
 						),
 						'post_title' => array(
 							'type' => 'string',
@@ -209,19 +264,8 @@ class SP_Config {
 								)
 							)
 						),
-						'post_modified' => array(
-							'type' => 'date',
-							'format' => 'YYYY-MM-dd HH:mm:ss',
-							'include_in_all' => false
-						),
-						'post_modified_gmt' => array(
-							'type' => 'date',
-							'format' => 'YYYY-MM-dd HH:mm:ss',
-							'include_in_all' => false
-						),
 						'post_parent' => array(
 							'type' => 'long',
-							'index' => 'not_analyzed',
 							'include_in_all' => false
 						),
 						'post_type' => array(
