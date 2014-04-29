@@ -194,16 +194,20 @@ class SP_Sync_Manager {
 			$sync_meta->save();
 			return false;
 		} elseif ( ! is_object( $response ) || ! is_array( $response->items ) ) {
-			if ( defined( 'WP_CLI' ) || ! WP_CLI ) {
+			if ( defined( 'WP_CLI' ) && WP_CLI ) {
 				WP_CLI::error( "Error indexing data! Response:\n" . print_r( $response, 1 ) );
 			} else {
 				error_log( "Error indexing data! Response:\n" . print_r( $response, 1 ) );
 			}
 		} else {
 			foreach ( $response->items as $post ) {
-				if ( ! isset( $post->index->ok ) || 1 != $post->index->ok ) {
-					$error = "Error indexing post {$post->index->_id}: {$post->index->error}";
-					error_log( $error );
+				if ( ! isset( $post->index->status ) || 201 != $post->index->status ) {
+					$error = "Error indexing post {$post->index->_id}: " . json_encode( $post );
+					if ( defined( 'WP_CLI' ) && WP_CLI ) {
+						WP_CLI::error( $error );
+					} else {
+						error_log( $error );
+					}
 					$sync_meta->messages[] = $error;
 					$sync_meta->error++;
 				} else {
@@ -261,9 +265,10 @@ function SP_Sync_Manager() {
 /**
  * SP_Sync_Manager only gets instantiated when necessary, so we register these hooks outside of the class
  */
-add_action( 'save_post',       array( SP_Sync_Manager(), 'sync_post' ) );
-add_action( 'delete_post',     array( SP_Sync_Manager(), 'delete_post' ) );
-add_action( 'trashed_post',    array( SP_Sync_Manager(), 'delete_post' ) );
-
+if ( SP_Config()->active() ) {
+	add_action( 'save_post',       array( SP_Sync_Manager(), 'sync_post' ) );
+	add_action( 'delete_post',     array( SP_Sync_Manager(), 'delete_post' ) );
+	add_action( 'trashed_post',    array( SP_Sync_Manager(), 'delete_post' ) );
+}
 
 endif;
