@@ -237,16 +237,18 @@ class SP_Post {
 	public function get_date( $date, $field ) {
 		$ts = strtotime( $date );
 		return array(
-			$field        => $date,
-			'year'        => date( 'Y', $ts ),
-			'month'       => date( 'm', $ts ),
-			'day'         => date( 'd', $ts ),
-			'hour'        => date( 'H', $ts ),
-			'minute'      => date( 'i', $ts ),
-			'second'      => date( 's', $ts ),
-			'week'        => date( 'W', $ts ),
-			'day_of_week' => date( 'w', $ts ),
-			'day_of_year' => date( 'z', $ts ),
+			$field              => $date,
+			'year'              => date( 'Y', $ts ),
+			'month'             => date( 'm', $ts ),
+			'day'               => date( 'd', $ts ),
+			'hour'              => date( 'H', $ts ),
+			'minute'            => date( 'i', $ts ),
+			'second'            => date( 's', $ts ),
+			'week'              => date( 'W', $ts ),
+			'day_of_week'       => date( 'N', $ts ),
+			'day_of_year'       => date( 'z', $ts ),
+			'seconds_from_day'  => mktime( date( 'H', $ts ), date( 'i', $ts ), date( 's', $ts ), 1, 1, 1970 ),
+			'seconds_from_hour' => mktime( 0, date( 'i', $ts ), date( 's', $ts ), 1, 1, 1970 ),
 		);
 	}
 
