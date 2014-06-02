@@ -90,17 +90,42 @@ class SP_Config {
 							"template_meta" => array(
 								"path_match" => "post_meta.*",
 								"mapping" => array(
-									"type" => "multi_field",
+									"type" => "object",
 									"path" => "full",
-									"fields" => array(
-										"{name}" => array(
-											"type" => "string",
-											"index" => "analyzed"
+									"properties" => array(
+										"value" => array(
+											"type" => "multi_field",
+											"fields" => array(
+												"value" => array(
+													"type" => "string",
+												),
+												"raw" => array(
+													"type" => "string",
+													"index" => "not_analyzed",
+													'include_in_all' => false
+												),
+											)
 										),
-										"raw" => array(
-											"type" => "string",
-											"index" => "not_analyzed",
-											'include_in_all' => false
+										'long' => array(
+											'type' => 'long',
+										),
+										'double' => array(
+											'type' => 'double',
+										),
+										'boolean' => array(
+											'type' => 'boolean',
+										),
+										'date' => array(
+											'type' => 'date',
+											'format' => 'YYYY-MM-dd'
+										),
+										'datetime' => array(
+											'type' => 'date',
+											'format' => 'YYYY-MM-dd HH:mm:ss'
+										),
+										'time' => array(
+											'type' => 'date',
+											'format' => 'HH:mm:ss'
 										)
 									)
 								)

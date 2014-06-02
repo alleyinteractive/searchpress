@@ -113,15 +113,56 @@ class SP_Post {
 			unset( $meta[ $key ] );
 		}
 
+		foreach ( $meta as &$values ) {
+			$values = array_map( array( 'SP_Post', 'cast_meta_types' ), $values );
+		}
+
 		if ( SP_Config()->unserialize_meta() ) {
 			# If post meta is serialized, unserialize it
-			foreach ( $meta as &$values ) {
+			foreach ( $meta as $key => &$values ) {
 				$values = array_map( 'maybe_unserialize', $values );
 			}
+			$values = apply_filters( 'sp_unserialize_meta', $values, $key );
 		}
 
 		do_action( 'sp_debug', '[SP_Post] Compiled Meta', $meta );
 		return $meta;
+	}
+
+
+	/**
+	 * Split the meta values into different types for meta query casting.
+	 *
+	 * @param  string $value Meta value.
+	 * @return array
+	 */
+	public static function cast_meta_types( $value ) {
+		$return = array(
+			'value'   => $value,
+			'boolean' => (bool) $value,
+		);
+
+		if ( is_numeric( $value ) ) {
+			$return['long']   = intval( $value );
+			$return['double'] = floatval( $value );
+		}
+
+		// correct boolean values
+		if ( ( "false" === $value ) || ( "FALSE" === $value ) ) {
+			$return['boolean'] = false;
+		} elseif ( ( 'true' === $value ) || ( 'TRUE' === $value ) ) {
+			$return['boolean'] = true;
+		}
+
+		// add date/time if we have it.
+		$time = strtotime( $value );
+		if ( false !== $time ) {
+			$return['date']     = date( 'Y-m-d', $time );
+			$return['datetime'] = date( 'Y-m-d H:i:s', $time );
+			$return['time']     = date( 'H:i:s', $time );
+		}
+
+		return $return;
 	}
 
 
