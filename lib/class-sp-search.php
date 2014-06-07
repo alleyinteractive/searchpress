@@ -168,6 +168,8 @@ class SP_Search {
 			 * );
 			 */
 			'facets'         => null,
+
+			'fields'         => array( 'post_id' )
 		);
 
 		$raw_args = $args; // Keep a copy
@@ -354,6 +356,10 @@ class SP_Search {
 			}
 		}
 
+		if ( ! empty( $args['fields'] ) ) {
+			$es_query_args['fields'] = $args['fields'];
+		}
+
 		return $es_query_args;
 	}
 
@@ -460,7 +466,7 @@ class SP_Search {
 		}
 
 		// You can use this filter to modify the search query parameters, such as controlling the post_type.
-		// These arguments are in the format for wpcom_search_api_wp_to_es_args(), i.e. WP-style.
+		// These arguments are in the format for wp_to_es_args(), i.e. WP-style.
 		$es_wp_query_args = apply_filters( 'sp_search_wp_query_args', $es_wp_query_args, $query );
 
 		// Convert the WP-style args into ES args
