@@ -40,7 +40,7 @@ class SP_Config {
 
 
 	public function sync_post_types() {
-		return apply_filters( 'sp_config_sync_post_types', get_post_types( array( 'exclude_from_search' => false ) ) );
+		return apply_filters( 'sp_config_sync_post_types', sp_searchable_post_types() );
 	}
 
 

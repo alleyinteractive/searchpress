@@ -209,9 +209,10 @@ class SP_Search {
 		$filters = array();
 
 		if ( $args['post_type'] ) {
-			if ( !is_array( $args['post_type'] ) )
-				$args['post_type'] = array( $args['post_type'] );
-			$filters[] = array( 'terms' => array( 'post_type.raw' => $args['post_type'] ) );
+			if ( 'any' == $args['post_type'] ) {
+				$args['post_type'] = sp_searchable_post_types();
+			}
+			$filters[] = array( 'terms' => array( 'post_type.raw' => (array) $args['post_type'] ) );
 		}
 
 		if ( $args['author_name'] ) {
@@ -703,8 +704,9 @@ class SP_Search {
 		if ( ! empty( $terms ) ) {
 			$vars['terms'] = $terms;
 		}
+
 		# Post type filters
-		$public_post_types = array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
+		$searchable_post_types = sp_searchable_post_types();
 
 		if ( $query->get( 'post_type' ) && 'any' != $query->get( 'post_type' ) ) {
 			$post_types = (array) $query->get( 'post_type' );
@@ -719,14 +721,14 @@ class SP_Search {
 		# Validate post types, making sure they exist and are not excluded from search
 		if ( $post_types ) {
 			foreach ( (array) $post_types as $post_type ) {
-				if ( in_array( $post_type, $public_post_types ) ) {
+				if ( in_array( $post_type, $searchable_post_types ) ) {
 					$vars['post_type'][] = $post_type;
 				}
 			}
 		}
 
 		if ( empty( $vars['post_type'] ) )
-			$vars['post_type'] = $public_post_types;
+			$vars['post_type'] = $searchable_post_types;
 
 		return $vars;
 	}

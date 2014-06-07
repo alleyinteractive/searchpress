@@ -144,10 +144,14 @@ class SP_Sync_Manager {
 	public function get_posts( $args = array() ) {
 		$args = wp_parse_args( $args, array(
 			'post_status'      => 'publish',
-			'post_type'        => get_post_types( array( 'exclude_from_search' => false ) ),
+			'post_type'        => null,
 			'orderby'          => 'ID',
 			'order'            => 'ASC'
 		) );
+
+		if ( empty( $args['post_type'] ) ) {
+			$args['post_type'] = sp_searchable_post_types();
+		}
 
 		$query = new WP_Query;
 		$posts = $query->query( $args );
@@ -245,10 +249,13 @@ class SP_Sync_Manager {
 	public function count_posts( $args = array() ) {
 		if ( false === $this->published_posts ) {
 			$args = wp_parse_args( $args, array(
-				'post_type' => get_post_types( array( 'exclude_from_search' => false ) ),
+				'post_type' => null,
 				'post_status' => 'publish',
 				'posts_per_page' => 1
 			) );
+			if ( empty( $args['post_type'] ) ) {
+				$args['post_type'] = sp_searchable_post_types();
+			}
 			$query = new WP_Query( $args );
 			$this->published_posts = $query->found_posts;
 		}
