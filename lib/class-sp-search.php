@@ -237,7 +237,7 @@ class SP_Search {
 					$comp = 'and';
 				}
 
-				$terms = (array) $terms;
+				$terms = array_map( 'sanitize_title', (array) $terms );
 				if ( count( $terms ) ) {
 					$tax_fld = 'terms.' . $tax . '.slug';
 					foreach ( $terms as $term ) {
