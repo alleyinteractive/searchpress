@@ -180,7 +180,15 @@ class SP_Search {
 			'size'    => absint( $args['posts_per_page'] ),
 		);
 
-		// ES "from" arg (offset)
+		/**
+		 * @ticket 18897
+		 *
+		 * Important: SearchPress currently emulates the (arguably broken)
+		 * behavior of core here. The above mentioned ticket would alter this
+		 * behavior, and should that happen, SearchPress would be updated to
+		 * reflect. In other words, presently, if offset is set, paged is
+		 * ignored. If core ever allows both to be set, so will SP.
+		 */
 		if ( $args['offset'] ) {
 			$es_query_args['from'] = absint( $args['offset'] );
 		} elseif ( $args['paged'] ) {
