@@ -8,6 +8,8 @@ class Tests_Searching extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 
+		sp_index_flush_data();
+
 		$cat_a = $this->factory->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-a' ) );
 		$cat_b = $this->factory->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-b' ) );
 		$cat_c = $this->factory->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-c' ) );
@@ -47,7 +49,8 @@ class Tests_Searching extends WP_UnitTestCase {
 		$this->factory->post->create( array( 'post_title' => 'child-three', 'post_parent' => $this->parent_two, 'post_date' => '2007-01-01 00:00:06' ) );
 		$this->factory->post->create( array( 'post_title' => 'child-four', 'post_parent' => $this->parent_two, 'post_date' => '2007-01-01 00:00:07' ) );
 
-		sp_index_test_data();
+		// Force refresh the index so the data is available immediately
+		SP_API()->post( '_refresh' );
 	}
 
 	function search_and_get_field( $args, $field = 'post_name' ) {
@@ -384,7 +387,9 @@ class Tests_Searching extends WP_UnitTestCase {
 
 		$author_4 = $this->factory->user->create( array( 'user_login' => 'author4', 'user_pass' => rand_str(), 'role' => 'author' ) );
 		$post_4 = $this->factory->post->create( array( 'post_title' => rand_str(), 'post_author' => $author_4, 'post_date' => '2006-01-01 00:00:00' ) );
-		sp_index_test_data();
+
+		// Force refresh the index so the data is available immediately
+		SP_API()->post( '_refresh' );
 
 		$this->assertEqualSets(
 			array( $author_1, $author_2, $author_3, $author_4 ),
