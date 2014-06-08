@@ -151,7 +151,7 @@ class SP_Search {
 			'author'         => null,    // id or an array of ids
 			'author_name'    => array(), // string or an array
 
-			'date_range'     => null,    // array( 'field' => 'date', 'gt' => 'YYYY-MM-dd', 'lte' => 'YYYY-MM-dd' ); date formats: 'YYYY-MM-dd' or 'YYYY-MM-dd HH:MM:SS'
+			'date_range'     => null,    // array( 'field' => 'post_date', 'gt' => 'YYYY-MM-dd', 'lte' => 'YYYY-MM-dd' ); date formats: 'YYYY-MM-dd' or 'YYYY-MM-dd HH:MM:SS'
 
 			'orderby'        => null,    // Defaults to 'relevance' if query is set, otherwise 'date'. Pass an array for multiple orders.
 			'order'          => 'DESC',
@@ -206,6 +206,7 @@ class SP_Search {
 		}
 
 		// Author
+		// @todo Add support for comma-delim terms like wp_query
 		if ( ! empty( $args['author'] ) ) {
 			$filters[] = array( 'terms' => array( 'post_author.user_id' => (array) $args['author'] ) );
 		}
@@ -214,9 +215,13 @@ class SP_Search {
 		}
 
 		// Date range
-		if ( !empty( $args['date_range'] ) && isset( $args['date_range']['field'] ) ) {
-			$field = $args['date_range']['field'];
-			unset( $args['date_range']['field'] );
+		if ( ! empty( $args['date_range'] ) ) {
+			if ( ! empty( $args['date_range']['field'] ) ) {
+				$field = $args['date_range']['field'];
+				unset( $args['date_range']['field'] );
+			} else {
+				$field = 'post_date';
+			}
 			$filters[] = array( 'range' => array( "{$field}.date" => $args['date_range'] ) );
 		}
 
@@ -289,6 +294,9 @@ class SP_Search {
 					break;
 				case 'date' :
 					$es_query_args['sort'][] = array( 'post_date.date' => $args['order'] );
+					break;
+				case 'modified' :
+					$es_query_args['sort'][] = array( 'post_modified.date' => $args['order'] );
 					break;
 				case 'ID' :
 				case 'id' :
