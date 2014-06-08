@@ -151,10 +151,10 @@ class SP_Post {
 		$terms = array();
 		foreach ( (array) $object_terms as $term ) {
 			$terms[ $term->taxonomy ][] = array(
-				'term_id' => $term->term_id,
+				'term_id' => intval( $term->term_id ),
 				'slug'    => $term->slug,
 				'name'    => $term->name,
-				'parent'  => $term->parent
+				'parent'  => intval( $term->parent )
 			);
 		}
 
@@ -184,10 +184,10 @@ class SP_Post {
 		$terms = array();
 		foreach ( (array) $object_terms as $term ) {
 			$terms[ $term->taxonomy ][] = array(
-				'term_id' => $term->term_id,
+				'term_id' => intval( $term->term_id ),
 				'slug'    => $term->slug,
 				'name'    => $term->name,
-				'parent'  => $term->parent
+				'parent'  => intval( $term->parent )
 			);
 		}
 
@@ -209,13 +209,13 @@ class SP_Post {
 		$user = get_userdata( $user_id );
 		if ( $user instanceof WP_User ) {
 			$data = array(
-				'post_author'  => $user_id,
+				'post_author'  => intval( $user_id ),
 				'login'        => $user->user_login,
 				'display_name' => $user->display_name
 			);
 		} else {
 			$data = array(
-				'post_author'  => $user_id,
+				'post_author'  => intval( $user_id ),
 				'login'        => '',
 				'display_name' => ''
 			);
@@ -238,17 +238,17 @@ class SP_Post {
 		$ts = strtotime( $date );
 		return array(
 			$field              => $date,
-			'year'              => date( 'Y', $ts ),
-			'month'             => date( 'm', $ts ),
-			'day'               => date( 'd', $ts ),
-			'hour'              => date( 'H', $ts ),
-			'minute'            => date( 'i', $ts ),
-			'second'            => date( 's', $ts ),
-			'week'              => date( 'W', $ts ),
-			'day_of_week'       => date( 'N', $ts ),
-			'day_of_year'       => date( 'z', $ts ),
-			'seconds_from_day'  => mktime( date( 'H', $ts ), date( 'i', $ts ), date( 's', $ts ), 1, 1, 1970 ),
-			'seconds_from_hour' => mktime( 0, date( 'i', $ts ), date( 's', $ts ), 1, 1, 1970 ),
+			'year'              => intval( date( 'Y', $ts ) ),
+			'month'             => intval( date( 'm', $ts ) ),
+			'day'               => intval( date( 'd', $ts ) ),
+			'hour'              => intval( date( 'H', $ts ) ),
+			'minute'            => intval( date( 'i', $ts ) ),
+			'second'            => intval( date( 's', $ts ) ),
+			'week'              => intval( date( 'W', $ts ) ),
+			'day_of_week'       => intval( date( 'N', $ts ) ),
+			'day_of_year'       => intval( date( 'z', $ts ) ),
+			'seconds_from_day'  => intval( mktime( date( 'H', $ts ), date( 'i', $ts ), date( 's', $ts ), 1, 1, 1970 ) ),
+			'seconds_from_hour' => intval( mktime( 0, date( 'i', $ts ), date( 's', $ts ), 1, 1, 1970 ) ),
 		);
 	}
 
