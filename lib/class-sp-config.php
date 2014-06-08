@@ -64,14 +64,8 @@ class SP_Config {
 						# )
 					),
 					'filter' => array(
-						'sp_word_delimiter' => array(
-							'type' => 'word_delimiter',
-							'preserve_original' => true
-						),
-						'sp_snowball' => array(
-							'type' => 'snowball',
-							'language' => 'English'
-						),
+						'sp_word_delimiter' => array( 'type' => 'word_delimiter', 'preserve_original' => true ),
+						'sp_snowball' => array( 'type' => 'snowball', 'language' => 'English' ),
 					# 	'edge_ngram' => array(
 					# 		'side' => 'front',
 					# 		'max_gram' => 10,
@@ -93,40 +87,14 @@ class SP_Config {
 									"type" => "object",
 									"path" => "full",
 									"properties" => array(
-										"value" => array(
-											"type" => "multi_field",
-											"fields" => array(
-												"value" => array(
-													"type" => "string",
-												),
-												"raw" => array(
-													"type" => "string",
-													"index" => "not_analyzed",
-													'include_in_all' => false
-												),
-											)
-										),
-										'long' => array(
-											'type' => 'long',
-										),
-										'double' => array(
-											'type' => 'double',
-										),
-										'boolean' => array(
-											'type' => 'boolean',
-										),
-										'date' => array(
-											'type' => 'date',
-											'format' => 'YYYY-MM-dd'
-										),
-										'datetime' => array(
-											'type' => 'date',
-											'format' => 'YYYY-MM-dd HH:mm:ss'
-										),
-										'time' => array(
-											'type' => 'date',
-											'format' => 'HH:mm:ss'
-										)
+										"value" => array( "type" => "string" ),
+										"raw" => array( "type" => "string", "index" => "not_analyzed", 'include_in_all' => false ),
+										'long' => array( 'type' => 'long' ),
+										'double' => array( 'type' => 'double' ),
+										'boolean' => array( 'type' => 'boolean' ),
+										'date' => array( 'type' => 'date', 'format' => 'YYYY-MM-dd' ),
+										'datetime' => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss' ),
+										'time' => array( 'type' => 'date', 'format' => 'HH:mm:ss' )
 									)
 								)
 							)
@@ -141,53 +109,27 @@ class SP_Config {
 										"name" => array(
 											'type' => 'multi_field',
 											'fields' => array(
-												'name' => array(
-													'type' => 'string'
-												),
-												'raw' => array(
-													'type' => 'string',
-													'index' => 'not_analyzed',
-													'include_in_all' => false
-												)
+												'value' => array( 'type' => 'string' ),
+												'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false )
 											)
 										),
-										"term_id" => array(
-											"type" => "long"
-										),
-										"parent" => array(
-											"type" => "long"
-										),
-										"slug" => array(
-											"type" => "string",
-											"index" => "not_analyzed"
-										)
+										"term_id" => array( "type" => "long" ),
+										"parent" => array( "type" => "long" ),
+										"slug" => array( "type" => "string", "index" => "not_analyzed" )
 									)
 								)
 							)
 						)
 					),
-					"_all" => array(
-						"analyzer" => "simple"
-					),
+					"_all" => array( "analyzer" => "simple" ),
 					'properties' => array(
-						'post_id' => array(
-							'type' => 'long',
-							'include_in_all' => false
-						),
+						'post_id' => array( 'type' => 'long', 'include_in_all' => false ),
 						'post_author' => array(
 							'type' => 'object',
 							'properties' => array(
-								'post_author' => array(
-									'type' => 'long',
-									'include_in_all' => false
-								),
-								'display_name' => array(
-									'type' => 'string'
-								),
-								'login' => array(
-									'type' => 'string',
-									'index' => 'not_analyzed'
-								)
+								'user_id' => array( 'type' => 'long', 'include_in_all' => false ),
+								'display_name' => array( 'type' => 'string' ),
+								'login' => array( 'type' => 'string', 'index' => 'not_analyzed' )
 							)
 						),
 						'post_date' => array(
@@ -195,7 +137,7 @@ class SP_Config {
 							'include_in_all' => false,
 							'path' => 'full',
 							'properties' => array(
-								'post_date'         => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss' ),
+								'date'              => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss||YYYY-MM-dd' ),
 								'year'              => array( 'type' => 'short' ),
 								'month'             => array( 'type' => 'byte' ),
 								'day'               => array( 'type' => 'byte' ),
@@ -214,7 +156,7 @@ class SP_Config {
 							'include_in_all' => false,
 							'path' => 'full',
 							'properties' => array(
-								'post_date_gmt'     => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss' ),
+								'date'              => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss||YYYY-MM-dd' ),
 								'year'              => array( 'type' => 'short' ),
 								'month'             => array( 'type' => 'byte' ),
 								'day'               => array( 'type' => 'byte' ),
@@ -233,7 +175,7 @@ class SP_Config {
 							'include_in_all' => false,
 							'path' => 'full',
 							'properties' => array(
-								'post_modified'     => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss' ),
+								'date'              => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss||YYYY-MM-dd' ),
 								'year'              => array( 'type' => 'short' ),
 								'month'             => array( 'type' => 'byte' ),
 								'day'               => array( 'type' => 'byte' ),
@@ -252,7 +194,7 @@ class SP_Config {
 							'include_in_all' => false,
 							'path' => 'full',
 							'properties' => array(
-								'post_modified_gmt' => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss' ),
+								'date'              => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss||YYYY-MM-dd' ),
 								'year'              => array( 'type' => 'short' ),
 								'month'             => array( 'type' => 'byte' ),
 								'day'               => array( 'type' => 'byte' ),
@@ -266,73 +208,30 @@ class SP_Config {
 								'seconds_from_hour' => array( 'type' => 'short' ),
 							),
 						),
-						'post_title' => array(
-							'type' => 'string',
-							'_boost'  => 3.0,
-							'store'  => 'yes'
-						),
-						'post_excerpt' => array(
-							'type' => 'string',
-							'_boost'  => 2.0
-						),
-						'post_content' => array(
-							'type' => 'string',
-							'_boost'  => 1.0
-						),
-						'post_status' => array(
-							'type' => 'string',
-							'index' => 'not_analyzed',
-							'include_in_all' => false
-						),
+						'post_title' => array( 'type' => 'string', '_boost'  => 3.0, 'store'  => 'yes' ),
+						'post_excerpt' => array( 'type' => 'string', '_boost'  => 2.0 ),
+						'post_content' => array( 'type' => 'string', '_boost'  => 1.0 ),
+						'post_status' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
 						'post_name' => array(
 							'type' => 'multi_field',
 							'fields' => array(
-								'post_name' => array(
-									'type' => 'string'
-								),
-								'raw' => array(
-									'type' => 'string',
-									'index' => 'not_analyzed',
-									'include_in_all' => false
-								)
+								'value' => array( 'type' => 'string' ),
+								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false )
 							)
 						),
-						'post_parent' => array(
-							'type' => 'long',
-							'include_in_all' => false
-						),
+						'post_parent' => array( 'type' => 'long', 'include_in_all' => false ),
 						'post_type' => array(
 							'type' => 'multi_field',
 							'fields' => array(
-								'post_type' => array(
-									'type' => 'string'
-								),
-								'raw' => array(
-									'type' => 'string',
-									'index' => 'not_analyzed',
-									'include_in_all' => false
-								)
+								'post_type' => array( 'type' => 'string' ),
+								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false )
 							)
 						),
-						'post_mime_type' => array(
-							'type' => 'string',
-							'index' => 'not_analyzed',
-							'include_in_all' => false
-						),
-						'post_password' => array(
-							'type' => 'string',
-							'index' => 'not_analyzed',
-							'include_in_all' => false
-						),
-						'permalink' => array(
-							'type' => 'string'
-						),
-						'terms' => array(
-							"type" => "object"
-						),
-						'post_meta' => array(
-							'type' => 'object'
-						)
+						'post_mime_type' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
+						'post_password' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
+						'permalink' => array( 'type' => 'string' ),
+						'terms' => array( "type" => "object" ),
+						'post_meta' => array( 'type' => 'object' )
 					)
 				)
 			)

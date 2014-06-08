@@ -140,9 +140,9 @@ class SP_Search {
 				'post_title^3',
 				'post_excerpt^2',
 				'post_content',
-				'post_author_name',
-				'terms.category.name',
-				'terms.post_tag.name'
+				'post_author.display_name',
+				'terms.category.name.value',
+				'terms.post_tag.name.value'
 			),
 
 			'post_type'      => null,  // string or an array
@@ -158,7 +158,7 @@ class SP_Search {
 
 			'posts_per_page' => 10,
 			'offset'         => null,
-			'paged'          => null,
+			'paged'          => 1,
 
 			/**
 			 * Facets. Examples:
@@ -172,16 +172,18 @@ class SP_Search {
 			'fields'         => array( 'post_id' )
 		);
 
-		$raw_args = $args; // Keep a copy
-
 		$args = wp_parse_args( $args, $defaults );
 
+		// Posts per page
 		$es_query_args = array(
-			'size'    => absint( $args['posts_per_page'] ),
+			'size' => absint( $args['posts_per_page'] ),
 		);
+		$filters = array();
 
 		/**
-		 * @ticket 18897
+		 * Pagination
+		 *
+		 * @see trac ticket 18897
 		 *
 		 * Important: SearchPress currently emulates the (arguably broken)
 		 * behavior of core here. The above mentioned ticket would alter this
@@ -189,54 +191,38 @@ class SP_Search {
 		 * reflect. In other words, presently, if offset is set, paged is
 		 * ignored. If core ever allows both to be set, so will SP.
 		 */
-		if ( $args['offset'] ) {
+		if ( ! empty( $args['offset'] ) ) {
 			$es_query_args['from'] = absint( $args['offset'] );
-		} elseif ( $args['paged'] ) {
+		} else {
 			$es_query_args['from'] = max( 0, ( absint( $args['paged'] ) - 1 ) * $es_query_args['size'] );
 		}
 
-		if ( !is_array( $args['author_name'] ) ) {
-			$args['author_name'] = array( $args['author_name'] );
-		}
-
-		// ES stores usernames, not IDs, so transform
-		if ( ! empty( $args['author'] ) ) {
-			if ( !is_array( $args['author'] ) )
-				$args['author'] = array( $args['author'] );
-			foreach ( $args['author'] as $author ) {
-				$user = get_user_by( 'id', $author );
-
-				if ( $user && ! empty( $user->user_login ) ) {
-					$args['author_name'][] = $user->user_login;
-				}
-			}
-		}
-
-		// Build the filters from the query elements.
-		// Filters rock because they are cached from one query to the next
-		// but they are cached as individual filters, rather than all combined together.
-		// May get performance boost by also caching the top level boolean filter too.
-		$filters = array();
-
-		if ( $args['post_type'] ) {
+		// Post type
+		if ( ! empty( $args['post_type'] ) ) {
 			if ( 'any' == $args['post_type'] ) {
 				$args['post_type'] = sp_searchable_post_types();
 			}
 			$filters[] = array( 'terms' => array( 'post_type.raw' => (array) $args['post_type'] ) );
 		}
 
-		if ( $args['author_name'] ) {
-			$filters[] = array( 'terms' => array( 'post_author.login' => $args['author_name'] ) );
+		// Author
+		if ( ! empty( $args['author'] ) ) {
+			$filters[] = array( 'terms' => array( 'post_author.user_id' => (array) $args['author'] ) );
+		}
+		if ( ! empty( $args['author_name'] ) ) {
+			$filters[] = array( 'terms' => array( 'post_author.login' => (array) $args['author_name'] ) );
 		}
 
+		// Date range
 		if ( !empty( $args['date_range'] ) && isset( $args['date_range']['field'] ) ) {
 			$field = $args['date_range']['field'];
 			unset( $args['date_range']['field'] );
-			$filters[] = array( 'range' => array( $field => $args['date_range'] ) );
+			$filters[] = array( 'range' => array( "{$field}.date" => $args['date_range'] ) );
 		}
 
-		if ( is_array( $args['terms'] ) ) {
-			foreach ( $args['terms'] as $tax => $terms ) {
+		// Taxonomy terms
+		if ( ! empty( $args['terms'] ) ) {
+			foreach ( (array) $args['terms'] as $tax => $terms ) {
 				if ( strpos( $terms, ',' ) ) {
 					$terms = explode( ',', $terms );
 					$comp = 'or';
@@ -245,7 +231,7 @@ class SP_Search {
 					$comp = 'and';
 				}
 
-				$terms = array_map( 'sanitize_title', (array) $terms );
+				$terms = array_map( 'sanitize_title', $terms );
 				if ( count( $terms ) ) {
 					$tax_fld = 'terms.' . $tax . '.slug';
 					foreach ( $terms as $term ) {
@@ -263,15 +249,13 @@ class SP_Search {
 
 		if ( ! empty( $filters ) ) {
 			$es_query_args['filter'] = array( 'and' => $filters );
-		} else {
-			$es_query_args['filter'] = array( 'match_all' => new stdClass() );
 		}
 
 		// Fill in the query
 		//  todo: add auto phrase searching
 		//  todo: add fuzzy searching to correct for spelling mistakes
 		//  todo: boost title, tag, and category matches
-		if ( $args['query'] ) {
+		if ( ! empty( $args['query'] ) ) {
 			$multi_match = array( array( 'multi_match' => array(
 				'query'    => $args['query'],
 				'fields'   => $args['query_fields'],
@@ -285,45 +269,39 @@ class SP_Search {
 			if ( ! $args['orderby'] ) {
 				$args['orderby'] = array( 'relevance' );
 			}
-		} else {
-			if ( ! $args['orderby'] ) {
-				$args['orderby'] = array( 'date' );
-			}
+		} elseif ( empty( $args['orderby'] ) ) {
+			$args['orderby'] = array( 'date' );
 		}
 
-		// Validate the "order" field
-		switch ( strtolower( $args['order'] ) ) {
-			case 'asc':
-				$args['order'] = 'asc';
-				break;
-			case 'desc':
-			default:
-				$args['order'] = 'desc';
-				break;
+		// Ordering
+		if ( 'asc' == strtolower( $args['order'] ) ) {
+			$args['order'] = 'asc';
+		} else {
+			$args['order'] = 'desc';
 		}
 
 		$es_query_args['sort'] = array();
 		foreach ( (array) $args['orderby'] as $orderby ) {
 			// Translate orderby from WP field to ES field
-			// todo: add support for sorting by title, num likes, num comments, num views, etc
 			switch ( $orderby ) {
 				case 'relevance' :
-					$es_query_args['sort'][] = array( '_score' => array( 'order' => $args['order'] ) );
+					$es_query_args['sort'][] = array( '_score' => $args['order'] );
 					break;
 				case 'date' :
-					$es_query_args['sort'][] = array( 'post_date' => array( 'order' => $args['order'] ) );
+					$es_query_args['sort'][] = array( 'post_date.date' => $args['order'] );
 					break;
 				case 'ID' :
 				case 'id' :
-					$es_query_args['sort'][] = array( 'post_id' => array( 'order' => $args['order'] ) );
+					$es_query_args['sort'][] = array( 'post_id' => $args['order'] );
 					break;
 				case 'author' :
-					$es_query_args['sort'][] = array( 'author.raw' => array( 'order' => $args['order'] ) );
+					$es_query_args['sort'][] = array( 'post_author.user_id' => $args['order'] );
 					break;
 			}
 		}
-		if ( empty( $es_query_args['sort'] ) )
+		if ( empty( $es_query_args['sort'] ) ) {
 			unset( $es_query_args['sort'] );
+		}
 
 		// Facets
 		if ( ! empty( $args['facets'] ) ) {
@@ -354,7 +332,7 @@ class SP_Search {
 						$es_query_args['facets'][ $label ] = array(
 							'date_histogram' => array(
 								'interval' => $facet['interval'],
-								'field'    => ( ! empty( $facet['field'] ) && 'post_date_gmt' == $facet['field'] ) ? 'date_gmt' : 'date',
+								'field'    => ! empty( $facet['field'] ) ? "{$facet['field']}.date" : 'post_date.date',
 								'size'     => $facet['count'],
 							),
 						);
@@ -362,10 +340,30 @@ class SP_Search {
 						break;
 				}
 			}
+
+			// If we have facets, we need to move our filters to a filtered
+			// query, or else they won't have an effect on the facets.
+			if ( ! empty( $es_query_args['facets'] ) ) {
+				if ( ! empty( $es_query_args['filter'] ) ) {
+					if ( ! empty( $es_query_args['query'] ) ) {
+						$es_query = $es_query_args['query'];
+					}
+					$es_query_args['query'] = array(
+						'filtered' => array(
+							'filter' => $es_query_args['filter']
+						)
+					);
+					unset( $es_query_args['filter'] );
+					if ( ! empty( $es_query ) ) {
+						$es_query_args['query']['filtered']['query'] = $es_query;
+					}
+				}
+			}
 		}
 
+		// Fields
 		if ( ! empty( $args['fields'] ) ) {
-			$es_query_args['fields'] = $args['fields'];
+			$es_query_args['fields'] = (array) $args['fields'];
 		}
 
 		return $es_query_args;
@@ -450,8 +448,11 @@ class SP_Search {
 			}
 		}
 
-		if ( ! empty( $es_wp_query_args['date_range'] ) && empty( $es_wp_query_args['date_range']['field'] ) )
-			$es_wp_query_args['date_range']['field'] = 'post_date';
+		if ( ! empty( $es_wp_query_args['date_range'] ) && empty( $es_wp_query_args['date_range']['field'] ) ) {
+			$es_wp_query_args['date_range']['field'] = 'post_date.date';
+		} elseif ( ! empty( $es_wp_query_args['date_range']['field'] ) ) {
+			$es_wp_query_args['date_range']['field'] .= '.date';
+		}
 
 
 		/** Ordering */

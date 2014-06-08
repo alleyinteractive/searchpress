@@ -65,26 +65,33 @@ class SP_Post {
 		do_action( 'sp_debug', '[SP_Post] Populating Post' );
 		$apply_filters = apply_filters( 'sp_post_index_filtered_data', false );
 
-		$this->data['post_id']           = $post->ID;
+		$this->data['post_id']           = intval( $post->ID );
 		# We're storing the login here instead of user ID, as that's more flexible
 		$this->data['post_author']       = $this->get_user( $post->post_author );
 		$this->data['post_date']         = $this->get_date( $post->post_date, 'post_date' );
 		$this->data['post_date_gmt']     = $this->get_date( $post->post_date_gmt, 'post_date_gmt' );
 		$this->data['post_modified']     = $this->get_date( $post->post_modified, 'post_modified' );
 		$this->data['post_modified_gmt'] = $this->get_date( $post->post_modified_gmt, 'post_modified_gmt' );
-		$this->data['post_title']        = $apply_filters ? get_the_title( $post->ID ) : $post->post_title;
-		$this->data['post_excerpt']      = $post->post_excerpt;
-		$this->data['post_content']      = $apply_filters ? str_replace( ']]>', ']]&gt;', apply_filters( 'the_content', $post->post_content ) ) : $post->post_content;
-		$this->data['post_status']       = $post->post_status;
-		$this->data['post_name']         = $post->post_name;
-		$this->data['post_parent']       = $post->post_parent;
-		$this->data['post_type']         = $post->post_type;
-		$this->data['post_mime_type']    = $post->post_mime_type;
-		$this->data['post_password']     = $post->post_password;
-		$this->data['permalink']         = get_permalink( $post->ID );
+		$this->data['post_title']        = $apply_filters ? strval( get_the_title( $post->ID ) ) : strval( $post->post_title );
+		$this->data['post_excerpt']      = strval( $post->post_excerpt );
+		$this->data['post_content']      = $apply_filters ? strval( str_replace( ']]>', ']]&gt;', apply_filters( 'the_content', $post->post_content ) ) ) : strval( $post->post_content );
+		$this->data['post_status']       = strval( $post->post_status );
+		$this->data['post_name']         = strval( $post->post_name );
+		$this->data['post_parent']       = intval( $post->post_parent );
+		$this->data['post_type']         = strval( $post->post_type );
+		$this->data['post_mime_type']    = strval( $post->post_mime_type );
+		$this->data['post_password']     = strval( $post->post_password );
+		$this->data['permalink']         = strval( esc_url_raw( get_permalink( $post->ID ) ) );
 
 		$this->data['terms']             = $this->get_terms( $post );
 		$this->data['post_meta']         = $this->get_meta( $post->ID );
+
+		// If a date field is empty, kill it to avoid indexing errors
+		foreach ( array( 'post_date', 'post_date_gmt', 'post_modified', 'post_modified_gmt' ) as $field ) {
+			if ( empty( $this->data[ $field ] ) ) {
+				unset( $this->data[ $field ] );
+			}
+		}
 	}
 
 
@@ -139,6 +146,7 @@ class SP_Post {
 	public static function cast_meta_types( $value ) {
 		$return = array(
 			'value'   => $value,
+			'raw'     => $value,
 			'boolean' => (bool) $value,
 		);
 
@@ -193,8 +201,8 @@ class SP_Post {
 		foreach ( (array) $object_terms as $term ) {
 			$terms[ $term->taxonomy ][] = array(
 				'term_id' => intval( $term->term_id ),
-				'slug'    => $term->slug,
-				'name'    => $term->name,
+				'slug'    => strval( $term->slug ),
+				'name'    => strval( $term->name ),
 				'parent'  => intval( $term->parent )
 			);
 		}
@@ -226,8 +234,8 @@ class SP_Post {
 		foreach ( (array) $object_terms as $term ) {
 			$terms[ $term->taxonomy ][] = array(
 				'term_id' => intval( $term->term_id ),
-				'slug'    => $term->slug,
-				'name'    => $term->name,
+				'slug'    => strval( $term->slug ),
+				'name'    => strval( $term->name ),
 				'parent'  => intval( $term->parent )
 			);
 		}
@@ -250,13 +258,13 @@ class SP_Post {
 		$user = get_userdata( $user_id );
 		if ( $user instanceof WP_User ) {
 			$data = array(
-				'post_author'  => intval( $user_id ),
-				'login'        => $user->user_login,
-				'display_name' => $user->display_name
+				'user_id'      => intval( $user_id ),
+				'login'        => strval( $user->user_login ),
+				'display_name' => strval( $user->display_name )
 			);
 		} else {
 			$data = array(
-				'post_author'  => intval( $user_id ),
+				'user_id'      => intval( $user_id ),
 				'login'        => '',
 				'display_name' => ''
 			);
@@ -276,9 +284,13 @@ class SP_Post {
 	 * @return array The parsed date.
 	 */
 	public function get_date( $date, $field ) {
+		if ( empty( $date ) || '0000-00-00 00:00:00' == $date ) {
+			return null;
+		}
+
 		$ts = strtotime( $date );
 		return array(
-			$field              => $date,
+			'date'              => strval( $date ),
 			'year'              => intval( date( 'Y', $ts ) ),
 			'month'             => intval( date( 'm', $ts ) ),
 			'day'               => intval( date( 'd', $ts ) ),
@@ -306,12 +318,14 @@ class SP_Post {
 
 	public function should_be_indexed() {
 		# Check post type
-		if ( ! in_array( $this->data['post_type'], SP_Config()->sync_post_types() ) )
+		if ( ! in_array( $this->data['post_type'], SP_Config()->sync_post_types() ) ) {
 			return false;
+		}
 
 		# Check post status
-		if ( ! in_array( $this->data['post_status'], SP_Config()->sync_statuses() ) )
+		if ( ! in_array( $this->data['post_status'], SP_Config()->sync_statuses() ) ) {
 			return false;
+		}
 
 		return apply_filters( 'sp_post_should_be_indexed', true, $this );
 	}
