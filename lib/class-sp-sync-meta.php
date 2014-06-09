@@ -24,12 +24,21 @@ class SP_Sync_Meta {
 	public $current_count;
 	public $messages;
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	private function __construct() {
 		/* Don't do anything, needs to be initialized via instance() method */
 	}
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public function __clone() { wp_die( "Please don't __clone SP_Sync_Meta" ); }
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public function __wakeup() { wp_die( "Please don't __wakeup SP_Sync_Meta" ); }
 
 	public static function instance() {

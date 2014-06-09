@@ -27,12 +27,21 @@ class SP_Sync_Manager {
 	public $total_pages = 1;
 	public $batch_pages = 1;
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	private function __construct() {
 		/* Don't do anything, needs to be initialized via instance() method */
 	}
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public function __clone() { wp_die( "Please don't __clone SP_Sync_Manager" ); }
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public function __wakeup() { wp_die( "Please don't __wakeup SP_Sync_Manager" ); }
 
 	public static function instance() {

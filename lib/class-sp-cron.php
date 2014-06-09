@@ -10,12 +10,21 @@ class SP_Cron {
 
 	private static $instance;
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	private function __construct() {
 		/* Don't do anything, needs to be initialized via instance() method */
 	}
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public function __clone() { wp_die( "Please don't __clone SP_Cron" ); }
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public function __wakeup() { wp_die( "Please don't __wakeup SP_Cron" ); }
 
 	public static function instance() {
