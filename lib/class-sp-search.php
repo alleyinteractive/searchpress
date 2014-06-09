@@ -120,11 +120,10 @@ class SP_Search {
 
 	public function search( $es_args ) {
 		$es_args = apply_filters( 'sp_search_query_args', $es_args );
-		# sp_dump( $es_args );
+
 		return SP_API()->search( json_encode( $es_args ), array( 'output' => ARRAY_A ) );
-		# Do something with the results
-		# sp_dump( $results );
 	}
+
 
 	public function wp_search( $wp_args ) {
 		$wp_args = apply_filters( 'sp_search_wp_query_args', $wp_args );
@@ -132,6 +131,7 @@ class SP_Search {
 
 		return $this->search( $es_args );
 	}
+
 
 	public function wp_to_es_args( $args ) {
 		$defaults = array(
@@ -496,7 +496,7 @@ class SP_Search {
 
 		if ( is_wp_error( $this->search_result ) || ! is_array( $this->search_result ) || empty( $this->search_result['hits'] ) || empty( $this->search_result['hits']['hits'] ) ) {
 			$this->found_posts = 0;
-			return "SELECT * FROM $wpdb->posts WHERE 1=0 /* SearchPress search results */";
+			return "SELECT * FROM {$wpdb->posts} WHERE 1=0 /* SearchPress search results */";
 		}
 
 		// Get the post IDs of the results
@@ -513,7 +513,7 @@ class SP_Search {
 			}
 			// Unknown results format
 			else {
-				return '';//$sql;
+				return "SELECT * FROM {$wpdb->posts} WHERE 1=0 /* SearchPress search results */"; // $sql;
 			}
 		}
 

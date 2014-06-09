@@ -327,6 +327,24 @@ class Tests_Searching extends WP_UnitTestCase {
 		);
 	}
 
+	function test_search_auto_integration() {
+		global $wp_the_query;
+		SP_Search()->init_hooks();
+
+		// SearchPress currently only auto integrates into the main query
+		$wp_the_query = new WP_Query;
+		$wp_the_query->query( 's=trackback&orderby=date' );
+
+		$this->assertContains( 'SearchPress', $wp_the_query->request );
+		$this->assertEquals(
+			array(
+				'many-trackbacks',
+				'one-trackback',
+			),
+			wp_list_pluck( $wp_the_query->posts, 'post_name' )
+		);
+	}
+
 	function test_query_date_ranges() {
 		$this->assertEquals(
 			array(
@@ -391,14 +409,14 @@ class Tests_Searching extends WP_UnitTestCase {
 		// Force refresh the index so the data is available immediately
 		SP_API()->post( '_refresh' );
 
-		$this->assertEqualSets(
+		$this->assertEquals(
 			array( $author_1, $author_2, $author_3, $author_4 ),
 			$this->search_and_get_field( array(
 				'author' => array( $author_1, $author_2, $author_3, $author_4 )
 			), 'post_author.user_id' )
 		);
 
-		$this->assertEqualSets(
+		$this->assertEquals(
 			array( $author_1, $author_2, $author_3, $author_4 ),
 			$this->search_and_get_field( array(
 				'author_name' => array( 'author1', 'author2', 'author3', 'author4' )
