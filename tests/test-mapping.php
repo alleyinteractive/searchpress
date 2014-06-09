@@ -163,21 +163,63 @@ class Tests_Mapping extends WP_UnitTestCase {
 	}
 
 
-	function test_mapping_field_post_content() { $this->_field_mapping_test( 'post_content' ); }
-	function test_mapping_field_post_excerpt() { $this->_field_mapping_test( 'post_excerpt' ); }
-	function test_mapping_field_post_mime_type() { $this->_field_mapping_test( 'post_mime_type' ); }
-	function test_mapping_field_post_name() { $this->_field_mapping_test( 'post_name' ); }
-	function test_mapping_field_post_parent() { $this->_field_mapping_test( 'post_parent' ); }
-	function test_mapping_field_post_password() { $this->_field_mapping_test( 'post_password' ); }
-	function test_mapping_field_menu_order() { $this->_field_mapping_test( 'menu_order' ); }
-	function test_mapping_field_post_status() { $this->_field_mapping_test( 'post_status' ); }
-	function test_mapping_field_post_title() { $this->_field_mapping_test( 'post_title' ); }
-	function test_mapping_field_post_type() { $this->_field_mapping_test( 'post_type' ); }
+	function test_mapping_field_post_content() {
+		$this->_field_mapping_test( 'post_content' );
+	}
 
-	function test_mapping_field_post_date() { $this->_date_field_mapping_test( 'post_date' ); }
-	function test_mapping_field_post_date_gmt() { $this->_date_field_mapping_test( 'post_date_gmt' ); }
-	function test_mapping_field_post_modified() { $this->_date_field_mapping_test( 'post_modified' ); }
-	function test_mapping_field_post_modified_gmt() { $this->_date_field_mapping_test( 'post_modified_gmt' ); }
+	function test_mapping_field_post_excerpt() {
+		$this->_field_mapping_test( 'post_excerpt' );
+	}
+
+	function test_mapping_field_post_mime_type() {
+		$this->_field_mapping_test( 'post_mime_type' );
+	}
+
+	function test_mapping_field_post_name() {
+		$this->_field_mapping_test( 'post_name' );
+	}
+
+	function test_mapping_field_post_parent() {
+		$this->_field_mapping_test( 'post_parent' );
+	}
+
+	function test_mapping_field_post_password() {
+		$this->_field_mapping_test( 'post_password' );
+	}
+
+	function test_mapping_field_menu_order() {
+		$this->_field_mapping_test( 'menu_order' );
+	}
+
+	function test_mapping_field_post_status() {
+		$this->_field_mapping_test( 'post_status' );
+	}
+
+	function test_mapping_field_post_title() {
+		$this->_field_mapping_test( 'post_title' );
+	}
+
+	function test_mapping_field_post_type() {
+		$this->_field_mapping_test( 'post_type' );
+	}
+
+
+	function test_mapping_field_post_date() {
+		$this->_date_field_mapping_test( 'post_date' );
+	}
+
+	function test_mapping_field_post_date_gmt() {
+		$this->_date_field_mapping_test( 'post_date_gmt' );
+	}
+
+	function test_mapping_field_post_modified() {
+		$this->_date_field_mapping_test( 'post_modified' );
+	}
+
+	function test_mapping_field_post_modified_gmt() {
+		$this->_date_field_mapping_test( 'post_modified_gmt' );
+	}
+
 
 	function test_mapped_field_permalink() {
 		$this->assertSame(
