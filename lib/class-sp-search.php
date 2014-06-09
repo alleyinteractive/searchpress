@@ -476,14 +476,16 @@ class SP_Search {
 		/** Ordering */
 		# Set results sorting
 		if ( $orderby = $query->get( 'orderby' ) ) {
-			if ( in_array( $orderby, array( 'date', 'relevance' ) ) )
+			if ( in_array( $orderby, array( 'date', 'relevance' ) ) ) {
 				$es_wp_query_args['orderby'] = $orderby;
+			}
 		}
 
 		# Set sort ordering
 		if ( $order = strtolower( $query->get( 'order' ) ) ) {
-			if ( 'date' == $es_wp_query_args['orderby'] && in_array( $order, array( 'asc', 'desc' ) ) )
+			if ( in_array( $order, array( 'asc', 'desc' ) ) ) {
 				$es_wp_query_args['order'] = $order;
+			}
 		}
 
 
