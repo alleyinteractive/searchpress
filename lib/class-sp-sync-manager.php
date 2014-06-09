@@ -274,7 +274,7 @@ function SP_Sync_Manager() {
  */
 if ( SP_Config()->active() ) {
 	add_action( 'save_post',       array( SP_Sync_Manager(), 'sync_post' ) );
-	add_action( 'delete_post',     array( SP_Sync_Manager(), 'delete_post' ) );
+	add_action( 'deleted_post',    array( SP_Sync_Manager(), 'delete_post' ) );
 	add_action( 'trashed_post',    array( SP_Sync_Manager(), 'delete_post' ) );
 }
 
