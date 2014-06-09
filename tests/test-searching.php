@@ -327,24 +327,6 @@ class Tests_Searching extends WP_UnitTestCase {
 		);
 	}
 
-	function test_search_auto_integration() {
-		global $wp_the_query;
-		SP_Search()->init_hooks();
-
-		// SearchPress currently only auto integrates into the main query
-		$wp_the_query = new WP_Query;
-		$wp_the_query->query( 's=trackback&orderby=date' );
-
-		$this->assertContains( 'SearchPress', $wp_the_query->request );
-		$this->assertEquals(
-			array(
-				'many-trackbacks',
-				'one-trackback',
-			),
-			wp_list_pluck( $wp_the_query->posts, 'post_name' )
-		);
-	}
-
 	function test_query_date_ranges() {
 		$this->assertEquals(
 			array(
