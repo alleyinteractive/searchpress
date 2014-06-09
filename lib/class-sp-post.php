@@ -81,6 +81,7 @@ class SP_Post {
 		$this->data['post_type']         = strval( $post->post_type );
 		$this->data['post_mime_type']    = strval( $post->post_mime_type );
 		$this->data['post_password']     = strval( $post->post_password );
+		$this->data['menu_order']        = intval( $post->menu_order );
 		$this->data['permalink']         = strval( esc_url_raw( get_permalink( $post->ID ) ) );
 
 		$this->data['terms']             = $this->get_terms( $post );

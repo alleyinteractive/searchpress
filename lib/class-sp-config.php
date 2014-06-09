@@ -229,6 +229,7 @@ class SP_Config {
 						),
 						'post_mime_type' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
 						'post_password' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
+						'menu_order' => array( 'type' => 'integer' ),
 						'permalink' => array( 'type' => 'string' ),
 						'terms' => array( "type" => "object" ),
 						'post_meta' => array( 'type' => 'object' )
