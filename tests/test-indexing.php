@@ -107,4 +107,6 @@ class Tests_Indexing extends WP_UnitTestCase {
 		);
 	}
 
+	// @todo Test updating terms
+	// @todo Test deleting terms
 }

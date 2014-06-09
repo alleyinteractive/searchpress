@@ -273,9 +273,11 @@ function SP_Sync_Manager() {
  * SP_Sync_Manager only gets instantiated when necessary, so we register these hooks outside of the class
  */
 if ( SP_Config()->active() ) {
-	add_action( 'save_post',       array( SP_Sync_Manager(), 'sync_post' ) );
-	add_action( 'deleted_post',    array( SP_Sync_Manager(), 'delete_post' ) );
-	add_action( 'trashed_post',    array( SP_Sync_Manager(), 'delete_post' ) );
+	add_action( 'save_post',                  array( SP_Sync_Manager(), 'sync_post' ) );
+	// add_action( 'added_term_relationship',    array( SP_Sync_Manager(), 'sync_post' ) );
+	// add_action( 'deleted_term_relationships', array( SP_Sync_Manager(), 'sync_post' ) );
+	add_action( 'deleted_post',               array( SP_Sync_Manager(), 'delete_post' ) );
+	add_action( 'trashed_post',               array( SP_Sync_Manager(), 'delete_post' ) );
 }
 
 endif;
