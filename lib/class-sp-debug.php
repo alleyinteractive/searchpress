@@ -2,6 +2,8 @@
 
 /**
 * A simple class for debugging SearchPress
+*
+* @codeCoverageIgnore
 */
 class SP_Debug {
 	public static $is_cli;

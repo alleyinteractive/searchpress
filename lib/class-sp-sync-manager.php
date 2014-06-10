@@ -27,12 +27,21 @@ class SP_Sync_Manager {
 	public $total_pages = 1;
 	public $batch_pages = 1;
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	private function __construct() {
 		/* Don't do anything, needs to be initialized via instance() method */
 	}
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public function __clone() { wp_die( "Please don't __clone SP_Sync_Manager" ); }
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public function __wakeup() { wp_die( "Please don't __wakeup SP_Sync_Manager" ); }
 
 	public static function instance() {
@@ -144,10 +153,14 @@ class SP_Sync_Manager {
 	public function get_posts( $args = array() ) {
 		$args = wp_parse_args( $args, array(
 			'post_status'      => 'publish',
-			'post_type'        => get_post_types( array( 'exclude_from_search' => false ) ),
+			'post_type'        => null,
 			'orderby'          => 'ID',
 			'order'            => 'ASC'
 		) );
+
+		if ( empty( $args['post_type'] ) ) {
+			$args['post_type'] = sp_searchable_post_types();
+		}
 
 		$query = new WP_Query;
 		$posts = $query->query( $args );
@@ -245,10 +258,13 @@ class SP_Sync_Manager {
 	public function count_posts( $args = array() ) {
 		if ( false === $this->published_posts ) {
 			$args = wp_parse_args( $args, array(
-				'post_type' => get_post_types( array( 'exclude_from_search' => false ) ),
+				'post_type' => null,
 				'post_status' => 'publish',
 				'posts_per_page' => 1
 			) );
+			if ( empty( $args['post_type'] ) ) {
+				$args['post_type'] = sp_searchable_post_types();
+			}
 			$query = new WP_Query( $args );
 			$this->published_posts = $query->found_posts;
 		}
@@ -266,9 +282,11 @@ function SP_Sync_Manager() {
  * SP_Sync_Manager only gets instantiated when necessary, so we register these hooks outside of the class
  */
 if ( SP_Config()->active() ) {
-	add_action( 'save_post',       array( SP_Sync_Manager(), 'sync_post' ) );
-	add_action( 'delete_post',     array( SP_Sync_Manager(), 'delete_post' ) );
-	add_action( 'trashed_post',    array( SP_Sync_Manager(), 'delete_post' ) );
+	add_action( 'save_post',                  array( SP_Sync_Manager(), 'sync_post' ) );
+	// add_action( 'added_term_relationship',    array( SP_Sync_Manager(), 'sync_post' ) );
+	// add_action( 'deleted_term_relationships', array( SP_Sync_Manager(), 'sync_post' ) );
+	add_action( 'deleted_post',               array( SP_Sync_Manager(), 'delete_post' ) );
+	add_action( 'trashed_post',               array( SP_Sync_Manager(), 'delete_post' ) );
 }
 
 endif;
