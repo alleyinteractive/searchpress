@@ -48,7 +48,7 @@ function sp_searchable_post_types() {
  * @return array Search results.
  */
 function sp_es_search( $es_args ) {
-	SP_Search()->search( $es_args );
+	return SP_Search()->search( $es_args );
 }
 
 /**
@@ -60,5 +60,5 @@ function sp_es_search( $es_args ) {
  * @return array Search results.
  */
 function sp_wp_search( $wp_args ) {
-	SP_Search()->wp_search( $wp_args );
+	return SP_Search()->wp_search( $wp_args );
 }
