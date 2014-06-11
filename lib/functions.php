@@ -38,3 +38,27 @@ function sp_results_pluck( $results, $field, $as_single = true ) {
 function sp_searchable_post_types() {
 	return array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
 }
+
+/**
+ * Run a search through SearchPress using Elasticsearch syntax.
+ *
+ * @see SP_Search::search()
+ *
+ * @param  array $es_args PHP array of ES arguments.
+ * @return array Search results.
+ */
+function sp_es_search( $es_args ) {
+	SP_Search()->search( $es_args );
+}
+
+/**
+ * Run a search through SearchPress using WP-friendly syntax.
+ *
+ * @see SP_Search::wp_search()
+ *
+ * @param  array $wp_args PHP array of search arguments.
+ * @return array Search results.
+ */
+function sp_wp_search( $wp_args ) {
+	SP_Search()->wp_search( $wp_args );
+}
