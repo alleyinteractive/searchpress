@@ -48,7 +48,7 @@ class SP_Cron {
 
 	public function schedule_reindex() {
 		if ( ! wp_next_scheduled( 'sp_reindex' ) ) {
-			wp_schedule_single_event( time(), 'sp_reindex' );
+			wp_schedule_single_event( time() + 5, 'sp_reindex' );
 		}
 	}
 

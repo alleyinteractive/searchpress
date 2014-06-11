@@ -196,8 +196,6 @@ class SP_Admin {
 				'page' => SP_Sync_Meta()->page
 			) );
 		} else {
-			SP_Config()->update_settings( array( 'active' => true ) );
-
 			echo json_encode( array(
 				'processed' => 'complete'
 			) );

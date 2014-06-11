@@ -234,6 +234,7 @@ class SP_Sync_Manager {
 
 		if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 			if ( $sync_meta->processed >= $sync_meta->total || $sync_meta->page > $this->total_pages ) {
+				SP_Config()->update_settings( array( 'active' => true ) );
 				$this->cancel_reindex();
 			} else {
 				$sync_meta->save();
