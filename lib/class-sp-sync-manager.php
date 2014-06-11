@@ -192,7 +192,7 @@ class SP_Sync_Manager {
 			return false;
 
 		$response = SP_API()->index_posts( $posts );
-		do_action( 'sp_debug', '[SP_Sync_Manager] Indexed Posts', $response );
+		do_action( 'sp_debug', sprintf( '[SP_Sync_Manager] Indexed %d Posts', count( $posts ) ), $response );
 
 		$sync_meta->reload();
 		if ( ! $sync_meta->running )

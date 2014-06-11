@@ -40,7 +40,7 @@ class SP_Cron {
 	}
 
 	public function reindex() {
-		// error_log( 'cron reindexing!' );
+		do_action( 'sp_debug', '[SP Cron] Reindexing' );
 		SP_Sync_Manager()->do_index_loop();
 		if ( SP_Sync_Meta()->running )
 			$this->schedule_reindex();
