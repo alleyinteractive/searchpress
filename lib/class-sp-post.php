@@ -259,15 +259,17 @@ class SP_Post {
 		$user = get_userdata( $user_id );
 		if ( $user instanceof WP_User ) {
 			$data = array(
-				'user_id'      => intval( $user_id ),
-				'login'        => strval( $user->user_login ),
-				'display_name' => strval( $user->display_name )
+				'user_id'       => intval( $user_id ),
+				'login'         => strval( $user->user_login ),
+				'display_name'  => strval( $user->display_name ),
+				'user_nicename' => strval( $user->user_nicename ),
 			);
 		} else {
 			$data = array(
-				'user_id'      => intval( $user_id ),
-				'login'        => '',
-				'display_name' => ''
+				'user_id'       => intval( $user_id ),
+				'login'         => '',
+				'display_name'  => '',
+				'user_nicename' => '',
 			);
 		}
 		SP_Sync_Manager()->users[ $user_id ] = $data;

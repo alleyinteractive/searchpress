@@ -132,13 +132,14 @@ class SP_Config {
 					),
 					"_all" => array( "analyzer" => "simple" ),
 					'properties' => array(
-						'post_id' => array( 'type' => 'long', 'include_in_all' => false ),
+						'post_id'     => array( 'type' => 'long', 'include_in_all' => false ),
 						'post_author' => array(
-							'type' => 'object',
+							'type'       => 'object',
 							'properties' => array(
-								'user_id' => array( 'type' => 'long', 'include_in_all' => false ),
-								'display_name' => array( 'type' => 'string' ),
-								'login' => array( 'type' => 'string', 'index' => 'not_analyzed' )
+								'user_id'       => array( 'type' => 'long', 'include_in_all' => false ),
+								'display_name'  => array( 'type' => 'string' ),
+								'login'         => array( 'type' => 'string', 'index' => 'not_analyzed' ),
+								'user_nicename' => array( 'type' => 'string', 'index' => 'not_analyzed' )
 							)
 						),
 						'post_date' => array(
