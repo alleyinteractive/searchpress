@@ -77,7 +77,7 @@ class SP_Sync_Manager {
 				# Should probably throw an error here or something
 				error_log( 'ES response failed' );
 				error_log( print_r( SP_API()->last_request, 1 ) );
-			} elseif ( ! is_object( $response ) || ! isset( $response->ok ) ) {
+			} elseif ( ! is_object( $response ) ) {
 				error_log( 'ES response not OK' );
 				error_log( print_r( $response, 1 ) );
 			} else {
@@ -98,7 +98,7 @@ class SP_Sync_Manager {
 			# Should probably throw an error here or something
 			error_log( 'ES response failed' );
 			error_log( print_r( SP_API()->last_request, 1 ) );
-		} elseif ( ! is_object( $response ) || ! isset( $response->ok ) ) {
+		} elseif ( ! is_object( $response ) ) {
 			error_log( 'ES response not OK' );
 			error_log( print_r( $response, 1 ) );
 		} else {
