@@ -18,6 +18,7 @@ class Tests_Mapping extends WP_UnitTestCase {
 
 		$this->demo_user = array(
 			'user_login' => 'author1',
+			'user_nicename' => 'author-nicename',
 			'user_pass' => rand_str(),
 			'role' => 'author',
 			'display_name' => 'Michael Scott',
@@ -249,6 +250,11 @@ class Tests_Mapping extends WP_UnitTestCase {
 		$this->assertSame(
 			array( $this->demo_user['display_name'] ),
 			$this->_search_and_get_field( array(), 'post_author.display_name' )
+		);
+
+		$this->assertSame(
+			array( $this->demo_user['user_nicename'] ),
+			$this->_search_and_get_field( array(), 'post_author.user_nicename' )
 		);
 	}
 
