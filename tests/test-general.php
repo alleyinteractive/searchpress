@@ -60,4 +60,22 @@ class Tests_General extends WP_UnitTestCase {
 		SP_Search()->remove_hooks();
 	}
 
+	function test_settings() {
+		SP_Config()->settings = false;
+		delete_option( 'sp_settings' );
+
+		$this->assertEquals( 'http://localhost:9200', SP_Config()->host() );
+		$this->assertTrue( SP_Config()->must_init() );
+		$this->assertFalse( SP_Config()->active() );
+		$this->assertFalse( SP_Config()->last_beat() );
+
+		$host = getenv( 'SEARCHPRESS_HOST' );
+		if ( empty( $host ) ) {
+			$host = 'http://localhost:9200';
+		}
+		SP_Config()->update_settings( array( 'active' => true, 'must_init' => false, 'host' => $host ) );
+		$this->assertEquals( $host, SP_Config()->host() );
+		$this->assertFalse( SP_Config()->must_init() );
+		$this->assertTrue( SP_Config()->active() );
+	}
 }

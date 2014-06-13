@@ -281,8 +281,9 @@ class SP_Config {
 
 
 	public function get_setting( $key ) {
-		if ( ! $this->settings )
+		if ( ! $this->settings ) {
 			$this->get_settings();
+		}
 		return isset( $this->settings[ $key ] ) ? $this->settings[ $key ] : null;
 	}
 
@@ -293,8 +294,9 @@ class SP_Config {
 
 
 	public function update_settings( $new_settings = array() ) {
-		if ( ! $this->settings )
+		if ( ! $this->settings ) {
 			$this->get_settings();
+		}
 		$this->settings = wp_parse_args( $new_settings, $this->settings );
 		update_option( 'sp_settings', $this->settings )	;
 	}
