@@ -6,14 +6,19 @@ if ( !$_tests_dir ) $_tests_dir = '/tmp/wordpress-tests-lib';
 require_once $_tests_dir . '/includes/functions.php';
 
 function _manually_load_plugin() {
-	require dirname( __FILE__ ) . '/../searchpress.php';
-
 	// If your ES server is not at localhost:9200, you need to set $_ENV['SEARCHPRESS_HOST'].
 	$host = getenv( 'SEARCHPRESS_HOST' );
 	if ( empty( $host ) ) {
 		$host = 'http://localhost:9200';
 	}
-	SP_Config()->update_settings( array( 'active' => true, 'must_init' => false, 'host' => $host ) );
+
+	update_option( 'sp_settings', array(
+		'host'      => $host,
+		'must_init' => false,
+		'active'    => true,
+		'last_beat' => false
+	) );
+	require dirname( __FILE__ ) . '/../searchpress.php';
 	SP_API()->index = 'searchpress-tests';
 
 	// Make sure ES is running and responding
@@ -32,11 +37,6 @@ function _manually_load_plugin() {
 
 	// If we didn't end with a 200 status code, exit
 	sp_tests_verify_response_code( $response );
-
-	// These were not added because SP wasn't active when SP_Sync_Manager was loaded
-	add_action( 'save_post',    array( SP_Sync_Manager(), 'sync_post' ) );
-	add_action( 'delete_post',  array( SP_Sync_Manager(), 'delete_post' ) );
-	add_action( 'trashed_post', array( SP_Sync_Manager(), 'delete_post' ) );
 
 	sp_index_flush_data();
 }

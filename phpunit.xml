@@ -17,6 +17,7 @@
 			<exclude>
 				<directory suffix=".php">./tests/</directory>
 				<directory suffix=".php">./bin/</directory>
+				<file>./lib/class-sp-debug.php</file>
 			</exclude>
 		</whitelist>
 	</filter>

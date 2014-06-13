@@ -29,6 +29,9 @@ class SP_Config {
 	 */
 	public function __wakeup() { wp_die( "Please don't __wakeup SP_Config" ); }
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public static function instance() {
 		if ( ! isset( self::$instance ) ) {
 			self::$instance = new SP_Config;
@@ -37,7 +40,9 @@ class SP_Config {
 		return self::$instance;
 	}
 
-
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public function setup() {
 		# initialize anything for the singleton here
 	}
@@ -298,7 +303,7 @@ class SP_Config {
 			$this->get_settings();
 		}
 		$this->settings = wp_parse_args( $new_settings, $this->settings );
-		update_option( 'sp_settings', $this->settings )	;
+		update_option( 'sp_settings', $this->settings );
 	}
 
 }
