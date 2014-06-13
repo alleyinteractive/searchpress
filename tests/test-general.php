@@ -25,39 +25,45 @@ class Tests_General extends WP_UnitTestCase {
 	}
 
 	function test_search_auto_integration() {
-		global $wp_the_query;
-		$wp_the_query = new WP_Query;
-
-		SP_Config()->update_settings( array( 'active' => true ) );
-		SP_Search()->init_hooks();
-
 		// SearchPress currently only auto integrates into the main query
-		$wp_the_query->query( 's=trackback&orderby=date' );
+		$this->go_to( '/?s=trackback&orderby=date' );
+		$this->assertEquals( get_query_var( 's' ), 'trackback' );
 
-		$this->assertContains( 'SearchPress', $wp_the_query->request );
+		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array(
 				'many-trackbacks',
 				'one-trackback',
 			),
-			wp_list_pluck( $wp_the_query->posts, 'post_name' )
+			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
 		);
-		SP_Search()->remove_hooks();
+	}
+
+	/**
+	 * @covers SP_Search::query_vars()
+	 */
+	function test_sp_query_arg() {
+		// SearchPress currently only auto integrates into the main query
+		$this->go_to( '/?sp[force]=1' );
+
+		$this->assertEquals( get_query_var( 'sp' ), array( 'force' => '1' ) );
+		$this->assertTrue( is_search() );
+		$this->assertFalse( is_home() );
 	}
 
 	function test_search_activation() {
-		global $wp_the_query;
-		$wp_the_query = new WP_Query;
-
 		SP_Config()->update_settings( array( 'active' => false ) );
-		$wp_the_query->query( 's=trackback&orderby=date' );
-		$this->assertEquals( false, strpos( $wp_the_query->request, 'SearchPress' ) );
+		SP_Search()->remove_hooks();
+
+		$this->go_to( '/?s=trackback' );
+		$this->assertEquals( get_query_var( 's' ), 'trackback' );
+		$this->assertEquals( false, strpos( $GLOBALS['wp_query']->request, 'SearchPress' ) );
 
 		SP_Config()->update_settings( array( 'active' => true ) );
 		SP_Search()->init_hooks();
-		$wp_the_query->get_posts();
-		$this->assertContains( 'SearchPress', $wp_the_query->request );
-		SP_Search()->remove_hooks();
+		$this->go_to( '/?s=trackback' );
+		$this->assertEquals( get_query_var( 's' ), 'trackback' );
+		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
 	}
 
 	function test_settings() {
