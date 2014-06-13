@@ -1,4 +1,4 @@
-# SearchPress <img align="right" src="https://travis-ci.org/alleyinteractive/searchpress.svg?branch=master" />
+# SearchPress [<img align="right" src="https://travis-ci.org/alleyinteractive/searchpress.svg?branch=master" />](https://travis-ci.org/alleyinteractive/searchpress)
 
 Elasticsearch integration for WordPress.
 
