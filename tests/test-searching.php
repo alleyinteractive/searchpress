@@ -258,6 +258,14 @@ class Tests_Searching extends WP_UnitTestCase {
 		);
 	}
 
+	function test_invalid_sorting() {
+		$es_args = SP_Search()->wp_to_es_args( array( 'orderby' => 'modified', 'order' => 'desc' ) );
+		$this->assertEquals( 'desc', $es_args['sort'][0]['post_modified.date'], 'Verify es_args["sort"] exists' );
+
+		$es_args = SP_Search()->wp_to_es_args( array( 'orderby' => 'modified_gmt' ) );
+		$this->assertTrue( empty( $es_args['sort'] ), 'Verify es_args["sort"] exists' );
+	}
+
 	function test_query_posts_per_page() {
 		$this->assertEquals(
 			array(
