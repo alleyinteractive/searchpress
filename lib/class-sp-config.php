@@ -223,14 +223,20 @@ class SP_Config {
 								'seconds_from_hour' => array( 'type' => 'short' ),
 							),
 						),
-						'post_title' => array( 'type' => 'string', '_boost'  => 3.0, 'store'  => 'yes' ),
-						'post_excerpt' => array( 'type' => 'string', '_boost'  => 2.0 ),
-						'post_content' => array( 'type' => 'string', '_boost'  => 1.0 ),
+						'post_title' => array(
+							'type' => 'multi_field',
+							'fields' => array(
+								'post_title' => array( 'type' => 'string' ),
+								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false )
+							)
+						),
+						'post_excerpt' => array( 'type' => 'string' ),
+						'post_content' => array( 'type' => 'string' ),
 						'post_status' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
 						'post_name' => array(
 							'type' => 'multi_field',
 							'fields' => array(
-								'value' => array( 'type' => 'string' ),
+								'post_name' => array( 'type' => 'string' ),
 								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false )
 							)
 						),

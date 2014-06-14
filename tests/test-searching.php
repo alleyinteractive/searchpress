@@ -160,7 +160,8 @@ class Tests_Searching extends WP_UnitTestCase {
 				'simple-markup-test',
 				'embedded-video',
 			),
-			$this->search_and_get_field( array( 'orderby' => 'date', 'order' => 'desc' ) )
+			$this->search_and_get_field( array( 'orderby' => 'date', 'order' => 'desc' ) ),
+			'orderby => date desc'
 		);
 
 		$this->assertEquals(
@@ -176,7 +177,8 @@ class Tests_Searching extends WP_UnitTestCase {
 				'cats-a-b-c',
 				'cats-a-and-b',
 			),
-			$this->search_and_get_field( array( 'orderby' => 'date', 'order' => 'asc' ) )
+			$this->search_and_get_field( array( 'orderby' => 'date', 'order' => 'asc' ) ),
+			'orderby => date asc'
 		);
 
 		$this->assertEquals(
@@ -192,7 +194,67 @@ class Tests_Searching extends WP_UnitTestCase {
 				'lorem-ipsum',
 				'comment-test',
 			),
-			$this->search_and_get_field( array( 'orderby' => 'id', 'order' => 'asc' ) )
+			$this->search_and_get_field( array( 'orderby' => 'id', 'order' => 'asc' ) ),
+			'orderby => id asc'
+		);
+
+		$i = 1;
+		foreach ( array( 'lorem-ipsum', 'cat-a', 'cats-a-b-c' ) as $slug ) {
+			$post = get_page_by_path( $slug, OBJECT, 'post' );
+			wp_update_post( array( 'ID' => $post->ID, 'menu_order' => $i++ ) );
+			sleep( 1 );
+		}
+		SP_API()->post( '_refresh' );
+
+		$this->assertEquals(
+			array(
+				'cats-a-b-c',
+				'cat-a',
+				'lorem-ipsum',
+			),
+			$this->search_and_get_field( array( 'orderby' => 'modified', 'order' => 'desc', 'posts_per_page' => 3 ) ),
+			'orderby => modified desc'
+		);
+
+		$this->assertEquals(
+			array(
+				'cats-a-b-c',
+				'cat-a',
+				'lorem-ipsum',
+			),
+			$this->search_and_get_field( array( 'orderby' => 'menu_order', 'order' => 'desc', 'posts_per_page' => 3 ) ),
+			'orderby => menu_order desc'
+		);
+
+		$this->assertEquals(
+			array(
+				'child-four',
+				'child-three',
+				'child-two',
+				'child-one',
+			),
+			$this->search_and_get_field( array( 'orderby' => array( 'parent', 'date' ), 'order' => 'desc', 'posts_per_page' => 4 ) ),
+			'orderby => parent desc'
+		);
+
+		$this->assertEquals(
+			array(
+				'cat-a',
+				'cat-b',
+				'cat-c',
+			),
+			$this->search_and_get_field( array( 'orderby' => 'name', 'order' => 'asc', 'posts_per_page' => 3 ) ),
+			'orderby => name asc'
+		);
+
+		$this->assertEquals(
+			array(
+				'cat-a',
+				'cat-b',
+				'cat-c',
+			),
+			$this->search_and_get_field( array( 'orderby' => 'title', 'order' => 'asc', 'posts_per_page' => 3 ) ),
+			'orderby => title asc'
 		);
 	}
 
@@ -404,5 +466,9 @@ class Tests_Searching extends WP_UnitTestCase {
 				'author_name' => array( 'author1', 'author2', 'author3', 'author4' )
 			), 'post_author.user_id' )
 		);
+	}
+
+	function test_faceting() {
+
 	}
 }

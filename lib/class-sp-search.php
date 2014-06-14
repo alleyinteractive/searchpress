@@ -56,6 +56,9 @@ class SP_Search {
 	 */
 	public function __wakeup() { wp_die( "Please don't __wakeup SP_Search" ); }
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public static function instance() {
 		if ( ! isset( self::$instance ) ) {
 			self::$instance = new SP_Search;
@@ -64,6 +67,9 @@ class SP_Search {
 		return self::$instance;
 	}
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public function setup() {
 		if ( ! is_admin() && SP_Config()->active() ) {
 			$this->init_hooks();
@@ -323,6 +329,18 @@ class SP_Search {
 					break;
 				case 'author' :
 					$es_query_args['sort'][] = array( 'post_author.user_id' => $args['order'] );
+					break;
+				case 'name' :
+					$es_query_args['sort'][] = array( 'post_name.raw' => $args['order'] );
+					break;
+				case 'title' :
+					$es_query_args['sort'][] = array( 'post_title.raw' => $args['order'] );
+					break;
+				case 'menu_order' :
+					$es_query_args['sort'][] = array( 'menu_order' => $args['order'] );
+					break;
+				case 'parent' :
+					$es_query_args['sort'][] = array( 'post_parent' => $args['order'] );
 					break;
 			}
 		}
