@@ -64,8 +64,14 @@ require_once SP_PLUGIN_DIR . '/lib/class-sp-cron.php';
 # Manages metadata for the syncing process
 require_once SP_PLUGIN_DIR . '/lib/class-sp-sync-meta.php';
 
-# Runs the search process
+# You know, for search
 require_once SP_PLUGIN_DIR . '/lib/class-sp-search.php';
+
+# Extends the search with WP-style arguments
+require_once SP_PLUGIN_DIR . '/lib/class-sp-wp-search.php';
+
+# Replaces core search with SearchPress
+require_once SP_PLUGIN_DIR . '/lib/class-sp-integration.php';
 
 if ( is_admin() ) {
 	require_once SP_PLUGIN_DIR . '/lib/admin.php';
