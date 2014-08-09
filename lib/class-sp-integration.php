@@ -173,7 +173,7 @@ class SP_Integration {
 
 		// Convert the WP-style args into ES args
 		$this->search_obj = new SP_WP_Search( $es_wp_query_args );
-		$results = $this->search_obj->get_search_hits();
+		$results = $this->search_obj->get_search_results();
 
 		if ( empty( $results ) ) {
 			$this->found_posts = 0;
@@ -186,7 +186,7 @@ class SP_Integration {
 		$post_ids = array_filter( $post_ids );
 
 		// Total number of results for paging purposes
-		$this->found_posts = $this->search_obj->get_total_results();
+		$this->found_posts = $this->search_obj->get_search_results( 'total' );
 
 		// Replace the search SQL with one that fetches the exact posts we want in the order we want
 		$post_ids_string = implode( ',', $post_ids );

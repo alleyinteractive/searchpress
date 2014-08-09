@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * You know, for search.
+ *
+ * This class provides an object with which you can perform searches with
+ * Elasticsearch, using Elasticsearch's DSL syntax.
+ */
 class SP_Search {
 
 	public $es_args;
@@ -24,27 +30,20 @@ class SP_Search {
 		$this->facets = $facets;
 	}
 
-	public function get_search_results( $raw = false ) {
-		if ( $raw ) {
-			return $this->search_results;
+	public function get_search_results( $return = 'raw' ) {
+		switch ( $return ) {
+			case 'hits' :
+				return ( ! empty( $this->search_results['hits']['hits'] ) ) ? $this->search_results['hits']['hits'] : array();
+
+			case 'total' :
+				return ( ! empty( $this->search_results['hits']['total'] ) ) ? $this->search_results['hits']['total'] : 0;
+
+			case 'facets' :
+				return ( ! empty( $this->search_results['facets'] ) ) ? $this->search_results['facets'] : array();
+
+			default :
+				return $this->search_results;
 		}
-
-		return ( ! empty( $this->search_results['hits'] ) ) ? $this->search_results['hits'] : false;
-	}
-
-	public function get_search_hits() {
-		$search_results = $this->get_search_results();
-		return ( ! empty( $search_results['hits'] ) ) ? $search_results['hits'] : array();
-	}
-
-	public function get_total_results() {
-		$search_results = $this->get_search_results();
-		return ( ! empty( $search_results['total'] ) ) ? $search_results['total'] : 0;
-	}
-
-	public function get_search_facets() {
-		$search_results = $this->get_search_results();
-		return ( ! empty( $search_results['facets'] ) ) ? $search_results['facets'] : array();
 	}
 
 	// Turns raw ES facet data into data that is more useful in a WordPress setting
@@ -52,7 +51,7 @@ class SP_Search {
 		if ( empty( $this->facets ) )
 			return false;
 
-		$facets = $this->get_search_facets();
+		$facets = $this->get_search_results( 'facets' );
 
 		if ( ! $facets )
 			return false;
