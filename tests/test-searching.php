@@ -484,8 +484,4 @@ class Tests_Searching extends WP_UnitTestCase {
 			), 'post_author.user_id' )
 		);
 	}
-
-	function test_faceting() {
-
-	}
 }

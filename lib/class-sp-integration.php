@@ -306,22 +306,6 @@ class SP_Integration {
 	}
 
 
-	protected function get_taxonomy_query_var( $taxonomy_name ) {
-		$taxonomy = get_taxonomy( $taxonomy_name );
-
-		if ( ! $taxonomy || is_wp_error( $taxonomy ) ) {
-			return false;
-		}
-
-		// category_name only accepts a single slug so make a custom, fake query var for categories
-		if ( 'category_name' == $taxonomy->query_var ) {
-			$taxonomy->query_var = 'category';
-		}
-
-		return $taxonomy->query_var;
-	}
-
-
 	protected function get_valid_taxonomy_query_vars( $query = false ) {
 		$taxonomies = get_taxonomies( array( 'public' => true ), $output = 'objects' );
 		$query_vars = wp_list_pluck( $taxonomies, 'query_var' );

@@ -10,9 +10,14 @@ class SP_WP_Search extends SP_Search {
 
 	public $wp_args;
 
+	public $facets = array();
+
 	public function __construct( $wp_args ) {
 		$this->wp_args = apply_filters( 'sp_search_wp_query_args', $wp_args );
 		$es_args = $this->wp_to_es_args( $this->wp_args );
+		if ( ! empty( $this->wp_args['facets'] ) ) {
+			$this->facets = $this->wp_args['facets'];
+		}
 		$this->search( $es_args );
 	}
 
@@ -269,6 +274,146 @@ class SP_WP_Search extends SP_Search {
 		}
 
 		return $es_query_args;
+	}
+
+	// Turns raw ES facet data into data that is more useful in a WordPress setting
+	public function get_facet_data() {
+		if ( empty( $this->facets ) ) {
+			return false;
+		}
+
+		$facets = $this->get_results( 'facets' );
+
+		if ( ! $facets ) {
+			return false;
+		}
+
+		$facet_data = array();
+
+		foreach ( $facets as $label => $facet ) {
+			if ( empty( $this->facets[ $label ] ) )
+				continue;
+
+			$facets_data[ $label ] = $this->facets[ $label ];
+			$facets_data[ $label ]['items'] = array();
+
+			// All taxonomy terms are going to have the same query_var
+			if( 'taxonomy' == $this->facets[ $label ]['type'] ) {
+				$tax_query_var = $this->get_taxonomy_query_var( $this->facets[ $label ]['taxonomy'] );
+
+				if ( ! $tax_query_var )
+					continue;
+
+				$existing_term_slugs = ( get_query_var( $tax_query_var ) ) ? explode( ',', get_query_var( $tax_query_var ) ) : array();
+			}
+
+			$items = array();
+			if ( ! empty( $facet['terms'] ) ) {
+				$items = (array) $facet['terms'];
+			}
+			elseif ( ! empty( $facet['entries'] ) ) {
+				$items = (array) $facet['entries'];
+			}
+
+			// Some facet types like date_histogram don't support the max results parameter
+			if ( count( $items ) > $this->facets[ $label ]['count'] ) {
+				$items = array_slice( $items, 0, $this->facets[ $label ]['count'] );
+			}
+
+			foreach ( $items as $item ) {
+				if ( false === ( $datum = apply_filters( 'sp_search_facet_datum', false, $item, $this->facets ) ) ) {
+					$query_vars = array();
+
+					switch ( $this->facets[ $label ]['type'] ) {
+						case 'taxonomy':
+							$term = get_term_by( 'slug', $item['term'], $this->facets[ $label ]['taxonomy'] );
+
+							if ( ! $term )
+								continue 2; // switch() is considered a looping structure
+
+							// Don't allow refinement on a term we're already refining on
+							if ( in_array( $term->slug, $existing_term_slugs ) )
+								continue 2;
+
+							$slugs = array_merge( $existing_term_slugs, array( $term->slug ) );
+
+							$query_vars = array( $tax_query_var => implode( ',', $slugs ) );
+							$name       = $term->name;
+
+							break;
+
+						case 'post_type':
+							$post_type = get_post_type_object( $item['term'] );
+
+							if ( ! $post_type || $post_type->exclude_from_search )
+								continue 2;  // switch() is considered a looping structure
+
+							$query_vars = array( 'post_type' => $item['term'] );
+							$name       = $post_type->labels->singular_name;
+
+							break;
+
+						case 'date_histogram':
+							$timestamp = $item['time'] / 1000;
+
+							switch ( $this->facets[ $label ]['interval'] ) {
+								case 'year':
+									$query_vars = array(
+										'year'     => date( 'Y', $timestamp ),
+									);
+									$name = date( 'Y', $timestamp );
+									break;
+
+								case 'month':
+									$query_vars = array(
+										'year'     => date( 'Y', $timestamp ),
+										'monthnum' => date( 'n', $timestamp ),
+									);
+									$name = date( 'F Y', $timestamp );
+									break;
+
+								case 'day':
+									$query_vars = array(
+										'year'     => date( 'Y', $timestamp ),
+										'monthnum' => date( 'n', $timestamp ),
+										'day'      => date( 'j', $timestamp ),
+									);
+									$name = date( 'F j, Y', $timestamp );
+									break;
+
+								default:
+									continue 3; // switch() is considered a looping structure
+							}
+
+							break;
+
+						default:
+							//continue 2; // switch() is considered a looping structure
+					}
+
+					$datum = array(
+						'url'        => add_query_arg( $query_vars ),
+						'query_vars' => $query_vars,
+						'name'       => $name,
+						'count'      => $item['count'],
+					);
+				}
+
+				$facets_data[ $label ]['items'][] = $datum;
+			}
+		}
+
+		return apply_filters( 'sp_search_facet_data', $facets_data );
+	}
+
+	protected function get_taxonomy_query_var( $taxonomy_name ) {
+		$taxonomy = get_taxonomy( $taxonomy_name );
+
+		if ( ! $taxonomy || is_wp_error( $taxonomy ) ) {
+			return false;
+		}
+
+		return $taxonomy->query_var;
 	}
 
 }
