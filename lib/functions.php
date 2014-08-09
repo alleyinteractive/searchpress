@@ -49,7 +49,7 @@ function sp_searchable_post_types() {
  */
 function sp_search( $es_args, $raw_result = false ) {
 	$s = new SP_Search( $es_args );
-	return $s->get_search_results();
+	return $raw_result ? $s->get_results() : $s->get_posts();
 }
 
 /**
@@ -60,7 +60,7 @@ function sp_search( $es_args, $raw_result = false ) {
  * @param  array $wp_args PHP array of search arguments.
  * @return array Search results.
  */
-function sp_wp_search( $wp_args ) {
+function sp_wp_search( $wp_args, $raw_result = false ) {
 	$s = new SP_WP_Search( $wp_args );
-	return $s->get_search_results();
+	return $raw_result ? $s->get_results() : $s->get_posts();
 }

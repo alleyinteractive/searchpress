@@ -57,7 +57,7 @@ class Tests_Searching extends WP_UnitTestCase {
 		$args = wp_parse_args( $args, array(
 			'fields' => $field
 		) );
-		$posts = sp_wp_search( $args );
+		$posts = sp_wp_search( $args, true );
 		return sp_results_pluck( $posts, $field );
 	}
 
@@ -443,6 +443,15 @@ class Tests_Searching extends WP_UnitTestCase {
 				'date_range' => array( 'lt' => '2007-01-01 00:00:02' )
 			) )
 		);
+	}
+
+	function test_search_get_posts() {
+		$db_posts = get_posts( 'tag=tag-a&order=id&order=asc' );
+		$sp_posts = sp_wp_search( array( 'terms' => array( 'post_tag' => 'tag-a' ), 'orderby' => 'id', 'order' => 'asc' ) );
+
+		$this->assertEquals( $db_posts, $sp_posts );
+		$this->assertTrue( is_a( reset( $sp_posts ), 'WP_Post' ) );
+		$this->assertEquals( reset( $sp_posts )->post_title, 'tags-a-b-c' );
 	}
 
 	function test_query_author_vars() {
