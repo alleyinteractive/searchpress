@@ -166,43 +166,43 @@ class SP_WP_Search extends SP_Search {
 		}
 
 		// Ordering
-		if ( 'asc' == strtolower( $args['order'] ) ) {
-			$args['order'] = 'asc';
-		} else {
-			$args['order'] = 'desc';
-		}
 
 		$es_query_args['sort'] = array();
-		foreach ( (array) $args['orderby'] as $orderby ) {
+		if ( is_string( $args['orderby'] ) ) {
+			$args['order'] = ( 'asc' == strtolower( $args['order'] ) ) ? 'asc' : 'desc';
+			$args['orderby'] = array( $args['orderby'] => $args['order'] );
+		}
+
+		foreach ( (array) $args['orderby'] as $orderby => $order ) {
+			$order = ( 'asc' == strtolower( $order ) ) ? 'asc' : 'desc';
 			// Translate orderby from WP field to ES field
-			switch ( $orderby ) {
+			switch ( strtolower( $orderby ) ) {
 				case 'relevance' :
-					$es_query_args['sort'][] = array( '_score' => $args['order'] );
+					$es_query_args['sort'][] = array( '_score' => $order );
 					break;
 				case 'date' :
-					$es_query_args['sort'][] = array( 'post_date.date' => $args['order'] );
+					$es_query_args['sort'][] = array( 'post_date.date' => $order );
 					break;
 				case 'modified' :
-					$es_query_args['sort'][] = array( 'post_modified.date' => $args['order'] );
+					$es_query_args['sort'][] = array( 'post_modified.date' => $order );
 					break;
-				case 'ID' :
 				case 'id' :
-					$es_query_args['sort'][] = array( 'post_id' => $args['order'] );
+					$es_query_args['sort'][] = array( 'post_id' => $order );
 					break;
 				case 'author' :
-					$es_query_args['sort'][] = array( 'post_author.user_id' => $args['order'] );
+					$es_query_args['sort'][] = array( 'post_author.user_id' => $order );
 					break;
 				case 'name' :
-					$es_query_args['sort'][] = array( 'post_name.raw' => $args['order'] );
+					$es_query_args['sort'][] = array( 'post_name.raw' => $order );
 					break;
 				case 'title' :
-					$es_query_args['sort'][] = array( 'post_title.raw' => $args['order'] );
+					$es_query_args['sort'][] = array( 'post_title.raw' => $order );
 					break;
 				case 'menu_order' :
-					$es_query_args['sort'][] = array( 'menu_order' => $args['order'] );
+					$es_query_args['sort'][] = array( 'menu_order' => $order );
 					break;
 				case 'parent' :
-					$es_query_args['sort'][] = array( 'post_parent' => $args['order'] );
+					$es_query_args['sort'][] = array( 'post_parent' => $order );
 					break;
 			}
 		}

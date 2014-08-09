@@ -233,8 +233,8 @@ class Tests_Searching extends WP_UnitTestCase {
 				'child-two',
 				'child-one',
 			),
-			$this->search_and_get_field( array( 'orderby' => array( 'parent', 'date' ), 'order' => 'desc', 'posts_per_page' => 4 ) ),
-			'orderby => parent desc'
+			$this->search_and_get_field( array( 'orderby' => array( 'parent' => 'desc', 'date' => 'desc' ), 'posts_per_page' => 4 ) ),
+			'orderby => array( parent => desc, date => desc )'
 		);
 
 		$this->assertEquals(
@@ -256,6 +256,38 @@ class Tests_Searching extends WP_UnitTestCase {
 			$this->search_and_get_field( array( 'orderby' => 'title', 'order' => 'asc', 'posts_per_page' => 3 ) ),
 			'orderby => title asc'
 		);
+
+		$this->assertEquals(
+			array(
+				'cat-a',
+				'cat-b',
+				'cat-c',
+			),
+			$this->search_and_get_field( array( 'orderby' => array( 'title' => 'asc' ), 'posts_per_page' => 3 ) ),
+			'orderby => array( title => asc )'
+		);
+
+		$this->assertEquals(
+			array(
+				'tags-b-and-c',
+				'tags-a-b-c',
+				'tags-a-and-c',
+			),
+			$this->search_and_get_field( array( 'orderby' => array( 'title' => 'desc' ), 'posts_per_page' => 3 ) ),
+			'orderby => array( title => desc )'
+		);
+
+		$this->assertEquals(
+			array(
+				'child-three',
+				'child-four',
+				'child-one',
+				'child-two',
+			),
+			$this->search_and_get_field( array( 'orderby' => array( 'parent' => 'desc', 'date' => 'asc' ), 'posts_per_page' => 4 ) ),
+			'orderby => array( parent => desc, date => asc )'
+		);
+
 	}
 
 	function test_invalid_sorting() {
