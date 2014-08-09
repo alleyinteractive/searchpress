@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * You know, for WordPress-style searching.
+ *
+ * This class provides an object with which you can perform searches with
+ * Elasticsearch, using a WordPress-friendly syntax.
+ */
 class SP_WP_Search extends SP_Search {
 
 	public $wp_args;
@@ -10,7 +16,7 @@ class SP_WP_Search extends SP_Search {
 		$this->search( $es_args );
 	}
 
-	public function wp_to_es_args( $args ) {
+	public static function wp_to_es_args( $args ) {
 		$defaults = array(
 			'query'          => null,    // Search phrase
 			'query_fields'   => array(
