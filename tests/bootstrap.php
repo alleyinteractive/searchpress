@@ -5,7 +5,7 @@ if ( !$_tests_dir ) $_tests_dir = '/tmp/wordpress-tests-lib';
 
 require_once $_tests_dir . '/includes/functions.php';
 
-function _manually_load_plugin() {
+function sp_manually_load_plugin() {
 	// If your ES server is not at localhost:9200, you need to set $_ENV['SEARCHPRESS_HOST'].
 	$host = getenv( 'SEARCHPRESS_HOST' );
 	if ( empty( $host ) ) {
@@ -40,7 +40,12 @@ function _manually_load_plugin() {
 
 	sp_index_flush_data();
 }
-tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
+tests_add_filter( 'muplugins_loaded', 'sp_manually_load_plugin' );
+
+function sp_remove_index() {
+	SP_Config()->flush();
+}
+tests_add_filter( 'shutdown', 'sp_remove_index' );
 
 function sp_index_flush_data() {
 	SP_Config()->flush();
