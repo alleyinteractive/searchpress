@@ -525,5 +525,13 @@ class Tests_Searching extends WP_UnitTestCase {
 				'author_name' => array( 'author1', 'author2', 'author3', 'author4' )
 			), 'post_author.user_id' )
 		);
+
+		$this->assertEquals(
+			array( $author_4, $author_3, $author_2, $author_1 ),
+			$this->search_and_get_field( array(
+				'author_name' => array( 'author1', 'author2', 'author3', 'author4' ),
+				'orderby' => 'author'
+			), 'post_author.user_id' )
+		);
 	}
 }

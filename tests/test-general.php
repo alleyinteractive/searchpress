@@ -28,6 +28,7 @@ class Tests_General extends WP_UnitTestCase {
 		// SearchPress currently only auto integrates into the main query
 		$this->go_to( '/?s=trackback&orderby=date' );
 		$this->assertEquals( get_query_var( 's' ), 'trackback' );
+		$this->assertTrue( is_search() );
 
 		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
@@ -39,9 +40,6 @@ class Tests_General extends WP_UnitTestCase {
 		);
 	}
 
-	/**
-	 * @covers SP_Integration::query_vars()
-	 */
 	function test_sp_query_arg() {
 		// SearchPress currently only auto integrates into the main query
 		$this->go_to( '/?sp[force]=1' );

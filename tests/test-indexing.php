@@ -107,6 +107,80 @@ class Tests_Indexing extends WP_UnitTestCase {
 		);
 	}
 
+	function test_cron_indexing() {
+		$posts = array(
+			$this->factory->post->create( array( 'post_title' => 'test one' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test two' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test three' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test four' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test five' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test six' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test seven' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test eight' ) ),
+			$this->factory->post->create( array( 'post_title' => 'searchpress' ) ),
+		);
+
+		SP_API()->post( '_refresh' );
+		$this->assertEquals(
+			array( 'searchpress' ),
+			$this->search_and_get_field( array( 'query' => 'searchpress' ) )
+		);
+
+		sp_index_flush_data();
+		SP_API()->post( '_refresh' );
+		$this->assertEmpty(
+			$this->search_and_get_field( array( 'query' => 'searchpress' ) )
+		);
+
+		SP_Config()->update_settings( array( 'must_init' => false, 'active' => false, 'last_beat' => false ) );
+		SP_Sync_Manager()->do_cron_reindex();
+		SP_Sync_Meta()->bulk = 3;
+		SP_Sync_Meta()->save();
+
+		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
+
+		$this->_fake_cron();
+		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
+
+		$this->_fake_cron();
+		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
+
+		$this->_fake_cron();
+		$this->assertEmpty( wp_next_scheduled( 'sp_reindex' ) );
+
+		SP_API()->post( '_refresh' );
+		$this->assertEquals(
+			array( 'searchpress' ),
+			$this->search_and_get_field( array( 'query' => 'searchpress' ) )
+		);
+	}
+
 	// @todo Test updating terms
 	// @todo Test deleting terms
+
+	/**
+	 * Fakes a cron job
+	 */
+	function _fake_cron() {
+		$crons = _get_cron_array();
+		foreach ( $crons as $timestamp => $cronhooks ) {
+			foreach ( $cronhooks as $hook => $keys ) {
+				if ( substr( $hook, 0, 3 ) !== 'sp_' ) {
+					continue; // only run our own jobs.
+				}
+
+				foreach ( $keys as $k => $v ) {
+					$schedule = $v['schedule'];
+
+					if ( $schedule != false ) {
+						$new_args = array( $timestamp, $schedule, $hook, $v['args'] );
+						call_user_func_array( 'wp_reschedule_event', $new_args );
+					}
+
+					wp_unschedule_event( $timestamp, $hook, $v['args'] );
+					do_action_ref_array( $hook, $v['args'] );
+				}
+			}
+		}
+	}
 }
