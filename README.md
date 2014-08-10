@@ -35,10 +35,11 @@ Changelog
 ### 0.2-alpha
 
 * Adds unit testing
-* *BREAKING* Significant updates to mapping
+* Significant updates to mapping *(breaking change)*
 * Enforce data types when indexing
 * Adds helper functions
-* *BREAKING* Adds support for ES 1.0+
+* Adds support for ES 1.0+ *(breaking change)*
+* Refactors search *(breaking change)*
 
 
 ### 0.1
