@@ -51,6 +51,15 @@ class Tests_General extends WP_UnitTestCase {
 		$this->assertFalse( is_home() );
 	}
 
+	function test_no_results() {
+		// SearchPress currently only auto integrates into the main query
+		$this->go_to( '/?s=cucumbers' );
+		$this->assertEquals( get_query_var( 's' ), 'cucumbers' );
+		$this->assertTrue( is_search() );
+		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertEquals( 0, $GLOBALS['wp_query']->found_posts );
+	}
+
 	function test_search_activation() {
 		SP_Config()->update_settings( array( 'active' => false ) );
 		SP_Integration()->remove_hooks();
