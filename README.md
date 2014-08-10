@@ -3,6 +3,17 @@
 Elasticsearch integration for WordPress.
 
 
+Currently in Beta
+-----------------
+
+SearchPress is currently in beta. The most significant impact of this is backwards compatibility. Until SearchPress reaches its first full release (1.0), backwards compatibility will not be guaranteed. In most cases, this will only impact you if you're using SearchPress in an advanced or custom manner. That said, even if you aren't, it's best to perform a reindex after updating SearchPress.
+
+Each stable release will be tagged and you'll be able to [download that release indefinitely](https://github.com/alleyinteractive/searchpress/releases).
+
+`master` should be considered alpha/pre-release and should not be used in production environments. `master` will only ever contain stable code (as illustrated by Travis CI), but it's likely that things in master will change.
+
+
+
 Pre-requisites
 --------------
 
@@ -16,3 +27,20 @@ Setup
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. You'll be prompted to add your elasticsearch endpoint and to index your posts
 4. Once indexing is complete, you're good to go!
+
+
+Changelog
+---------
+
+### 0.2-alpha
+
+* Adds unit testing
+* *BREAKING* Significant updates to mapping
+* Enforce data types when indexing
+* Adds helper functions
+* *BREAKING* Adds support for ES 1.0+
+
+
+### 0.1
+
+* First release!
