@@ -139,7 +139,7 @@ class Tests_Faceting extends WP_UnitTestCase {
 			'facets' => array(
 				'Year' => array( 'type' => 'date_histogram', 'interval' => 'year', 'count' => 10 ),
 				'Month' => array( 'type' => 'date_histogram', 'interval' => 'month', 'count' => 10 ),
-				'Day' => array( 'type' => 'date_histogram', 'interval' => 'day', 'count' => 10 ),
+				'Day' => array( 'type' => 'date_histogram', 'interval' => 'day', 'field' => 'post_modified', 'count' => 10 ),
 			 ),
 		) );
 		$facet_data = $s->get_facet_data();
