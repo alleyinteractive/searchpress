@@ -8,24 +8,62 @@
  */
 class SP_Search {
 
+	/**
+	 * Elasticsearch arguments for this query. It is stored after the
+	 * `sp_search_query_args` filter is applied, and immediately before query
+	 * is run.
+	 * @var array
+	 */
 	public $es_args;
 
+	/**
+	 * The raw results of the ES query.
+	 * @var array
+	 */
 	public $search_results;
 
+	/**
+	 * The WP_Post objects corresponding to the search, should they be
+	 * requested. This is more or less a cache.
+	 * @var array
+	 */
 	public $posts = null;
 
+	/**
+	 * Instantiate the object.
+	 * @param bool|array $es_args Optional. Array of Elasticsearch arguments. If
+	 *                            present, the search is performed immediately.
+	 *                            Otherwise, the object is created but the
+	 *                            search must be called manually.
+	 */
 	public function __construct( $es_args = false ) {
 		if ( false !== $es_args ) {
 			$this->search( $es_args );
 		}
 	}
 
+	/**
+	 * Perform an Elasticsearch query.
+	 *
+	 * @param  array $es_args Elsticsearch query DSL as a PHP array.
+	 * @return array Raw response from the ES server, parsed by json_Decode.
+	 */
 	public function search( $es_args ) {
 		$this->es_args = apply_filters( 'sp_search_query_args', $es_args );
 		$this->search_results = SP_API()->search( json_encode( $this->es_args ), array( 'output' => ARRAY_A ) );
 		return $this->search_results;
 	}
 
+	/**
+	 * Get the results of the current object's query.
+	 *
+	 * @param  string $return Optional. The data you want to receive. Options are:
+	 *                        raw: Default. The full raw response.
+	 *                        hits: Just the document data (response.hits.hits).
+	 *                        total: The total number of results found (response.hits.total).
+	 *                        facets: Just the facet data (response.facets).
+	 * @return mixed Depends on what you've asked to return.
+	 */
 	public function get_results( $return = 'raw' ) {
 		switch ( $return ) {
 			case 'hits' :

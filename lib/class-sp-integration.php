@@ -1,4 +1,9 @@
 <?php
+
+/**
+ * Replace the WordPress core search with SearchPress
+ */
+
 /**
  * Copyright (C) 2012-2013 Automattic
  * Copyright (C) 2013 SearchPress
@@ -21,7 +26,6 @@
  * The license for this software can likely be found here:
  * http://www.gnu.org/licenses/gpl-2.0.html
  */
-
 
 if ( !class_exists( 'SP_Integration' ) ) :
 
