@@ -503,10 +503,20 @@ class Tests_Searching extends WP_UnitTestCase {
 		SP_API()->post( '_refresh' );
 
 		$this->assertEquals(
+			array( $author_2 ),
+			$this->search_and_get_field( array( 'author' => $author_2 ), 'post_author.user_id' )
+		);
+
+		$this->assertEquals(
 			array( $author_1, $author_2, $author_3, $author_4 ),
 			$this->search_and_get_field( array(
 				'author' => array( $author_1, $author_2, $author_3, $author_4 )
 			), 'post_author.user_id' )
+		);
+
+		$this->assertEquals(
+			array( $author_3 ),
+			$this->search_and_get_field( array( 'author_name' => 'author3' ), 'post_author.user_id' )
 		);
 
 		$this->assertEquals(
