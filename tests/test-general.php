@@ -40,7 +40,7 @@ class Tests_General extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers SP_Search::query_vars()
+	 * @covers SP_Integration::query_vars()
 	 */
 	function test_sp_query_arg() {
 		// SearchPress currently only auto integrates into the main query
