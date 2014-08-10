@@ -159,10 +159,10 @@ class SP_WP_Search extends SP_Search {
 			$es_query_args['query']['bool']['must'] = $multi_match;
 
 			if ( ! $args['orderby'] ) {
-				$args['orderby'] = array( 'relevance' );
+				$args['orderby'] = 'relevance';
 			}
 		} elseif ( empty( $args['orderby'] ) ) {
-			$args['orderby'] = array( 'date' );
+			$args['orderby'] = 'date';
 		}
 
 		// Ordering
