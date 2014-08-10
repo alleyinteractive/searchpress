@@ -291,18 +291,20 @@ class SP_WP_Search extends SP_Search {
 		$facet_data = array();
 
 		foreach ( $facets as $label => $facet ) {
-			if ( empty( $this->facets[ $label ] ) )
+			if ( empty( $this->facets[ $label ] ) ) {
 				continue;
+			}
 
-			$facets_data[ $label ] = $this->facets[ $label ];
-			$facets_data[ $label ]['items'] = array();
+			$facet_data[ $label ] = $this->facets[ $label ];
+			$facet_data[ $label ]['items'] = array();
 
 			// All taxonomy terms are going to have the same query_var
 			if( 'taxonomy' == $this->facets[ $label ]['type'] ) {
 				$tax_query_var = $this->get_taxonomy_query_var( $this->facets[ $label ]['taxonomy'] );
 
-				if ( ! $tax_query_var )
+				if ( ! $tax_query_var ) {
 					continue;
+				}
 
 				$existing_term_slugs = ( get_query_var( $tax_query_var ) ) ? explode( ',', get_query_var( $tax_query_var ) ) : array();
 			}
@@ -310,8 +312,7 @@ class SP_WP_Search extends SP_Search {
 			$items = array();
 			if ( ! empty( $facet['terms'] ) ) {
 				$items = (array) $facet['terms'];
-			}
-			elseif ( ! empty( $facet['entries'] ) ) {
+			} elseif ( ! empty( $facet['entries'] ) ) {
 				$items = (array) $facet['entries'];
 			}
 
@@ -328,12 +329,14 @@ class SP_WP_Search extends SP_Search {
 						case 'taxonomy':
 							$term = get_term_by( 'slug', $item['term'], $this->facets[ $label ]['taxonomy'] );
 
-							if ( ! $term )
+							if ( ! $term ) {
 								continue 2; // switch() is considered a looping structure
+							}
 
 							// Don't allow refinement on a term we're already refining on
-							if ( in_array( $term->slug, $existing_term_slugs ) )
+							if ( in_array( $term->slug, $existing_term_slugs ) ) {
 								continue 2;
+							}
 
 							$slugs = array_merge( $existing_term_slugs, array( $term->slug ) );
 
@@ -345,8 +348,9 @@ class SP_WP_Search extends SP_Search {
 						case 'post_type':
 							$post_type = get_post_type_object( $item['term'] );
 
-							if ( ! $post_type || $post_type->exclude_from_search )
+							if ( ! $post_type || $post_type->exclude_from_search ) {
 								continue 2;  // switch() is considered a looping structure
+							}
 
 							$query_vars = array( 'post_type' => $item['term'] );
 							$name       = $post_type->labels->singular_name;
@@ -399,11 +403,11 @@ class SP_WP_Search extends SP_Search {
 					);
 				}
 
-				$facets_data[ $label ]['items'][] = $datum;
+				$facet_data[ $label ]['items'][] = $datum;
 			}
 		}
 
-		return apply_filters( 'sp_search_facet_data', $facets_data );
+		return apply_filters( 'sp_search_facet_data', $facet_data );
 	}
 
 	protected function get_taxonomy_query_var( $taxonomy_name ) {
