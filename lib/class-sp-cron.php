@@ -42,8 +42,9 @@ class SP_Cron {
 	public function reindex() {
 		do_action( 'sp_debug', '[SP Cron] Reindexing' );
 		SP_Sync_Manager()->do_index_loop();
-		if ( SP_Sync_Meta()->running )
+		if ( SP_Sync_Meta()->running ) {
 			$this->schedule_reindex();
+		}
 	}
 
 	public function schedule_reindex() {
@@ -61,7 +62,9 @@ class SP_Cron {
 function SP_Cron() {
 	return SP_Cron::instance();
 }
-if ( defined( 'DOING_CRON' ) && DOING_CRON )
+
+if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
 	SP_Cron();
+}
 
 endif;
