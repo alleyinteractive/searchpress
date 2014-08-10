@@ -93,10 +93,6 @@ class Tests_Faceting extends WP_UnitTestCase {
 			wp_list_pluck( $facet_data['Tag']['items'], 'count' )
 		);
 		$this->assertEquals(
-			array( '?tag=tag-a', '?tag=tag-b', '?tag=tag-c' ),
-			wp_list_pluck( $facet_data['Tag']['items'], 'url' )
-		);
-		$this->assertEquals(
 			array( array( 'tag' => 'tag-a' ), array( 'tag' => 'tag-b' ), array( 'tag' => 'tag-c' ) ),
 			wp_list_pluck( $facet_data['Tag']['items'], 'query_vars' )
 		);
@@ -106,8 +102,6 @@ class Tests_Faceting extends WP_UnitTestCase {
 		$this->assertEquals( 'Page', $facet_data['Post Type']['items'][1]['name'] );
 		$this->assertEquals( 27, $facet_data['Post Type']['items'][0]['count'] );
 		$this->assertEquals( 7, $facet_data['Post Type']['items'][1]['count'] );
-		$this->assertEquals( '?post_type=post', $facet_data['Post Type']['items'][0]['url'] );
-		$this->assertEquals( '?post_type=page', $facet_data['Post Type']['items'][1]['url'] );
 		$this->assertEquals( array( 'post_type' => 'post' ), $facet_data['Post Type']['items'][0]['query_vars'] );
 		$this->assertEquals( array( 'post_type' => 'page' ), $facet_data['Post Type']['items'][1]['query_vars'] );
 	}
@@ -122,10 +116,6 @@ class Tests_Faceting extends WP_UnitTestCase {
 		) );
 		$facet_data = $s->get_facet_data();
 
-		$this->assertEquals(
-			array( '?category_name=uncategorized', '?category_name=cat-a', '?category_name=cat-b', '?category_name=cat-c' ),
-			wp_list_pluck( $facet_data['Category']['items'], 'url' )
-		);
 		$this->assertEquals(
 			array( array( 'category_name' => 'uncategorized' ), array( 'category_name' => 'cat-a' ), array( 'category_name' => 'cat-b' ), array( 'category_name' => 'cat-c' ) ),
 			wp_list_pluck( $facet_data['Category']['items'], 'query_vars' )
@@ -152,10 +142,6 @@ class Tests_Faceting extends WP_UnitTestCase {
 		$this->assertEquals( 1, $facet_data['Year']['items'][1]['count'] );
 		$this->assertEquals( 13, $facet_data['Year']['items'][2]['count'] );
 		$this->assertEquals( 13, $facet_data['Year']['items'][3]['count'] );
-		$this->assertEquals( '?year=2007', $facet_data['Year']['items'][0]['url'] );
-		$this->assertEquals( '?year=2008', $facet_data['Year']['items'][1]['url'] );
-		$this->assertEquals( '?year=2009', $facet_data['Year']['items'][2]['url'] );
-		$this->assertEquals( '?year=2010', $facet_data['Year']['items'][3]['url'] );
 		$this->assertEquals( array( 'year' => '2007' ), $facet_data['Year']['items'][0]['query_vars'] );
 		$this->assertEquals( array( 'year' => '2008' ), $facet_data['Year']['items'][1]['query_vars'] );
 		$this->assertEquals( array( 'year' => '2009' ), $facet_data['Year']['items'][2]['query_vars'] );
@@ -163,12 +149,10 @@ class Tests_Faceting extends WP_UnitTestCase {
 
 		$this->assertEquals( 'January 2007', $facet_data['Month']['items'][0]['name'] );
 		$this->assertEquals( 7, $facet_data['Month']['items'][0]['count'] );
-		$this->assertEquals( '?year=2007&monthnum=1', $facet_data['Month']['items'][0]['url'] );
 		$this->assertEquals( array( 'year' => '2007', 'monthnum' => 1 ), $facet_data['Month']['items'][0]['query_vars'] );
 
 		$this->assertEquals( 'January 1, 2007', $facet_data['Day']['items'][0]['name'] );
 		$this->assertEquals( 7, $facet_data['Day']['items'][0]['count'] );
-		$this->assertEquals( '?year=2007&monthnum=1&day=1', $facet_data['Day']['items'][0]['url'] );
 		$this->assertEquals( array( 'year' => '2007', 'monthnum' => 1, 'day' => 1 ), $facet_data['Day']['items'][0]['query_vars'] );
 	}
 }

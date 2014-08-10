@@ -396,7 +396,6 @@ class SP_WP_Search extends SP_Search {
 					}
 
 					$datum = array(
-						'url'        => add_query_arg( $query_vars ),
 						'query_vars' => $query_vars,
 						'name'       => $name,
 						'count'      => $item['count'],
