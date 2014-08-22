@@ -57,7 +57,7 @@ class Tests_Searching extends WP_UnitTestCase {
 		$args = wp_parse_args( $args, array(
 			'fields' => $field
 		) );
-		$posts = SP_Search()->wp_search( $args );
+		$posts = sp_wp_search( $args, true );
 		return sp_results_pluck( $posts, $field );
 	}
 
@@ -160,7 +160,8 @@ class Tests_Searching extends WP_UnitTestCase {
 				'simple-markup-test',
 				'embedded-video',
 			),
-			$this->search_and_get_field( array( 'orderby' => 'date', 'order' => 'desc' ) )
+			$this->search_and_get_field( array( 'orderby' => 'date', 'order' => 'desc' ) ),
+			'orderby => date desc'
 		);
 
 		$this->assertEquals(
@@ -176,7 +177,8 @@ class Tests_Searching extends WP_UnitTestCase {
 				'cats-a-b-c',
 				'cats-a-and-b',
 			),
-			$this->search_and_get_field( array( 'orderby' => 'date', 'order' => 'asc' ) )
+			$this->search_and_get_field( array( 'orderby' => 'date', 'order' => 'asc' ) ),
+			'orderby => date asc'
 		);
 
 		$this->assertEquals(
@@ -192,8 +194,108 @@ class Tests_Searching extends WP_UnitTestCase {
 				'lorem-ipsum',
 				'comment-test',
 			),
-			$this->search_and_get_field( array( 'orderby' => 'id', 'order' => 'asc' ) )
+			$this->search_and_get_field( array( 'orderby' => 'id', 'order' => 'asc' ) ),
+			'orderby => id asc'
 		);
+
+		$i = 1;
+		foreach ( array( 'lorem-ipsum', 'cat-a', 'cats-a-b-c' ) as $slug ) {
+			$post = get_page_by_path( $slug, OBJECT, 'post' );
+			wp_update_post( array( 'ID' => $post->ID, 'menu_order' => $i++ ) );
+			sleep( 1 );
+		}
+		SP_API()->post( '_refresh' );
+
+		$this->assertEquals(
+			array(
+				'cats-a-b-c',
+				'cat-a',
+				'lorem-ipsum',
+			),
+			$this->search_and_get_field( array( 'orderby' => 'modified', 'order' => 'desc', 'posts_per_page' => 3 ) ),
+			'orderby => modified desc'
+		);
+
+		$this->assertEquals(
+			array(
+				'cats-a-b-c',
+				'cat-a',
+				'lorem-ipsum',
+			),
+			$this->search_and_get_field( array( 'orderby' => 'menu_order', 'order' => 'desc', 'posts_per_page' => 3 ) ),
+			'orderby => menu_order desc'
+		);
+
+		$this->assertEquals(
+			array(
+				'child-four',
+				'child-three',
+				'child-two',
+				'child-one',
+			),
+			$this->search_and_get_field( array( 'orderby' => array( 'parent' => 'desc', 'date' => 'desc' ), 'posts_per_page' => 4 ) ),
+			'orderby => array( parent => desc, date => desc )'
+		);
+
+		$this->assertEquals(
+			array(
+				'cat-a',
+				'cat-b',
+				'cat-c',
+			),
+			$this->search_and_get_field( array( 'orderby' => 'name', 'order' => 'asc', 'posts_per_page' => 3 ) ),
+			'orderby => name asc'
+		);
+
+		$this->assertEquals(
+			array(
+				'cat-a',
+				'cat-b',
+				'cat-c',
+			),
+			$this->search_and_get_field( array( 'orderby' => 'title', 'order' => 'asc', 'posts_per_page' => 3 ) ),
+			'orderby => title asc'
+		);
+
+		$this->assertEquals(
+			array(
+				'cat-a',
+				'cat-b',
+				'cat-c',
+			),
+			$this->search_and_get_field( array( 'orderby' => array( 'title' => 'asc' ), 'posts_per_page' => 3 ) ),
+			'orderby => array( title => asc )'
+		);
+
+		$this->assertEquals(
+			array(
+				'tags-b-and-c',
+				'tags-a-b-c',
+				'tags-a-and-c',
+			),
+			$this->search_and_get_field( array( 'orderby' => array( 'title' => 'desc' ), 'posts_per_page' => 3 ) ),
+			'orderby => array( title => desc )'
+		);
+
+		$this->assertEquals(
+			array(
+				'child-three',
+				'child-four',
+				'child-one',
+				'child-two',
+			),
+			$this->search_and_get_field( array( 'orderby' => array( 'parent' => 'desc', 'date' => 'asc' ), 'posts_per_page' => 4 ) ),
+			'orderby => array( parent => desc, date => asc )'
+		);
+
+	}
+
+	function test_invalid_sorting() {
+		$es_args = SP_WP_Search::wp_to_es_args( array( 'orderby' => 'modified', 'order' => 'desc' ) );
+		$this->assertEquals( 'desc', $es_args['sort'][0]['post_modified.date'], 'Verify es_args["sort"] exists' );
+
+		$es_args = SP_WP_Search::wp_to_es_args( array( 'orderby' => 'modified_gmt' ) );
+		$this->assertTrue( empty( $es_args['sort'] ), 'Verify es_args["sort"] exists' );
 	}
 
 	function test_query_posts_per_page() {
@@ -375,6 +477,15 @@ class Tests_Searching extends WP_UnitTestCase {
 		);
 	}
 
+	function test_search_get_posts() {
+		$db_posts = get_posts( 'tag=tag-a&order=id&order=asc' );
+		$sp_posts = sp_wp_search( array( 'terms' => array( 'post_tag' => 'tag-a' ), 'orderby' => 'id', 'order' => 'asc' ) );
+
+		$this->assertEquals( $db_posts, $sp_posts );
+		$this->assertTrue( is_a( reset( $sp_posts ), 'WP_Post' ) );
+		$this->assertEquals( reset( $sp_posts )->post_title, 'tags-a-b-c' );
+	}
+
 	function test_query_author_vars() {
 		$author_1 = $this->factory->user->create( array( 'user_login' => 'author1', 'user_pass' => rand_str(), 'role' => 'author' ) );
 		$post_1 = $this->factory->post->create( array( 'post_title' => rand_str(), 'post_author' => $author_1, 'post_date' => '2006-01-04 00:00:00' ) );
@@ -392,10 +503,20 @@ class Tests_Searching extends WP_UnitTestCase {
 		SP_API()->post( '_refresh' );
 
 		$this->assertEquals(
+			array( $author_2 ),
+			$this->search_and_get_field( array( 'author' => $author_2 ), 'post_author.user_id' )
+		);
+
+		$this->assertEquals(
 			array( $author_1, $author_2, $author_3, $author_4 ),
 			$this->search_and_get_field( array(
 				'author' => array( $author_1, $author_2, $author_3, $author_4 )
 			), 'post_author.user_id' )
+		);
+
+		$this->assertEquals(
+			array( $author_3 ),
+			$this->search_and_get_field( array( 'author_name' => 'author3' ), 'post_author.user_id' )
 		);
 
 		$this->assertEquals(

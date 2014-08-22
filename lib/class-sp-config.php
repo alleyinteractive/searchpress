@@ -29,6 +29,9 @@ class SP_Config {
 	 */
 	public function __wakeup() { wp_die( "Please don't __wakeup SP_Config" ); }
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public static function instance() {
 		if ( ! isset( self::$instance ) ) {
 			self::$instance = new SP_Config;
@@ -37,7 +40,9 @@ class SP_Config {
 		return self::$instance;
 	}
 
-
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public function setup() {
 		# initialize anything for the singleton here
 	}
@@ -218,14 +223,20 @@ class SP_Config {
 								'seconds_from_hour' => array( 'type' => 'short' ),
 							),
 						),
-						'post_title' => array( 'type' => 'string', '_boost'  => 3.0, 'store'  => 'yes' ),
-						'post_excerpt' => array( 'type' => 'string', '_boost'  => 2.0 ),
-						'post_content' => array( 'type' => 'string', '_boost'  => 1.0 ),
+						'post_title' => array(
+							'type' => 'multi_field',
+							'fields' => array(
+								'post_title' => array( 'type' => 'string' ),
+								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false )
+							)
+						),
+						'post_excerpt' => array( 'type' => 'string' ),
+						'post_content' => array( 'type' => 'string' ),
 						'post_status' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
 						'post_name' => array(
 							'type' => 'multi_field',
 							'fields' => array(
-								'value' => array( 'type' => 'string' ),
+								'post_name' => array( 'type' => 'string' ),
 								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false )
 							)
 						),
@@ -281,8 +292,9 @@ class SP_Config {
 
 
 	public function get_setting( $key ) {
-		if ( ! $this->settings )
+		if ( ! $this->settings ) {
 			$this->get_settings();
+		}
 		return isset( $this->settings[ $key ] ) ? $this->settings[ $key ] : null;
 	}
 
@@ -293,10 +305,11 @@ class SP_Config {
 
 
 	public function update_settings( $new_settings = array() ) {
-		if ( ! $this->settings )
+		if ( ! $this->settings ) {
 			$this->get_settings();
+		}
 		$this->settings = wp_parse_args( $new_settings, $this->settings );
-		update_option( 'sp_settings', $this->settings )	;
+		update_option( 'sp_settings', $this->settings );
 	}
 
 }

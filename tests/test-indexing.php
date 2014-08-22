@@ -15,7 +15,7 @@ class Tests_Indexing extends WP_UnitTestCase {
 		$args = wp_parse_args( $args, array(
 			'fields' => $field
 		) );
-		$posts = SP_Search()->wp_search( $args );
+		$posts = sp_wp_search( $args, true );
 		return sp_results_pluck( $posts, $field );
 	}
 

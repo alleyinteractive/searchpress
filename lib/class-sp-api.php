@@ -39,6 +39,9 @@ class SP_API {
 	 */
 	public function __wakeup() { wp_die( "Please don't __wakeup SP_API" ); }
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public static function instance() {
 		if ( ! isset( self::$instance ) ) {
 			self::$instance = new SP_API;
@@ -47,6 +50,9 @@ class SP_API {
 		return self::$instance;
 	}
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public function setup() {
 		$url = get_site_url();
 		$this->index = preg_replace( '#^.*?//(.*?)/?$#', '$1', $url );
@@ -59,8 +65,9 @@ class SP_API {
 		);
 
 		# Increase the timeout for bulk indexing
-		if ( ( defined( 'DOING_CRON' ) && DOING_CRON ) || defined( 'WP_CLI' ) && WP_CLI )
+		if ( ( defined( 'DOING_CRON' ) && DOING_CRON ) || defined( 'WP_CLI' ) && WP_CLI ) {
 			$this->request_defaults['timeout'] = 60;
+		}
 	}
 
 	/**
@@ -112,7 +119,7 @@ class SP_API {
 			return $result['body'];
 		}
 
-		return '{ "error" : "' . esc_js( $result->get_error_message() ) . '" }';
+		return '{"error":' . json_encode( $result->get_error_message() ) . '}';
 	}
 
 	public function parse_url( $url = '' ) {
