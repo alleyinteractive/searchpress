@@ -35,10 +35,12 @@
  */
 
 
-if ( !defined( 'SP_PLUGIN_URL' ) )
-	define( 'SP_PLUGIN_URL', plugins_url( '/', __FILE__ ) );
-if ( !defined( 'SP_PLUGIN_DIR' ) )
-	define( 'SP_PLUGIN_DIR', __DIR__ );
+if ( !defined( 'SP_PLUGIN_URL' ) ) {
+    define( 'SP_PLUGIN_URL', plugins_url( '/', __FILE__ ) );
+}
+if ( !defined( 'SP_PLUGIN_DIR' ) ) {
+    define( 'SP_PLUGIN_DIR', __DIR__ );
+}
 
 # Constants, etc.
 require_once SP_PLUGIN_DIR . '/lib/globals.php';
