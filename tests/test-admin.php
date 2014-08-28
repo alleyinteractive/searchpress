@@ -14,6 +14,7 @@ class Tests_Admin extends WP_UnitTestCase {
 		SP_Admin();
 	}
 
+	/*
 	function test_settings_page() {
 		$current_user = get_current_user_id();
 
@@ -38,4 +39,5 @@ class Tests_Admin extends WP_UnitTestCase {
 
 		wp_set_current_user( $current_user );
 	}
+	*/
 }
