@@ -486,6 +486,57 @@ class Tests_Searching extends WP_UnitTestCase {
 		$this->assertEquals( reset( $sp_posts )->post_title, 'tags-a-b-c' );
 	}
 
+	function test_raw_es() {
+		$posts = sp_search( array(
+			'query' => array(
+				'match_all' => new stdClass
+			),
+			'fields' => array( 'post_id' ),
+			'size' => 1,
+			'from' => 1,
+			'sort' => array(
+				'post_name.raw' => 'asc'
+			)
+		) );
+		$this->assertEquals( 'cat-b', $posts[0]->post_name );
+
+		$s = new SP_Search( array(
+			'query' => array(
+				'match_all' => new stdClass
+			),
+			'fields' => array( 'post_id' ),
+			'size' => 1,
+			'from' => 2,
+			'sort' => array(
+				'post_name.raw' => 'asc'
+			)
+		) );
+		$posts = $s->get_posts();
+		$this->assertEquals( 'cat-c', $posts[0]->post_name );
+
+		// Test running it again
+		$posts = $s->get_posts();
+		$this->assertEquals( 'cat-c', $posts[0]->post_name );
+
+		// Verify emptiness
+		$s = new SP_Search( array(
+			'query' => array(
+				'term' => array(
+					'post_name.raw' => array(
+						'value' => 'cucumbers'
+					)
+				)
+			),
+			'fields' => array( 'post_id' ),
+			'size' => 1,
+			'from' => 0,
+			'sort' => array(
+				'post_name.raw' => 'asc'
+			)
+		) );
+		$this->assertEmpty( $s->get_posts() );
+	}
+
 	function test_query_author_vars() {
 		$author_1 = $this->factory->user->create( array( 'user_login' => 'author1', 'user_pass' => rand_str(), 'role' => 'author' ) );
 		$post_1 = $this->factory->post->create( array( 'post_title' => rand_str(), 'post_author' => $author_1, 'post_date' => '2006-01-04 00:00:00' ) );
