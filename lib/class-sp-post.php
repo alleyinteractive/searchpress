@@ -128,14 +128,6 @@ class SP_Post {
 			$values = array_map( array( 'SP_Post', 'cast_meta_types' ), $values );
 		}
 
-		if ( SP_Config()->unserialize_meta() ) {
-			# If post meta is serialized, unserialize it
-			foreach ( $meta as $key => &$values ) {
-				$values = array_map( 'maybe_unserialize', $values );
-			}
-			$values = apply_filters( 'sp_unserialize_meta', $values, $key );
-		}
-
 		do_action( 'sp_debug', '[SP_Post] Compiled Meta', $meta );
 		return $meta;
 	}

@@ -268,17 +268,6 @@ class SP_Config {
 	}
 
 
-	/**
-	 * Should we attempt to unserialize post meta?
-	 *
-	 * @return bool
-	 * @todo implement this as a site option
-	 */
-	public function unserialize_meta() {
-		return apply_filters( 'sp_config_unserialize_meta', false );
-	}
-
-
 	public function get_settings() {
 		$settings = get_option( 'sp_settings' );
 		$this->settings = wp_parse_args( $settings, array(
