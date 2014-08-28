@@ -58,6 +58,39 @@ class Tests_General extends WP_UnitTestCase {
 		$this->assertEquals( 0, $GLOBALS['wp_query']->found_posts );
 	}
 
+	function test_date_results() {
+		// SearchPress currently only auto integrates into the main query
+		$this->go_to( '/?s=test&year=2010' );
+		$this->assertEquals( get_query_var( 'year' ), '2010' );
+		$this->assertEmpty( get_query_var( 'monthnum' ) );
+		$this->assertEmpty( get_query_var( 'day' ) );
+		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertEquals(
+			array( 'simple-markup-test' ),
+			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
+		);
+
+		$this->go_to( '/?s=test&year=2009&monthnum=8' );
+		$this->assertEquals( get_query_var( 'year' ), '2009' );
+		$this->assertEquals( get_query_var( 'monthnum' ), '8' );
+		$this->assertEmpty( get_query_var( 'day' ) );
+		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertEquals(
+			array( 'comment-test' ),
+			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
+		);
+
+		$this->go_to( '/?s=comment&year=2009&monthnum=11&day=1' );
+		$this->assertEquals( get_query_var( 'year' ), '2009' );
+		$this->assertEquals( get_query_var( 'monthnum' ), '11' );
+		$this->assertEquals( get_query_var( 'day' ), '1' );
+		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertEquals(
+			array( 'one-comment' ),
+			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
+		);
+	}
+
 	function test_search_activation() {
 		SP_Config()->update_settings( array( 'active' => false ) );
 		SP_Integration()->remove_hooks();

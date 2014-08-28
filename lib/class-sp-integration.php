@@ -276,9 +276,7 @@ class SP_Integration {
 		}
 
 		if ( ! empty( $es_wp_query_args['date_range'] ) && empty( $es_wp_query_args['date_range']['field'] ) ) {
-			$es_wp_query_args['date_range']['field'] = 'post_date.date';
-		} elseif ( ! empty( $es_wp_query_args['date_range']['field'] ) ) {
-			$es_wp_query_args['date_range']['field'] .= '.date';
+			$es_wp_query_args['date_range']['field'] = 'post_date';
 		}
 
 
