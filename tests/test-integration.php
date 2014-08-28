@@ -94,6 +94,15 @@ class Tests_Integration extends WP_UnitTestCase {
 		);
 	}
 
+	function test_sp_date_range() {
+		$this->go_to( '/?s=comment&sp[f]=2009-10-14&sp[t]=2009-12-31' );
+		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertEquals(
+			array( 'one-comment' ),
+			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
+		);
+	}
+
 	function test_terms() {
 		$this->go_to( '/?s=comment&category_name=cat-demo' );
 		$this->assertEquals( get_query_var( 'category_name' ), 'cat-demo' );
