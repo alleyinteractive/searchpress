@@ -22,10 +22,14 @@ class Tests_Integration extends WP_UnitTestCase {
 		$this->factory->post->create( array( 'post_title' => 'no-comments', 'post_date' => '2009-10-02 00:00:00' ) );
 
 		$this->factory->post->create( array( 'post_title' => 'one-comment', 'post_date' => '2009-11-01 00:00:00', 'tags_input' => array( $tag ) ) );
-		$this->factory->post->create( array( 'post_title' => 'contributor-post-approved', 'post_date' => '2009-12-01 00:00:00', 'tags_input' => array( $tag ) ) );
+		$this->factory->post->create( array( 'post_title' => 'contributor-post-approved', 'post_date' => '2009-12-01 00:00:00' ) );
 		$this->factory->post->create( array( 'post_title' => 'many-comments', 'post_date' => '2010-01-01 00:00:00' ) );
 		$this->factory->post->create( array( 'post_title' => 'simple-markup-test', 'post_date' => '2010-02-01 00:00:00', 'tags_input' => array( $tag ) ) );
 		$this->factory->post->create( array( 'post_title' => 'raw-html-code', 'post_date' => '2010-03-01 00:00:00', 'tags_input' => array( $tag ) ) );
+
+		register_post_type( 'cpt', array( 'public' => true ) );
+		$this->factory->post->create( array( 'post_title' => 'cpt', 'post_date' => '2010-01-01 00:00:00', 'post_type' => 'cpt' ) );
+		$this->factory->post->create( array( 'post_title' => 'lorem-cpt', 'post_date' => '2010-01-01 00:00:00', 'post_type' => 'cpt' ) );
 
 		// Force refresh the index so the data is available immediately
 		SP_API()->post( '_refresh' );
@@ -117,6 +121,16 @@ class Tests_Integration extends WP_UnitTestCase {
 		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array( 'one-comment' ),
+			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
+		);
+	}
+
+	function test_post_types() {
+		$this->go_to( '/?s=lorem&post_type=cpt' );
+		$this->assertEquals( get_query_var( 'post_type' ), 'cpt' );
+		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertEquals(
+			array( 'lorem-cpt' ),
 			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
 		);
 	}
