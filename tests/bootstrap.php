@@ -19,6 +19,10 @@ function sp_manually_load_plugin() {
 		'last_beat' => false
 	) );
 	require dirname( __FILE__ ) . '/../searchpress.php';
+
+	// is_admin returns false, so this file doesn't get loaded with the rest of the plugin
+	require_once dirname( __FILE__ ) . '/../lib/admin.php';
+
 	SP_API()->index = 'searchpress-tests';
 
 	// Make sure ES is running and responding
