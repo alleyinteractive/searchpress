@@ -212,6 +212,8 @@ class SP_Post {
 	/**
 	 * Does the same thing as get_terms but in 1 query instead of <num of taxonomies> + 1
 	 *
+	 * @codeCoverageIgnore
+	 *
 	 * @param object $post
 	 * @return object
 	 */
