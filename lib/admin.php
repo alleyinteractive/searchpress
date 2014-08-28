@@ -57,7 +57,7 @@ class SP_Admin {
 		$sync = SP_Sync_Meta();
 		?>
 		<div class="wrap">
-			<h2>SearchPress</h2>
+			<h2><?php esc_html_e( 'SearchPress', 'searchpress' ); ?></h2>
 
 				<?php if ( isset( $_GET['error'] ) ) : ?>
 					<div class="error updated"><p><?php printf( __( 'An error has occurred: %s', 'searchpress' ), esc_html( $this->get_error( $_GET['error'] ) ) ) ?></p></div>
@@ -67,7 +67,7 @@ class SP_Admin {
 					<div class="updated success"><p><?php _e( 'Sync complete!', 'searchpress' ); ?></p></div>
 				<?php endif ?>
 
-				<h3>Settings</h3>
+				<h3><?php esc_html_e( 'Settings', 'searchpress' ); ?></h3>
 				<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
 					<input type="hidden" name="action" value="sp_settings" />
 					<?php wp_nonce_field( 'sp_settings', 'sp_settings_nonce' ); ?>
