@@ -108,28 +108,6 @@ class SP_Sync_Manager {
 
 
 	/**
-	 * Run the sync process
-	 *
-	 * @param int $start
-	 * @param int $limit
-	 * @return void
-	 */
-	public function sync( $start, $limit ) {
-		if ( false !== ( $previous_sync = get_transient( 'sp_sync' ) ) ) {
-			# Sync is running, or died. Do something about it.
-			return $previous_sync;
-		}
-
-		set_transient( 'sp_sync', array( 'start' => $start, 'limit' => $limit ), HOUR_IN_SECONDS );
-
-		$data = $this->get_range( $start, $limit );
-		# Do something with $data
-
-		delete_transient( 'sp_sync' );
-	}
-
-
-	/**
 	 * Get all the posts in a given range
 	 *
 	 * @param int $start

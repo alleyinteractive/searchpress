@@ -25,16 +25,6 @@
 */
 
 
-/**
- * The list
- *
- * @todo Implement a heartbeat and only use ES if the heartbeat is active
- * @todo If search url changes, need to prompt to reindex
- * @todo faceting widget
- * @todo related posts widget
- */
-
-
 if ( !defined( 'SP_PLUGIN_URL' ) ) {
     define( 'SP_PLUGIN_URL', plugins_url( '/', __FILE__ ) );
 }
