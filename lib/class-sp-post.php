@@ -17,10 +17,12 @@ class SP_Post {
 	 * @return void
 	 */
 	function __construct( $post ) {
-		if ( is_numeric( $post ) && 0 != intval( $post ) )
+		if ( is_numeric( $post ) && 0 != intval( $post ) ) {
 			$post = get_post( intval( $post ) );
-		if ( ! is_object( $post ) )
+		}
+		if ( ! is_object( $post ) ) {
 			return;
+		}
 
 		$this->fill( $post );
 	}
@@ -48,8 +50,9 @@ class SP_Post {
 	 */
 	public function __get( $property ) {
 		# let the post ID be accessed either way
-		if ( 'ID' == $property )
+		if ( 'ID' == $property ) {
 			$property = 'post_id';
+		}
 
 		return isset( $this->data[ $property ] ) ? $this->data[ $property ] : null;
 	}
@@ -125,14 +128,6 @@ class SP_Post {
 			$values = array_map( array( 'SP_Post', 'cast_meta_types' ), $values );
 		}
 
-		if ( SP_Config()->unserialize_meta() ) {
-			# If post meta is serialized, unserialize it
-			foreach ( $meta as $key => &$values ) {
-				$values = array_map( 'maybe_unserialize', $values );
-			}
-			$values = apply_filters( 'sp_unserialize_meta', $values, $key );
-		}
-
 		do_action( 'sp_debug', '[SP_Post] Compiled Meta', $meta );
 		return $meta;
 	}
@@ -182,8 +177,9 @@ class SP_Post {
 	 * @return array
 	 */
 	public static function get_terms( $post ) {
-		if ( defined( 'WP_CLI' ) && WP_CLI )
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			return self::get_terms_efficiently( $post );
+		}
 
 		$object_terms = array();
 		$taxonomies = get_object_taxonomies( $post->post_type );
@@ -216,6 +212,8 @@ class SP_Post {
 	/**
 	 * Does the same thing as get_terms but in 1 query instead of <num of taxonomies> + 1
 	 *
+	 * @codeCoverageIgnore
+	 *
 	 * @param object $post
 	 * @return object
 	 */
@@ -228,8 +226,9 @@ class SP_Post {
 		$query = "SELECT t.*, tt.* FROM $wpdb->terms AS t INNER JOIN $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id INNER JOIN $wpdb->term_relationships AS tr ON tr.term_taxonomy_id = tt.term_taxonomy_id WHERE tt.taxonomy IN ($taxonomies) AND tr.object_id = $post_id ORDER BY t.term_id";
 
 		$object_terms = $wpdb->get_results( $query );
-		if ( !$object_terms || is_wp_error( $object_terms ) )
+		if ( !$object_terms || is_wp_error( $object_terms ) ) {
 			return array();
+		}
 
 		$terms = array();
 		foreach ( (array) $object_terms as $term ) {
@@ -253,8 +252,9 @@ class SP_Post {
 	 * @return array
 	 */
 	public function get_user( $user_id ) {
-		if ( ! empty( SP_Sync_Manager()->users[ $user_id ] ) )
+		if ( ! empty( SP_Sync_Manager()->users[ $user_id ] ) ) {
 			return SP_Sync_Manager()->users[ $user_id ];
+		}
 
 		$user = get_userdata( $user_id );
 		if ( $user instanceof WP_User ) {

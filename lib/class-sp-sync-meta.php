@@ -53,8 +53,9 @@ class SP_Sync_Meta {
 	public function setup() {
 		$this->init();
 
-		if ( defined( 'WP_CLI' ) && WP_CLI )
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			return;
+		}
 
 		if ( false != ( $sync_meta = get_option( 'sp_sync_meta' ) ) ) {
 			foreach ( $sync_meta as $key => $value ) {
@@ -86,8 +87,9 @@ class SP_Sync_Meta {
 
 
 	public function save( $force = false ) {
-		if ( ! 'force' == $force && defined( 'WP_CLI' ) && WP_CLI )
+		if ( 'force' != $force && defined( 'WP_CLI' ) && WP_CLI ) {
 			return;
+		}
 
 		$this->delete();
 		add_option( 'sp_sync_meta', array(
@@ -105,18 +107,21 @@ class SP_Sync_Meta {
 
 
 	public function delete( $do_init = false, $force = false ) {
-		if ( ! 'force' == $force && defined( 'WP_CLI' ) && WP_CLI )
+		if ( ! 'force' == $force && defined( 'WP_CLI' ) && WP_CLI ) {
 			return;
+		}
 
 		delete_option( 'sp_sync_meta' );
-		if ( 'init' == $do_init )
+		if ( 'init' == $do_init ) {
 			$this->init();
+		}
 	}
 
 
 	public function reload() {
-		if ( defined( 'WP_CLI' ) && WP_CLI )
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			return;
+		}
 
 		wp_cache_delete( 'sp_sync_meta', 'options' );
 		$this->setup();

@@ -19,6 +19,7 @@ function sp_manually_load_plugin() {
 		'last_beat' => false
 	) );
 	require dirname( __FILE__ ) . '/../searchpress.php';
+
 	SP_API()->index = 'searchpress-tests';
 
 	// Make sure ES is running and responding

@@ -177,10 +177,12 @@ class SP_Integration {
 
 		// Convert the WP-style args into ES args
 		$this->search_obj = new SP_WP_Search( $es_wp_query_args );
-		$results = $this->search_obj->get_results();
+		$results = $this->search_obj->get_results( 'hits' );
+
+		// Total number of results for paging purposes
+		$this->found_posts = $this->search_obj->get_results( 'total' );
 
 		if ( empty( $results ) ) {
-			$this->found_posts = 0;
 			return "SELECT * FROM {$wpdb->posts} WHERE 1=0 /* SearchPress search results */";
 		}
 
@@ -188,9 +190,6 @@ class SP_Integration {
 		$post_ids = $this->search_obj->pluck_field();
 		$post_ids = array_map( 'absint', $post_ids );
 		$post_ids = array_filter( $post_ids );
-
-		// Total number of results for paging purposes
-		$this->found_posts = $this->search_obj->get_results( 'total' );
 
 		// Replace the search SQL with one that fetches the exact posts we want in the order we want
 		$post_ids_string = implode( ',', $post_ids );
@@ -277,9 +276,7 @@ class SP_Integration {
 		}
 
 		if ( ! empty( $es_wp_query_args['date_range'] ) && empty( $es_wp_query_args['date_range']['field'] ) ) {
-			$es_wp_query_args['date_range']['field'] = 'post_date.date';
-		} elseif ( ! empty( $es_wp_query_args['date_range']['field'] ) ) {
-			$es_wp_query_args['date_range']['field'] .= '.date';
+			$es_wp_query_args['date_range']['field'] = 'post_date';
 		}
 
 

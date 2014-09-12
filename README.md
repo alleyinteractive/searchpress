@@ -40,6 +40,7 @@ Changelog
 * Adds helper functions
 * Adds support for ES 1.0+ *(breaking change)*
 * Refactors search *(breaking change)*
+* Removes SP_Config::unserialize_meta()
 
 
 ### 0.1
