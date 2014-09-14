@@ -155,6 +155,35 @@ class Tests_Indexing extends WP_UnitTestCase {
 		);
 	}
 
+	function test_index_errors() {
+		$posts = array(
+			$this->factory->post->create( array( 'post_title' => 'test one' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test two' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test three' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test four' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test five' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test six' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test seven' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test eight' ) ),
+			$this->factory->post->create( array( 'post_title' => 'searchpress' ) ),
+		);
+
+		sp_index_flush_data();
+
+		SP_Config()->update_settings( array( 'host' => 'http://localhost', 'must_init' => false, 'active' => false, 'last_beat' => false ) );
+
+		// Because we changed the host, we have to re-init SP_API
+		SP_API()->setup();
+
+		SP_Sync_Manager()->do_cron_reindex();
+		SP_Sync_Meta()->bulk = 3;
+		SP_Sync_Meta()->save();
+		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
+		$this->_fake_cron();
+
+		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
+	}
+
 	// @todo Test updating terms
 	// @todo Test deleting terms
 

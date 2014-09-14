@@ -86,4 +86,10 @@ class Tests_Sync_Meta extends WP_UnitTestCase {
 		SP_Sync_Meta()->foo = 'bar';
 		$this->assertInstanceOf( 'WP_Error', SP_Sync_Meta()->foo );
 	}
+
+	function test_sync_meta_logging() {
+		$message = rand_str();
+		SP_Sync_Meta()->log( new WP_Error( 'error', $message ) );
+		$this->assertEquals( $message, SP_Sync_Meta()->messages['error'][0] );
+	}
 }
