@@ -31,7 +31,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	public function activate() {
 		WP_CLI::line( "Replacing the default search with SearchPress..." );
 		SP_Config()->update_settings( array( 'active' => true, 'must_init' => false ) );
-		SP_Sync_Meta()->delete( '', 'force' );
+		SP_Sync_Meta()->delete();
 		WP_CLI::success( "Successfully activated SearchPress!\n" );
 	}
 
@@ -43,7 +43,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	public function deactivate() {
 		WP_CLI::line( "Deactivating SearchPress..." );
 		SP_Config()->update_settings( array( 'active' => false, 'must_init' => true ) );
-		SP_Sync_Meta()->delete( '', 'force' );
+		SP_Sync_Meta()->delete();
 		WP_CLI::success( "Successfully deactivated SearchPress!\n" );
 	}
 
@@ -132,6 +132,8 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [<post-id>]
 	 */
 	public function index( $args, $assoc_args ) {
+		ob_end_clean();
+
 		$timestamp_start = microtime( true );
 
 		if ( $assoc_args['flush'] ) {
@@ -177,7 +179,6 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 			$sync_meta = SP_Sync_Meta();
 			$sync_meta->page = intval( $assoc_args['page'] ) - 1;
 			$sync_meta->bulk = $assoc_args['bulk'];
-			$sync_meta->limit = $assoc_args['limit'];
 			$sync_meta->running = true;
 
 			$total_pages = $limit_number / $sync_meta->bulk;
@@ -197,8 +198,15 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 					break;
 			} while ( $sync_meta->page < $total_pages_ceil );
 
+			$errors = ! empty( $sync_meta->messages['error'] ) ? count( $sync_meta->messages['error'] ) : 0;
+			$errors += ! empty( $sync_meta->messages['warning'] ) ? count( $sync_meta->messages['warning'] ) : 0;
 
-			WP_CLI::success( "Index complete!\n{$sync_meta->processed}\tposts processed\n{$sync_meta->success}\tposts added\n{$sync_meta->error}\tposts skipped" );
+			WP_CLI::success( sprintf(
+				__( "Index Complete!\n%d\tposts processed\n%d\tposts indexed\n%d\terrors/warnings", 'searchpress' ),
+				$sync_meta->processed,
+				$sync_meta->success,
+				$errors
+			) );
 
 			$this->activate();
 		}
@@ -233,7 +241,8 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	}
 
 	private function finish( $timestamp_start ) {
-		WP_CLI::line( "Process completed in " . $this->time_format( microtime( true ) - $timestamp_start ) . "\nMax memory usage was " . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . "M" );
+		WP_CLI::line( "Process completed in " . $this->time_format( microtime( true ) - $timestamp_start ) );
+		WP_CLI::line( "Max memory usage was " . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . "M" );
 	}
 
 	private function time_format( $seconds ) {
@@ -253,7 +262,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 			$ret .= $minutes . 'm';
 			$seconds -= $minutes * MINUTE_IN_SECONDS;
 		}
-		return $ret . ceil( $seconds ) . 's';
+		return $ret . absint( ceil( $seconds ) ) . 's';
 	}
 
 }

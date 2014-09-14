@@ -47,16 +47,9 @@ class SP_Sync_Manager {
 	public static function instance() {
 		if ( ! isset( self::$instance ) ) {
 			self::$instance = new SP_Sync_Manager;
-			self::$instance->setup();
 		}
 		return self::$instance;
 	}
-
-
-	public function setup() {
-		# Nothing happening right now
-	}
-
 
 	/**
 	 * Sync a single post (on creation or update)
@@ -89,7 +82,11 @@ class SP_Sync_Manager {
 		}
 	}
 
-
+	/**
+	 * Delete a post from the ES index.
+	 *
+	 * @param  int $post_id
+	 */
 	public function delete_post( $post_id ) {
 		$response = SP_API()->delete_post( $post_id );
 
@@ -106,7 +103,6 @@ class SP_Sync_Manager {
 		}
 	}
 
-
 	/**
 	 * Get all the posts in a given range
 	 *
@@ -121,7 +117,6 @@ class SP_Sync_Manager {
 		) );
 	}
 
-
 	/**
 	 * Get posts to loop through
 	 *
@@ -130,18 +125,23 @@ class SP_Sync_Manager {
 	 */
 	public function get_posts( $args = array() ) {
 		$args = wp_parse_args( $args, array(
-			'post_status'      => 'publish',
-			'post_type'        => null,
-			'orderby'          => 'ID',
-			'order'            => 'ASC'
+			'post_status'         => 'publish',
+			'post_type'           => null,
+			'orderby'             => 'ID',
+			'order'               => 'ASC',
+			'suppress_filters'    => true,
+			'ignore_sticky_posts' => true,
 		) );
 
 		if ( empty( $args['post_type'] ) ) {
 			$args['post_type'] = sp_searchable_post_types();
 		}
 
+		$args = apply_filters( 'searchpress_index_loop_args', $args );
+
 		$query = new WP_Query;
 		$posts = $query->query( $args );
+
 		do_action( 'sp_debug', '[SP_Sync_Manager] Queried Posts', $args );
 
 		$this->published_posts = $query->found_posts;
@@ -156,7 +156,11 @@ class SP_Sync_Manager {
 		return $indexed_posts;
 	}
 
-
+	/**
+	 * Do an indexing loop. This is the meat of the process.
+	 *
+	 * @return bool
+	 */
 	public function do_index_loop() {
 		$sync_meta = SP_Sync_Meta();
 
@@ -166,41 +170,38 @@ class SP_Sync_Manager {
 		// Reload the sync meta to ensure it hasn't been canceled while we were getting those posts
 		$sync_meta->reload();
 
-		if ( !$posts || is_wp_error( $posts ) || ! $sync_meta->running )
+		if ( !$posts || is_wp_error( $posts ) || ! $sync_meta->running ) {
 			return false;
+		}
 
 		$response = SP_API()->index_posts( $posts );
 		do_action( 'sp_debug', sprintf( '[SP_Sync_Manager] Indexed %d Posts', count( $posts ) ), $response );
 
 		$sync_meta->reload();
-		if ( ! $sync_meta->running )
+		if ( ! $sync_meta->running ) {
 			return false;
+		}
 
-		$sync_meta->current_count = count( $posts );
-		$sync_meta->processed += $sync_meta->current_count;
+		$sync_meta->processed += count( $posts );
 
 		if ( '200' != SP_API()->last_request['response_code'] ) {
 			# Should probably throw an error here or something
-			error_log( 'ES response failed' );
+			$sync_meta->log( new WP_Error( 'error', __( 'ES response failed', 'searchpress' ), SP_API()->last_request ) );
 			$sync_meta->save();
+			$this->cancel_reindex();
 			return false;
 		} elseif ( ! is_object( $response ) || ! is_array( $response->items ) ) {
-			if ( defined( 'WP_CLI' ) && WP_CLI ) {
-				WP_CLI::error( "Error indexing data! Response:\n" . print_r( $response, 1 ) );
-			} else {
-				error_log( "Error indexing data! Response:\n" . print_r( $response, 1 ) );
-			}
+			$sync_meta->log( new WP_Error( 'error', __( 'Error indexing data', 'searchpress' ), $response ) );
+			$sync_meta->save();
+			$this->cancel_reindex();
+			return false;
 		} else {
 			foreach ( $response->items as $post ) {
-				if ( ! isset( $post->index->status ) || 201 != $post->index->status ) {
-					$error = "Error indexing post {$post->index->_id}: " . json_encode( $post );
-					if ( defined( 'WP_CLI' ) && WP_CLI ) {
-						WP_CLI::error( $error );
-					} else {
-						error_log( $error );
-					}
-					$sync_meta->messages[] = $error;
-					$sync_meta->error++;
+				// Status should be 200 or 201, depending on if we're updating or creating respectively
+				if ( ! isset( $post->index->status ) ) {
+					$sync_meta->log( new WP_Error( 'warning', __( "Error indexing post {$post->index->_id}; Response: " . json_encode( $post ), 'searchpress' ), $post ) );
+				} elseif ( ! in_array( $post->index->status, array( 200, 201 ) ) ) {
+					$sync_meta->log( new WP_Error( 'warning', __( "Error indexing post {$post->index->_id}; HTTP response code: {$post->index->status}", 'searchpress' ), $post ) );
 				} else {
 					$sync_meta->success++;
 				}
@@ -208,7 +209,6 @@ class SP_Sync_Manager {
 		}
 		$this->total_pages = ceil( $this->published_posts / $sync_meta->bulk );
 		$sync_meta->page++;
-		// error_log( "Saving sync_meta, page is {$sync_meta->page}" );
 
 		if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 			if ( $sync_meta->processed >= $sync_meta->total || $sync_meta->page > $this->total_pages ) {
@@ -221,19 +221,29 @@ class SP_Sync_Manager {
 		return true;
 	}
 
-
+	/**
+	 * Initialize a cron reindexing.
+	 */
 	public function do_cron_reindex() {
-		SP_Sync_Meta()->total = $this->count_posts();
 		SP_Sync_Meta()->start();
+		SP_Sync_Meta()->total = $this->count_posts();
+		SP_Sync_Meta()->save();
 		SP_Cron()->schedule_reindex();
 	}
 
-
+	/**
+	 * Cancel reindexing.
+	 */
 	public function cancel_reindex() {
 		SP_Cron()->cancel_reindex();
 	}
 
-
+	/**
+	 * Count the posts to index.
+	 *
+	 * @param  array  $args WP_Query args used for counting.
+	 * @return int Total number of posts to index.
+	 */
 	public function count_posts( $args = array() ) {
 		if ( false === $this->published_posts ) {
 			$args = wp_parse_args( $args, array(
@@ -244,6 +254,9 @@ class SP_Sync_Manager {
 			if ( empty( $args['post_type'] ) ) {
 				$args['post_type'] = sp_searchable_post_types();
 			}
+
+			$args = apply_filters( 'searchpress_index_count_args', $args );
+
 			$query = new WP_Query( $args );
 			$this->published_posts = $query->found_posts;
 		}
