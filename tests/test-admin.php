@@ -10,11 +10,11 @@ class Tests_Admin extends WP_UnitTestCase {
 
 	function test_admin() {
 		// is_admin returns false, so this file doesn't get loaded with the rest of the plugin
-		require_once dirname( __FILE__ ) . '/../lib/admin.php';
+		require_once dirname( __FILE__ ) . '/../lib/class-sp-admin.php';
 		SP_Admin();
 	}
 
-	/*
+
 	function test_settings_page() {
 		$current_user = get_current_user_id();
 
@@ -38,6 +38,6 @@ class Tests_Admin extends WP_UnitTestCase {
 		$this->assertContains( '<h2>SearchPress</h2>', $contents );
 
 		wp_set_current_user( $current_user );
+		SP_Sync_Manager()->published_posts = false;
 	}
-	*/
 }

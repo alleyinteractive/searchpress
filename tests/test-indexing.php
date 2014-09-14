@@ -9,6 +9,20 @@ class Tests_Indexing extends WP_UnitTestCase {
 		parent::setUp();
 
 		sp_index_flush_data();
+		SP_Sync_Meta()->reset();
+		if ( $ts = wp_next_scheduled( 'sp_reindex' ) ) {
+			wp_unschedule_event( $ts, 'sp_reindex' );
+		}
+	}
+
+	function tearDown() {
+		SP_Config()->update_settings( array( 'host' => 'http://localhost:9200', 'active' => true ) );
+		SP_API()->setup();
+		SP_Sync_Meta()->reset( 'save' );
+		sp_index_flush_data();
+		if ( $ts = wp_next_scheduled( 'sp_reindex' ) ) {
+			wp_unschedule_event( $ts, 'sp_reindex' );
+		}
 	}
 
 	function search_and_get_field( $args, $field = 'post_name' ) {
@@ -108,6 +122,10 @@ class Tests_Indexing extends WP_UnitTestCase {
 	}
 
 	function test_cron_indexing() {
+		if ( $ts = wp_next_scheduled( 'sp_reindex' ) ) {
+			wp_unschedule_event( $ts, 'sp_reindex' );
+		}
+
 		$posts = array(
 			$this->factory->post->create( array( 'post_title' => 'test one' ) ),
 			$this->factory->post->create( array( 'post_title' => 'test two' ) ),
@@ -132,7 +150,7 @@ class Tests_Indexing extends WP_UnitTestCase {
 			$this->search_and_get_field( array( 'query' => 'searchpress' ) )
 		);
 
-		SP_Config()->update_settings( array( 'must_init' => false, 'active' => false, 'last_beat' => false ) );
+		SP_Config()->update_settings( array( 'active' => false ) );
 		SP_Sync_Manager()->do_cron_reindex();
 		SP_Sync_Meta()->bulk = 3;
 		SP_Sync_Meta()->save();
@@ -155,7 +173,7 @@ class Tests_Indexing extends WP_UnitTestCase {
 		);
 	}
 
-	function test_index_errors() {
+	function test_index_invalid_response() {
 		$posts = array(
 			$this->factory->post->create( array( 'post_title' => 'test one' ) ),
 			$this->factory->post->create( array( 'post_title' => 'test two' ) ),
@@ -170,7 +188,36 @@ class Tests_Indexing extends WP_UnitTestCase {
 
 		sp_index_flush_data();
 
-		SP_Config()->update_settings( array( 'host' => 'http://localhost', 'must_init' => false, 'active' => false, 'last_beat' => false ) );
+		SP_Config()->update_settings( array( 'host' => 'http://localhost', 'active' => false ) );
+
+		// Because we changed the host, we have to re-init SP_API
+		SP_API()->setup();
+
+		SP_Sync_Manager()->do_cron_reindex();
+		SP_Sync_Meta()->bulk = 3;
+		SP_Sync_Meta()->save();
+		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
+		$this->_fake_cron();
+
+		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
+	}
+
+	function test_index_non_200() {
+		$posts = array(
+			$this->factory->post->create( array( 'post_title' => 'test one' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test two' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test three' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test four' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test five' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test six' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test seven' ) ),
+			$this->factory->post->create( array( 'post_title' => 'test eight' ) ),
+			$this->factory->post->create( array( 'post_title' => 'searchpress' ) ),
+		);
+
+		sp_index_flush_data();
+
+		SP_Config()->update_settings( array( 'host' => 'http://localhost/' . rand_str(), 'active' => false ) );
 
 		// Because we changed the host, we have to re-init SP_API
 		SP_API()->setup();

@@ -66,7 +66,7 @@ require_once SP_PLUGIN_DIR . '/lib/class-sp-wp-search.php';
 require_once SP_PLUGIN_DIR . '/lib/class-sp-integration.php';
 
 if ( is_admin() ) {
-	require_once SP_PLUGIN_DIR . '/lib/admin.php';
+	require_once SP_PLUGIN_DIR . '/lib/class-sp-admin.php';
 }
 
 if ( defined( 'WP_CLI' ) && WP_CLI ) {

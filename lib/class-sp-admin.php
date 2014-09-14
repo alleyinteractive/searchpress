@@ -68,88 +68,88 @@ class SP_Admin {
 		<div class="wrap">
 			<h2><?php esc_html_e( 'SearchPress', 'searchpress' ); ?></h2>
 
-				<?php if ( isset( $_GET['error'] ) ) : ?>
-					<div class="error updated"><p><?php esc_html( sprintf( __( 'An error has occurred: %s', 'searchpress' ), $this->get_error( $_GET['error'] ) ) ) ?></p></div>
-				<?php endif ?>
+			<?php if ( isset( $_GET['error'] ) ) : ?>
+				<div class="error updated"><p><?php esc_html( sprintf( __( 'An error has occurred: %s', 'searchpress' ), $this->get_error( $_GET['error'] ) ) ) ?></p></div>
+			<?php endif ?>
 
-				<?php if ( isset( $_GET['complete'] ) ) : ?>
-					<div class="updated success"><p><?php esc_html_e( 'Sync complete!', 'searchpress' ); ?></p></div>
-				<?php endif ?>
+			<?php if ( isset( $_GET['complete'] ) ) : ?>
+				<div class="updated success"><p><?php esc_html_e( 'Sync complete!', 'searchpress' ); ?></p></div>
+			<?php endif ?>
 
-				<h3 class="nav-tab-wrapper">
-					<a class="nav-tab<?php $this->tab_active( 'settings', $active_tab ) ?>" href="#sp-settings"><?php esc_html_e( 'Settings', 'searchpress' ); ?></a>
-					<a class="nav-tab<?php $this->tab_active( 'sync', $active_tab ) ?>" href="#sp-sync"><?php esc_html_e( 'Sync', 'searchpress' ); ?></a>
-					<?php if ( ! empty( $sync->messages ) ) : ?>
-						<a class="nav-tab<?php $this->tab_active( 'log', $active_tab ) ?>" href="#sp-log"><?php esc_html_e( 'Log', 'searchpress' ); ?></a>
-					<?php endif ?>
-					<!-- <a class="nav-tab" href="#sp-"><?php esc_html_e( '', 'searchpress' ); ?></a> -->
-				</h3>
-
-				<div id="sp-settings" class="tab-content">
-					<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
-						<input type="hidden" name="action" value="sp_settings" />
-						<?php wp_nonce_field( 'sp_settings', 'sp_settings_nonce' ); ?>
-						<p>
-							<input type="text" name="sp_host" value="<?php echo esc_url( SP_Config()->get_setting( 'host' ) ) ?>" style="width:100%;max-width:500px" />
-						</p>
-						<p>
-							<label for="sp_reindex"><input type="checkbox" name="sp_reindex" id="sp_reindex" value="1" /> <?php esc_html_e( 'Immediately initiate a full sync', 'searchpress' ); ?>
-						</p>
-						<?php submit_button( __( 'Save Settings', 'searchpress' ), 'primary' ) ?>
-					</form>
-				</div>
-
-				<div id="sp-sync" class="tab-content">
-					<?php if ( $sync->running ) : ?>
-
-						<h3><?php esc_html_e( 'Sync in progress', 'searchpress' ); ?></h3>
-						<p><?php esc_html_e( 'You do not need to stay on this page while the sync runs.', 'searchpress' ); ?></p>
-						<div class="progress">
-							<div class="progress-text"><span id="sync-processed"><?php echo number_format( intval( $sync->processed ) ) ?></span> / <span id="sync-total"><?php echo number_format( intval( $sync->total ) ) ?></span></div>
-							<div class="progress-bar" data-processed="<?php echo intval( $sync->processed ) ?>" data-total="<?php echo intval( $sync->total ) ?>" style="width:<?php echo intval( round( 100 * $sync->processed / $sync->total ) ) ?>%;"></div>
-						</div>
-						<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
-							<input type="hidden" name="action" value="sp_cancel_sync" />
-							<?php wp_nonce_field( 'sp_sync', 'sp_sync_nonce' ); ?>
-							<?php submit_button( __( 'Cancel Sync', 'searchpress' ), 'delete' ) ?>
-						</form>
-
-					<?php else : ?>
-
-						<h3><?php esc_html_e( 'Full Sync', 'searchpress' ); ?></h3>
-						<p><?php esc_html_e( 'Running a full sync will wipe the current index if there is one and rebuild it from scratch.', 'searchpress' ); ?></p>
-						<p>
-							<?php echo esc_html( sprintf( _n( 'Your site has %s post to index.', 'Your site has %s posts to index.', intval( SP_Sync_Manager()->count_posts() ), 'searchpress' ), number_format( intval( SP_Sync_Manager()->count_posts() ) ) ) ) ?>
-							<?php if ( SP_Sync_Manager()->count_posts() > 25000 ) : ?>
-								<?php esc_html_e( 'As a result of there being so many posts, this may take a long time to index.', 'searchpress' ); ?>
-							<?php endif ?>
-							<?php esc_html_e( "Exactly how long this will take will vary on a number of factors, like your server's CPU and memory, connection speed, current traffic, average post length, and associated terms and post meta.", 'searchpress' ); ?>
-						</p>
-						<p><?php esc_html_e( 'Your site will not use SearchPress until the indexing is complete.', 'searchpress' ); ?></p>
-
-						<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
-							<input type="hidden" name="action" value="sp_full_sync" />
-							<?php wp_nonce_field( 'sp_sync', 'sp_sync_nonce' ); ?>
-							<?php submit_button( __( 'Run Full Sync', 'searchpress' ), 'delete' ) ?>
-						</form>
-
-					<?php endif ?>
-				</div>
-
+			<h3 class="nav-tab-wrapper">
+				<a class="nav-tab<?php $this->tab_active( 'settings', $active_tab ) ?>" href="#sp-settings"><?php esc_html_e( 'Settings', 'searchpress' ); ?></a>
+				<a class="nav-tab<?php $this->tab_active( 'sync', $active_tab ) ?>" href="#sp-sync"><?php esc_html_e( 'Sync', 'searchpress' ); ?></a>
 				<?php if ( ! empty( $sync->messages ) ) : ?>
-					<div id="sp-log" class="tab-content">
-						<h4><?php printf( esc_html__( 'Sync started at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->started ) ) ?></h4>
-						<?php foreach ( $sync->messages as $type => $messages ) : ?>
-							<h3><?php echo esc_html( $this->error_type( $type ) ) ?></h3>
-							<ol class="<?php echo esc_attr( $type ) ?>">
-								<?php foreach ( $messages as $message ) : ?>
-									<li><?php echo esc_html( $message ) ?></li>
-								<?php endforeach ?>
-							</ol>
-						<?php endforeach ?>
-						<h4><?php printf( esc_html__( 'Sync completed at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->finished ) ) ?></h4>
-					</div>
+					<a class="nav-tab<?php $this->tab_active( 'log', $active_tab ) ?>" href="#sp-log"><?php esc_html_e( 'Log', 'searchpress' ); ?></a>
 				<?php endif ?>
+				<!-- <a class="nav-tab" href="#sp-"><?php esc_html_e( '', 'searchpress' ); ?></a> -->
+			</h3>
+
+			<div id="sp-settings" class="tab-content">
+				<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
+					<input type="hidden" name="action" value="sp_settings" />
+					<?php wp_nonce_field( 'sp_settings', 'sp_settings_nonce' ); ?>
+					<p>
+						<input type="text" name="sp_host" value="<?php echo esc_url( SP_Config()->get_setting( 'host' ) ) ?>" style="width:100%;max-width:500px" />
+					</p>
+					<p>
+						<label for="sp_reindex"><input type="checkbox" name="sp_reindex" id="sp_reindex" value="1" /> <?php esc_html_e( 'Immediately initiate a full sync', 'searchpress' ); ?>
+					</p>
+					<?php submit_button( __( 'Save Settings', 'searchpress' ), 'primary' ) ?>
+				</form>
+			</div>
+
+			<div id="sp-sync" class="tab-content">
+				<?php if ( $sync->running ) : ?>
+
+					<h3><?php esc_html_e( 'Sync in progress', 'searchpress' ); ?></h3>
+					<p><?php esc_html_e( 'You do not need to stay on this page while the sync runs.', 'searchpress' ); ?></p>
+					<div class="progress">
+						<div class="progress-text"><span id="sync-processed"><?php echo number_format( intval( $sync->processed ) ) ?></span> / <span id="sync-total"><?php echo number_format( intval( $sync->total ) ) ?></span></div>
+						<div class="progress-bar" data-processed="<?php echo intval( $sync->processed ) ?>" data-total="<?php echo intval( $sync->total ) ?>" style="width:<?php echo intval( round( 100 * $sync->processed / $sync->total ) ) ?>%;"></div>
+					</div>
+					<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
+						<input type="hidden" name="action" value="sp_cancel_sync" />
+						<?php wp_nonce_field( 'sp_sync', 'sp_sync_nonce' ); ?>
+						<?php submit_button( __( 'Cancel Sync', 'searchpress' ), 'delete' ) ?>
+					</form>
+
+				<?php else : ?>
+
+					<h3><?php esc_html_e( 'Full Sync', 'searchpress' ); ?></h3>
+					<p><?php esc_html_e( 'Running a full sync will wipe the current index if there is one and rebuild it from scratch.', 'searchpress' ); ?></p>
+					<p>
+						<?php echo esc_html( sprintf( _n( 'Your site has %s post to index.', 'Your site has %s posts to index.', intval( SP_Sync_Manager()->count_posts() ), 'searchpress' ), number_format( intval( SP_Sync_Manager()->count_posts() ) ) ) ) ?>
+						<?php if ( SP_Sync_Manager()->count_posts() > 25000 ) : ?>
+							<?php esc_html_e( 'As a result of there being so many posts, this may take a long time to index.', 'searchpress' ); ?>
+						<?php endif ?>
+						<?php esc_html_e( "Exactly how long this will take will vary on a number of factors, like your server's CPU and memory, connection speed, current traffic, average post length, and associated terms and post meta.", 'searchpress' ); ?>
+					</p>
+					<p><?php esc_html_e( 'Your site will not use SearchPress until the indexing is complete.', 'searchpress' ); ?></p>
+
+					<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
+						<input type="hidden" name="action" value="sp_full_sync" />
+						<?php wp_nonce_field( 'sp_sync', 'sp_sync_nonce' ); ?>
+						<?php submit_button( __( 'Run Full Sync', 'searchpress' ), 'delete' ) ?>
+					</form>
+
+				<?php endif ?>
+			</div>
+
+			<?php if ( ! empty( $sync->messages ) ) : ?>
+				<div id="sp-log" class="tab-content">
+					<h4><?php printf( esc_html__( 'Sync started at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->started ) ) ?></h4>
+					<?php foreach ( $sync->messages as $type => $messages ) : ?>
+						<h3><?php echo esc_html( $this->error_type( $type ) ) ?></h3>
+						<ol class="<?php echo esc_attr( $type ) ?>">
+							<?php foreach ( $messages as $message ) : ?>
+								<li><?php echo esc_html( $message ) ?></li>
+							<?php endforeach ?>
+						</ol>
+					<?php endforeach ?>
+					<h4><?php printf( esc_html__( 'Sync completed at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->finished ) ) ?></h4>
+				</div>
+			<?php endif ?>
 
 		</div>
 		<?php
