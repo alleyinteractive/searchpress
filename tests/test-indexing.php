@@ -217,7 +217,8 @@ class Tests_Indexing extends WP_UnitTestCase {
 
 		sp_index_flush_data();
 
-		SP_Config()->update_settings( array( 'host' => 'http://localhost/' . rand_str(), 'active' => false ) );
+		// This domain is used in unit tests, and we'll get a 404 from trying to use it with ES
+		SP_Config()->update_settings( array( 'host' => 'http://asdftestblog1.files.wordpress.com', 'active' => false ) );
 
 		// Because we changed the host, we have to re-init SP_API
 		SP_API()->setup();

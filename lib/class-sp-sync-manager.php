@@ -190,7 +190,7 @@ class SP_Sync_Manager {
 			$sync_meta->save();
 			$this->cancel_reindex();
 			return false;
-		} elseif ( ! is_object( $response ) || ! is_array( $response->items ) ) {
+		} elseif ( ! is_object( $response ) || ! isset( $response->items ) || ! is_array( $response->items ) ) {
 			$sync_meta->log( new WP_Error( 'error', __( 'Error indexing data', 'searchpress' ), $response ) );
 			$sync_meta->save();
 			$this->cancel_reindex();
