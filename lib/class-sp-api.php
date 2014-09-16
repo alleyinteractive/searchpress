@@ -119,7 +119,13 @@ class SP_API {
 			return $result['body'];
 		}
 
-		return '{"error":' . json_encode( $result->get_error_message() ) . '}';
+		return json_encode( array(
+			'error' => array(
+				'code' => $result->get_error_code(),
+				'message' => $result->get_error_message(),
+				'data' => $result->get_error_data()
+			)
+		) );
 	}
 
 	public function parse_url( $url = '' ) {
@@ -148,7 +154,6 @@ class SP_API {
 	}
 
 	public function index_post( $post ) {
-		// error_log( "Indexed post {$post->post_id}" );
 		return $this->put( 'post/' . $post->post_id, $post->to_json() );
 	}
 
@@ -158,7 +163,6 @@ class SP_API {
 			$body[] = '{ "index": { "_id" : ' . $post->post_id . ' } }';
 			$body[] = addcslashes( $post->to_json(), "\n" );
 		}
-		// error_log( "Indexing " . count( $posts ) . " posts" );
 		return $this->put( 'post/_bulk', wp_check_invalid_utf8( implode( "\n", $body ), true ) . "\n" );
 	}
 

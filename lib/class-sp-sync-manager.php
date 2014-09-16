@@ -55,7 +55,6 @@ class SP_Sync_Manager {
 	 * Sync a single post (on creation or update)
 	 *
 	 * @todo if post should not be added, it's deleted (to account for unpublishing, etc). Make that more elegant.
-	 * @todo remove error_log calls
 	 *
 	 * @param int $post_id
 	 * @return void
@@ -64,17 +63,10 @@ class SP_Sync_Manager {
 		$post = new SP_Post( get_post( $post_id ) );
 		if ( $post->should_be_indexed() ) {
 			$response = SP_API()->index_post( $post );
-			do_action( 'sp_debug', '[SP_Sync_Manager] Indexed Post', $response );
-
-			if ( ! in_array( SP_API()->last_request['response_code'], array( 200, 201 ) ) ) {
-				# Should probably throw an error here or something
-				error_log( 'ES response failed' );
-				error_log( print_r( SP_API()->last_request, 1 ) );
-			} elseif ( ! is_object( $response ) ) {
-				error_log( 'ES response not OK' );
-				error_log( print_r( $response, 1 ) );
+			if ( ! $this->parse_error( $response, array( 200, 201 ) ) ) {
+				do_action( 'sp_debug', '[SP_Sync_Manager] Indexed Post', $response );
 			} else {
-				# We're good
+				do_action( 'sp_debug', '[SP_Sync_Manager] Error Indexing Post', $response );
 			}
 		} else {
 			# This is excessive, figure out a better way around it
@@ -91,16 +83,31 @@ class SP_Sync_Manager {
 		$response = SP_API()->delete_post( $post_id );
 
 		# We're OK with 404 responses here because a post might not be in the index
-		if ( ! in_array( SP_API()->last_request['response_code'], array( 200, 404 ) ) ) {
-			# Should probably throw an error here or something
-			error_log( 'ES response failed' );
-			error_log( print_r( SP_API()->last_request, 1 ) );
-		} elseif ( ! is_object( $response ) ) {
-			error_log( 'ES response not OK' );
-			error_log( print_r( $response, 1 ) );
+		if ( ! $this->parse_error( $response, array( 200, 404 ) ) ) {
+			do_action( 'sp_debug', '[SP_Sync_Manager] Deleted Post', $response );
 		} else {
-			# We're good
+			do_action( 'sp_debug', '[SP_Sync_Manager] Error Deleting Post', $response );
 		}
+	}
+
+	/**
+	 * Parse any errors found in a single-post ES response.
+	 *
+	 * @param  object $response SP_API response
+	 * @param  array  $allowed_codes Allowed HTTP status codes. Default is array( 200 )
+	 * @return bool   True if errors are found, false if successful.
+	 */
+	protected function parse_error( $response, $allowed_codes = array( 200 ) ) {
+		if ( ! empty( $response->error ) ) {
+			SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . $response->error->message, $response->error->data ) );
+		} elseif ( ! in_array( SP_API()->last_request['response_code'], $allowed_codes ) ) {
+			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%s] Elasticsearch response failed! Status code %d; %s', 'searchpress' ), date( 'Y-m-d H:i:s' ), SP_API()->last_request['response_code'], json_encode( SP_API()->last_request ) ) ) );
+		} elseif ( ! is_object( $response ) ) {
+			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%s] Unexpected response from Elasticsearch: %s', 'searchpress' ), date( 'Y-m-d H:i:s' ), json_encode( $response ) ) ) );
+		} else {
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -262,7 +269,6 @@ class SP_Sync_Manager {
 		}
 		return $this->published_posts;
 	}
-
 }
 
 function SP_Sync_Manager() {

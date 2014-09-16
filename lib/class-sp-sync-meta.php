@@ -31,6 +31,13 @@ class SP_Sync_Meta {
 	protected $data = array();
 
 	/**
+	 * Store errors from routine syncing.
+	 * @access protected
+	 * @var string
+	 */
+	protected $error_transient;
+
+	/**
 	 * @codeCoverageIgnore
 	 */
 	private function __construct() {
@@ -179,7 +186,19 @@ class SP_Sync_Meta {
 			$this->data['messages'][ $error->get_error_code() ][] = $message;
 		} else {
 			$this->data['messages'][ $error->get_error_code() ][] = $error->get_error_message();
+			set_transient( $this->error_transient, true );
+			if ( ! $this->data['running'] ) {
+				$this->save();
+			}
 		}
+	}
+
+	/**
+	 * Clear the messages log.
+	 */
+	public function clear_log() {
+		$this->data['messages'] = array();
+		$this->save();
 	}
 
 	/**
@@ -227,6 +246,22 @@ class SP_Sync_Meta {
 	 */
 	protected function is_cli() {
 		return ( defined( 'WP_CLI' ) && WP_CLI );
+	}
+
+	/**
+	 * Do we have non-full-sync errors?
+	 *
+	 * @return boolean True if we do, false if we don't.
+	 */
+	public function has_errors() {
+		return get_transient( $this->error_transient );
+	}
+
+	/**
+	 * Clear the "We have errors" flag.
+	 */
+	public function clear_error_notice() {
+		delete_transient( $this->error_transient );
 	}
 }
 

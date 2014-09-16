@@ -40,6 +40,7 @@ class SP_Admin {
 		add_action( 'admin_post_sp_full_sync',   array( $this, 'full_sync' )      );
 		add_action( 'admin_post_sp_cancel_sync', array( $this, 'cancel_sync' )    );
 		add_action( 'admin_post_sp_settings',    array( $this, 'save_settings' )  );
+		add_action( 'admin_post_sp_clear_log',   array( $this, 'clear_log' )  );
 		add_action( 'wp_ajax_sp_sync_status',    array( $this, 'sp_sync_status' ) );
 		add_action( 'admin_notices',             array( $this, 'admin_notices' )  );
 		add_action( 'admin_enqueue_scripts',     array( $this, 'assets' )         );
@@ -133,12 +134,17 @@ class SP_Admin {
 						<?php submit_button( __( 'Run Full Sync', 'searchpress' ), 'delete' ) ?>
 					</form>
 
+					<h3><?php esc_html_e( 'Last full sync', 'searchpress' ); ?></h3>
+					<p><?php printf( esc_html__( 'Started at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->started ) ) ?></p>
+					<p><?php printf( esc_html__( 'Completed at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->finished ) ) ?></p>
+
 				<?php endif ?>
 			</div>
 
 			<?php if ( ! empty( $sync->messages ) ) : ?>
+				<?php SP_Sync_Meta()->clear_error_notice() ?>
+
 				<div id="sp-log" class="tab-content">
-					<h4><?php printf( esc_html__( 'Sync started at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->started ) ) ?></h4>
 					<?php foreach ( $sync->messages as $type => $messages ) : ?>
 						<h3><?php echo esc_html( $this->error_type( $type ) ) ?></h3>
 						<ol class="<?php echo esc_attr( $type ) ?>">
@@ -147,7 +153,12 @@ class SP_Admin {
 							<?php endforeach ?>
 						</ol>
 					<?php endforeach ?>
-					<h4><?php printf( esc_html__( 'Sync completed at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->finished ) ) ?></h4>
+
+					<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
+						<input type="hidden" name="action" value="sp_clear_log" />
+						<?php wp_nonce_field( 'sp_flush_log_nonce', 'sp_sync_nonce' ); ?>
+						<?php submit_button( __( 'Clear Log', 'searchpress' ), 'delete' ) ?>
+					</form>
 				</div>
 			<?php endif ?>
 
@@ -190,7 +201,7 @@ class SP_Admin {
 	}
 
 	public function full_sync() {
-		if ( !isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( $_POST['sp_sync_nonce'], 'sp_sync' ) ) {
+		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( $_POST['sp_sync_nonce'], 'sp_sync' ) ) {
 			wp_die( 'You are not authorized to perform that action' );
 		} else {
 			SP_Config()->update_settings( array( 'must_init' => false, 'active' => false, 'last_beat' => false ) );
@@ -207,11 +218,21 @@ class SP_Admin {
 	}
 
 	public function cancel_sync() {
-		if ( !isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( $_POST['sp_sync_nonce'], 'sp_sync' ) ) {
+		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( $_POST['sp_sync_nonce'], 'sp_sync' ) ) {
 			wp_die( __( 'You are not authorized to perform that action', 'searchpress' ) );
 		} else {
 			SP_Sync_Manager()->cancel_reindex();
 			wp_redirect( admin_url( 'tools.php?page=searchpress&cancel=1' ) );
+			exit;
+		}
+	}
+
+	public function clear_log() {
+		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( $_POST['sp_sync_nonce'], 'sp_flush_log_nonce' ) ) {
+			wp_die( __( 'You are not authorized to perform that action', 'searchpress' ) );
+		} else {
+			SP_Sync_Meta()->clear_log();
+			wp_redirect( admin_url( 'tools.php?page=searchpress&clear_log=1' ) );
 			exit;
 		}
 	}
@@ -263,6 +284,13 @@ class SP_Admin {
 				__( 'SearchPress needs to be configured and synced before you can use it.', 'searchpress' ),
 				admin_url( 'tools.php?page=searchpress' ),
 				__( 'Go to SearchPress Settings', 'searchpress' )
+			);
+		} elseif ( SP_Sync_Meta()->has_errors() ) {
+			printf(
+				'<div class="updated error"><p>%s <a href="%s">%s</a></p></div>',
+				__( 'SearchPress encountered an error while syncing.', 'searchpress' ),
+				admin_url( 'tools.php?page=searchpress#sp-log' ),
+				__( 'Go to Log', 'searchpress' )
 			);
 		}
 	}
