@@ -20,10 +20,7 @@ class SP_Debug {
 		elseif ( is_null( $value ) )
 			$value = '(null)';
 
-		if ( self::is_cli() )
-			WP_CLI::line( "SP_Debug.$action (@" . self::split() . ") : $value" );
-		else
-			error_log( "SP_Debug.$action (@" . self::split() . ") : $value" );
+		SP_Sync_Meta()->log( new WP_Error( 'debug', "SP_Debug.$action (@" . self::split() . ") : $value" ) );
 	}
 
 	public static function is_cli() {
