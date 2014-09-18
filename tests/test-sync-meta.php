@@ -91,5 +91,17 @@ class Tests_Sync_Meta extends WP_UnitTestCase {
 		$message = rand_str();
 		SP_Sync_Meta()->log( new WP_Error( 'error', $message ) );
 		$this->assertEquals( $message, SP_Sync_Meta()->messages['error'][0] );
+		SP_Sync_Meta()->clear_log();
+		$this->assertEmpty( SP_Sync_Meta()->messages );
+	}
+
+	function test_sync_meta_error_notice() {
+		SP_Sync_Meta()->running = false;
+		$message = rand_str();
+		SP_Sync_Meta()->log( new WP_Error( 'error', $message ) );
+		$this->assertEquals( $message, SP_Sync_Meta()->messages['error'][0] );
+		$this->assertTrue( SP_Sync_Meta()->has_errors() );
+		SP_Sync_Meta()->clear_error_notice();
+		$this->assertFalse( SP_Sync_Meta()->has_errors() );
 	}
 }

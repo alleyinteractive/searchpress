@@ -173,7 +173,7 @@ class Tests_Indexing extends WP_UnitTestCase {
 		);
 	}
 
-	function test_index_invalid_response() {
+	function test_cron_index_invalid_response() {
 		$posts = array(
 			$this->factory->post->create( array( 'post_title' => 'test one' ) ),
 			$this->factory->post->create( array( 'post_title' => 'test two' ) ),
@@ -202,7 +202,7 @@ class Tests_Indexing extends WP_UnitTestCase {
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
 	}
 
-	function test_index_non_200() {
+	function test_cron_index_non_200() {
 		$posts = array(
 			$this->factory->post->create( array( 'post_title' => 'test one' ) ),
 			$this->factory->post->create( array( 'post_title' => 'test two' ) ),
@@ -230,6 +230,35 @@ class Tests_Indexing extends WP_UnitTestCase {
 		$this->_fake_cron();
 
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
+	}
+
+	function test_singular_index_invalid_response() {
+		SP_Config()->update_settings( array( 'host' => 'http://localhost', 'active' => true ) );
+
+		// Because we changed the host, we have to re-init SP_API
+		SP_API()->setup();
+
+		$posts = array(
+			$this->factory->post->create( array( 'post_title' => 'searchpress' ) ),
+		);
+
+		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
+		$this->assertTrue( SP_Sync_Meta()->has_errors() );
+	}
+
+	function test_singular_index_non_200() {
+		// This domain is used in unit tests, and we'll get a 404 from trying to use it with ES
+		SP_Config()->update_settings( array( 'host' => 'http://asdftestblog1.files.wordpress.com', 'active' => true ) );
+
+		// Because we changed the host, we have to re-init SP_API
+		SP_API()->setup();
+
+		$posts = array(
+			$this->factory->post->create( array( 'post_title' => 'searchpress' ) ),
+		);
+
+		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
+		$this->assertTrue( SP_Sync_Meta()->has_errors() );
 	}
 
 	// @todo Test updating terms
