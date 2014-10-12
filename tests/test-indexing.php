@@ -157,13 +157,13 @@ class Tests_Indexing extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
-		$this->_fake_cron();
+		sp_tests_fake_cron();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
-		$this->_fake_cron();
+		sp_tests_fake_cron();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
-		$this->_fake_cron();
+		sp_tests_fake_cron();
 		$this->assertEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
 		SP_API()->post( '_refresh' );
@@ -197,7 +197,7 @@ class Tests_Indexing extends WP_UnitTestCase {
 		SP_Sync_Meta()->bulk = 3;
 		SP_Sync_Meta()->save();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
-		$this->_fake_cron();
+		sp_tests_fake_cron();
 
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
 	}
@@ -227,7 +227,7 @@ class Tests_Indexing extends WP_UnitTestCase {
 		SP_Sync_Meta()->bulk = 3;
 		SP_Sync_Meta()->save();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
-		$this->_fake_cron();
+		sp_tests_fake_cron();
 
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
 	}
@@ -264,29 +264,4 @@ class Tests_Indexing extends WP_UnitTestCase {
 	// @todo Test updating terms
 	// @todo Test deleting terms
 
-	/**
-	 * Fakes a cron job
-	 */
-	function _fake_cron() {
-		$crons = _get_cron_array();
-		foreach ( $crons as $timestamp => $cronhooks ) {
-			foreach ( $cronhooks as $hook => $keys ) {
-				if ( substr( $hook, 0, 3 ) !== 'sp_' ) {
-					continue; // only run our own jobs.
-				}
-
-				foreach ( $keys as $k => $v ) {
-					$schedule = $v['schedule'];
-
-					if ( $schedule != false ) {
-						$new_args = array( $timestamp, $schedule, $hook, $v['args'] );
-						call_user_func_array( 'wp_reschedule_event', $new_args );
-					}
-
-					wp_unschedule_event( $timestamp, $hook, $v['args'] );
-					do_action_ref_array( $hook, $v['args'] );
-				}
-			}
-		}
-	}
 }

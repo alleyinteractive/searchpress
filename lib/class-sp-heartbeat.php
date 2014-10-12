@@ -55,9 +55,9 @@ class SP_Heartbeat {
 		add_action( $this->cron_event, array( $this, 'check_beat' ) );
 	}
 
-	public function check_beat() {
+	public function check_beat( $force = false ) {
 		// Ensure we only check the beat once per request
-		if ( ! isset( $this->beat_result ) ) {
+		if ( ! isset( $this->beat_result ) || $force ) {
 			$health = SP_API()->cluster_health();
 			$this->beat_result = ( ! empty( $health->status ) && $health->status == $this->healthy_status );
 			if ( $this->beat_result ) {
