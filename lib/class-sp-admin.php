@@ -54,7 +54,7 @@ class SP_Admin {
 
 
 	public function sync() {
-		if ( !current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( __( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
 		}
 		$sync = SP_Sync_Meta();
@@ -269,28 +269,47 @@ class SP_Admin {
 	}
 
 	public function admin_notices() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
 		if ( isset( $_GET['page'] ) && 'searchpress' == $_GET['page'] ) {
 			return;
-		} elseif ( SP_Sync_Meta()->running ) {
-			printf(
-				'<div class="updated"><p>%s <a href="%s">%s</a></p></div>',
-				__( 'SearchPress sync is currently running.', 'searchpress' ),
-				admin_url( 'tools.php?page=searchpress' ),
-				__( 'View status', 'searchpress' )
-			);
 		} elseif ( SP_Config()->must_init() ) {
 			printf(
 				'<div class="updated error"><p>%s <a href="%s">%s</a></p></div>',
-				__( 'SearchPress needs to be configured and synced before you can use it.', 'searchpress' ),
-				admin_url( 'tools.php?page=searchpress' ),
-				__( 'Go to SearchPress Settings', 'searchpress' )
+				esc_html__( 'SearchPress needs to be configured and synced before you can use it.', 'searchpress' ),
+				esc_url( admin_url( 'tools.php?page=searchpress' ) ),
+				esc_html__( 'Go to SearchPress Settings', 'searchpress' )
+			);
+		} elseif ( 'ok' != ( $heartbeat_status = SP_Heartbeat()->get_status() ) ) {
+			$message = esc_html__( 'SearchPress cannot reach the Elasticsearch server!', 'searchpress' );
+			if ( 'never' == $heartbeat_status ) {
+				$message .= sprintf(
+					' <a href="%s">%s</a>',
+					esc_url( admin_url( 'tools.php?page=searchpress' ) ),
+					esc_html__( 'Check the server URL on the SearchPress Settings page', 'searchpress' )
+				);
+			} else {
+				$message .= ' ' . sprintf( esc_html__( 'The Elasticsearch server was last seen %s ago.', 'searchpress' ), human_time_diff( SP_Heartbeat()->get_last_beat(), time() ) );
+			}
+			if ( 'shutdown' == $heartbeat_status ) {
+				$message .= "\n" . esc_html__( "SearchPress has deactivated itself to preserve site search for your visitors. Your site will use WordPress' built-in search until the Elasticsearch server comes back online.", 'searchpress' );
+			}
+			echo '<div class="updated error">' . wpautop( $message ) . '</div>';
+		} elseif ( SP_Sync_Meta()->running ) {
+			printf(
+				'<div class="updated"><p>%s <a href="%s">%s</a></p></div>',
+				esc_html__( 'SearchPress sync is currently running.', 'searchpress' ),
+				esc_url( admin_url( 'tools.php?page=searchpress' ) ),
+				esc_html__( 'View status', 'searchpress' )
 			);
 		} elseif ( SP_Sync_Meta()->has_errors() ) {
 			printf(
 				'<div class="updated error"><p>%s <a href="%s">%s</a></p></div>',
-				__( 'SearchPress encountered an error while syncing.', 'searchpress' ),
-				admin_url( 'tools.php?page=searchpress#sp-log' ),
-				__( 'Go to Log', 'searchpress' )
+				esc_html__( 'SearchPress encountered an error while syncing.', 'searchpress' ),
+				esc_url( admin_url( 'tools.php?page=searchpress#sp-log' ) ),
+				esc_html__( 'Go to Log', 'searchpress' )
 			);
 		}
 	}

@@ -73,7 +73,7 @@ class SP_Integration {
 	 * @codeCoverageIgnore
 	 */
 	public function setup() {
-		if ( ! is_admin() && SP_Config()->active() ) {
+		if ( ! is_admin() && apply_filters( 'sp_ready', null ) ) {
 			$this->init_hooks();
 		}
 	}

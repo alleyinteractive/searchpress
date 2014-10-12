@@ -129,8 +129,13 @@ class SP_API {
 	}
 
 	public function parse_url( $url = '' ) {
-		if ( is_string( $url ) && preg_match( '#^https?://#i', $url ) )
-			return $url;
+		if ( is_string( $url ) ) {
+			if ( preg_match( '#^https?://#i', $url ) ) {
+				return $url;
+			} elseif ( '/' == substr( $url, 0, 1 ) ) {
+				return $this->host . $url;
+			}
+		}
 
 		$defaults = array(
 			'host'  => $this->host,
@@ -175,6 +180,11 @@ class SP_API {
 			'output' => OBJECT
 		) );
 		return $this->post( 'post/_search', $query, $args['output'] );
+	}
+
+	public function cluster_health() {
+		$health_uri = apply_filters( 'sp_cluster_health_uri', '/_cluster/health/' . $this->index );
+		return $this->get( $health_uri );
 	}
 }
 
