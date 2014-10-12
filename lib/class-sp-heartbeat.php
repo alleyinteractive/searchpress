@@ -78,7 +78,6 @@ class SP_Heartbeat {
 	}
 
 	protected function call_nurse() {
-		SP_Sync_Meta()->log( new WP_Error( 'error', current_time( 'mysql' ) . ': SearchPress missed heartbeat' ) );
 		$this->reschedule_cron( 'increase' );
 	}
 

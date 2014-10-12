@@ -268,14 +268,19 @@ class SP_Admin {
 		return __( 'Unknown error', 'searchpress' );
 	}
 
+	public function is_settings_page() {
+		return ( isset( $_GET['page'] ) && 'searchpress' == $_GET['page'] );
+	}
+
 	public function admin_notices() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
 
-		if ( isset( $_GET['page'] ) && 'searchpress' == $_GET['page'] ) {
-			return;
-		} elseif ( SP_Config()->must_init() ) {
+		if ( SP_Config()->must_init() ) {
+			if ( $this->is_settings_page() ) {
+				return;
+			}
 			printf(
 				'<div class="updated error"><p>%s <a href="%s">%s</a></p></div>',
 				esc_html__( 'SearchPress needs to be configured and synced before you can use it.', 'searchpress' ),
@@ -284,11 +289,11 @@ class SP_Admin {
 			);
 		} elseif ( 'ok' != ( $heartbeat_status = SP_Heartbeat()->get_status() ) ) {
 			$message = esc_html__( 'SearchPress cannot reach the Elasticsearch server!', 'searchpress' );
-			if ( 'never' == $heartbeat_status ) {
+			if ( 'never' == $heartbeat_status && ! $this->is_settings_page() ) {
 				$message .= sprintf(
 					' <a href="%s">%s</a>',
 					esc_url( admin_url( 'tools.php?page=searchpress' ) ),
-					esc_html__( 'Check the server URL on the SearchPress Settings page', 'searchpress' )
+					esc_html__( 'Check the server URL on the SearchPress settings page', 'searchpress' )
 				);
 			} else {
 				$message .= ' ' . sprintf( esc_html__( 'The Elasticsearch server was last seen %s ago.', 'searchpress' ), human_time_diff( SP_Heartbeat()->get_last_beat(), time() ) );
@@ -298,19 +303,25 @@ class SP_Admin {
 			}
 			echo '<div class="updated error">' . wpautop( $message ) . '</div>';
 		} elseif ( SP_Sync_Meta()->running ) {
-			printf(
-				'<div class="updated"><p>%s <a href="%s">%s</a></p></div>',
-				esc_html__( 'SearchPress sync is currently running.', 'searchpress' ),
-				esc_url( admin_url( 'tools.php?page=searchpress' ) ),
-				esc_html__( 'View status', 'searchpress' )
-			);
+			$message = esc_html__( 'SearchPress sync is currently running.', 'searchpress' );
+			if ( ! $this->is_settings_page() ) {
+				$message .= sprintf(
+					' <a href="%s">%s</a>',
+					esc_url( admin_url( 'tools.php?page=searchpress' ) ),
+					esc_html__( 'View status', 'searchpress' )
+				);
+			}
+			echo '<div class="updated">' . wpautop( $message ) . '</div>';
 		} elseif ( SP_Sync_Meta()->has_errors() ) {
-			printf(
-				'<div class="updated error"><p>%s <a href="%s">%s</a></p></div>',
-				esc_html__( 'SearchPress encountered an error while syncing.', 'searchpress' ),
-				esc_url( admin_url( 'tools.php?page=searchpress#sp-log' ) ),
-				esc_html__( 'Go to Log', 'searchpress' )
-			);
+			$message = esc_html__( 'SearchPress encountered an error.', 'searchpress' );
+			if ( ! $this->is_settings_page() ) {
+				$message .= sprintf(
+					' <a href="%s">%s</a>',
+					esc_url( admin_url( 'tools.php?page=searchpress#sp-log' ) ),
+					esc_html__( 'Go to Log', 'searchpress' )
+				);
+			}
+			echo '<div class="updated error">' . wpautop( $message ) . '</div>';
 		}
 	}
 }
