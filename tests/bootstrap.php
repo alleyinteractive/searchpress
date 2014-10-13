@@ -40,6 +40,7 @@ function sp_manually_load_plugin() {
 	sp_tests_verify_response_code( $response );
 
 	sp_index_flush_data();
+	SP_Heartbeat()->check_beat( true );
 }
 tests_add_filter( 'muplugins_loaded', 'sp_manually_load_plugin' );
 
