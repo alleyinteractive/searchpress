@@ -47,10 +47,6 @@ class Tests_Heartbeat extends WP_UnitTestCase {
 		$this->assertGreaterThan( $next_scheduled, wp_next_scheduled( 'sp_heartbeat' ) );
 	}
 
-	function test_heartbeat_checks_post_count_automatically() {
-		// @todo
-	}
-
 	function test_heartbeat_increases_frequency_after_error() {
 		SP_Heartbeat()->record_pulse();
 		$was_scheduled = wp_next_scheduled( 'sp_heartbeat' );
