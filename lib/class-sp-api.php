@@ -56,7 +56,6 @@ class SP_API {
 	public function setup() {
 		$url = get_site_url();
 		$this->index = preg_replace( '#^.*?//(.*?)/?$#', '$1', $url );
-		$this->host = SP_Config()->get_setting( 'host' );
 		$this->request_defaults = array(
 			'sslverify'          => false,
 			'timeout'            => 10,
@@ -133,12 +132,12 @@ class SP_API {
 			if ( preg_match( '#^https?://#i', $url ) ) {
 				return $url;
 			} elseif ( '/' == substr( $url, 0, 1 ) ) {
-				return $this->host . $url;
+				return SP_Config()->get_setting( 'host' ) . $url;
 			}
 		}
 
 		$defaults = array(
-			'host'  => $this->host,
+			'host'  => SP_Config()->get_setting( 'host' ),
 			'index' => $this->index
 		);
 

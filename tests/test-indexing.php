@@ -17,7 +17,6 @@ class Tests_Indexing extends WP_UnitTestCase {
 
 	function tearDown() {
 		SP_Config()->update_settings( array( 'host' => 'http://localhost:9200', 'active' => true ) );
-		SP_API()->setup();
 		SP_Sync_Meta()->reset( 'save' );
 		sp_index_flush_data();
 		if ( $ts = wp_next_scheduled( 'sp_reindex' ) ) {
@@ -190,9 +189,6 @@ class Tests_Indexing extends WP_UnitTestCase {
 
 		SP_Config()->update_settings( array( 'host' => 'http://localhost', 'active' => false ) );
 
-		// Because we changed the host, we have to re-init SP_API
-		SP_API()->setup();
-
 		SP_Sync_Manager()->do_cron_reindex();
 		SP_Sync_Meta()->bulk = 3;
 		SP_Sync_Meta()->save();
@@ -220,9 +216,6 @@ class Tests_Indexing extends WP_UnitTestCase {
 		// This domain is used in unit tests, and we'll get a 404 from trying to use it with ES
 		SP_Config()->update_settings( array( 'host' => 'http://asdftestblog1.files.wordpress.com', 'active' => false ) );
 
-		// Because we changed the host, we have to re-init SP_API
-		SP_API()->setup();
-
 		SP_Sync_Manager()->do_cron_reindex();
 		SP_Sync_Meta()->bulk = 3;
 		SP_Sync_Meta()->save();
@@ -235,9 +228,6 @@ class Tests_Indexing extends WP_UnitTestCase {
 	function test_singular_index_invalid_response() {
 		SP_Config()->update_settings( array( 'host' => 'http://localhost', 'active' => true ) );
 
-		// Because we changed the host, we have to re-init SP_API
-		SP_API()->setup();
-
 		$posts = array(
 			$this->factory->post->create( array( 'post_title' => 'searchpress' ) ),
 		);
@@ -249,9 +239,6 @@ class Tests_Indexing extends WP_UnitTestCase {
 	function test_singular_index_non_200() {
 		// This domain is used in unit tests, and we'll get a 404 from trying to use it with ES
 		SP_Config()->update_settings( array( 'host' => 'http://asdftestblog1.files.wordpress.com', 'active' => true ) );
-
-		// Because we changed the host, we have to re-init SP_API
-		SP_API()->setup();
 
 		$posts = array(
 			$this->factory->post->create( array( 'post_title' => 'searchpress' ) ),

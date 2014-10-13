@@ -57,7 +57,7 @@ class SP_Heartbeat {
 
 	public function check_beat( $force = false ) {
 		// Ensure we only check the beat once per request
-		if ( ! isset( $this->beat_result ) || $force ) {
+		if ( $force || ! isset( $this->beat_result ) ) {
 			$health = SP_API()->cluster_health();
 			$this->beat_result = ( ! empty( $health->status ) && $health->status == $this->healthy_status );
 			if ( $this->beat_result ) {
@@ -70,8 +70,8 @@ class SP_Heartbeat {
 		return $this->beat_result;
 	}
 
-	public function get_last_beat() {
-		if ( ! isset( $this->last_beat ) ) {
+	public function get_last_beat( $force = false ) {
+		if ( $force || ! isset( $this->last_beat ) ) {
 			$this->last_beat = intval( get_option( 'sp_heartbeat' ) );
 		}
 		return $this->last_beat;
@@ -92,6 +92,7 @@ class SP_Heartbeat {
 				return $this->has_pulse( $threshold );
 			}
 		}
+		return false;
 	}
 
 	public function is_ready( $ready ) {
@@ -99,7 +100,7 @@ class SP_Heartbeat {
 			return $ready;
 		}
 
-		return SP_Config()->active() && $this->has_pulse( 'shutdown' );
+		return SP_Config()->active() && $this->has_pulse();
 	}
 
 	public function record_pulse() {
