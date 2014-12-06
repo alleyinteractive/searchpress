@@ -151,19 +151,21 @@ class SP_Post {
 			$return['double'] = floatval( $value );
 		}
 
-		// correct boolean values
-		if ( ( "false" === $value ) || ( "FALSE" === $value ) ) {
-			$return['boolean'] = false;
-		} elseif ( ( 'true' === $value ) || ( 'TRUE' === $value ) ) {
-			$return['boolean'] = true;
-		}
+		if ( is_string( $value ) ) {
+			// correct boolean values
+			if ( 'false' === strtolower( $value ) ) {
+				$return['boolean'] = false;
+			} elseif ( 'true' === strtolower( $value ) ) {
+				$return['boolean'] = true;
+			}
 
-		// add date/time if we have it.
-		$time = strtotime( $value );
-		if ( false !== $time ) {
-			$return['date']     = date( 'Y-m-d', $time );
-			$return['datetime'] = date( 'Y-m-d H:i:s', $time );
-			$return['time']     = date( 'H:i:s', $time );
+			// add date/time if we have it.
+			$time = strtotime( $value );
+			if ( false !== $time ) {
+				$return['date']     = date( 'Y-m-d', $time );
+				$return['datetime'] = date( 'Y-m-d H:i:s', $time );
+				$return['time']     = date( 'H:i:s', $time );
+			}
 		}
 
 		return $return;
