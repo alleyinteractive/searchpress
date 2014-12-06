@@ -37,7 +37,7 @@ class SP_Integration {
 
 	protected $sp;
 
-	protected $search_obj;
+	public $search_obj;
 
 	private static $instance;
 
