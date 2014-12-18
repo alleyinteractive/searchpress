@@ -39,7 +39,8 @@ function sp_manually_load_plugin() {
 	// If we didn't end with a 200 status code, exit
 	sp_tests_verify_response_code( $response );
 
-	add_filter( 'sp_cluster_health_uri', 'sp_global_cluster_health' );
+	sp_index_flush_data();
+
 	$i = 0;
 	while ( ! ( $beat = SP_Heartbeat()->check_beat( true ) ) && $i++ < 5 ) {
 		echo "\nHeartbeat failed, sleeping 2 seconds and trying again...\n";
@@ -49,9 +50,6 @@ function sp_manually_load_plugin() {
 		echo "\nCould not find a heartbeat!";
 		exit( 1 );
 	}
-	remove_filter( 'sp_cluster_health_uri', 'sp_global_cluster_health' );
-
-	sp_index_flush_data();
 }
 tests_add_filter( 'muplugins_loaded', 'sp_manually_load_plugin' );
 
