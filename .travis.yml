@@ -27,5 +27,6 @@ before_script:
     - sed -i "s/youremptytestdbnamehere/wordpress_tests/" /tmp/wordpress/wp-tests-config.php
     - sed -i "s/yourusernamehere/travis/" /tmp/wordpress/wp-tests-config.php
     - sed -i "s/yourpasswordhere//" /tmp/wordpress/wp-tests-config.php
+    - sleep 5 # ensure ES is running
 
 script: phpunit
