@@ -70,7 +70,7 @@ class SP_Admin {
 			<h2><?php esc_html_e( 'SearchPress', 'searchpress' ); ?></h2>
 
 			<?php if ( isset( $_GET['error'] ) ) : ?>
-				<div class="error updated"><p><?php esc_html( sprintf( __( 'An error has occurred: %s', 'searchpress' ), $this->get_error( $_GET['error'] ) ) ) ?></p></div>
+				<div class="error updated"><p><?php echo esc_html( sprintf( __( 'An error has occurred: %s', 'searchpress' ), $this->get_error( $_GET['error'] ) ) ) ?></p></div>
 			<?php endif ?>
 
 			<?php if ( isset( $_GET['complete'] ) ) : ?>
@@ -205,13 +205,20 @@ class SP_Admin {
 			wp_die( 'You are not authorized to perform that action' );
 		} else {
 			SP_Config()->update_settings( array( 'must_init' => false, 'active' => false, 'last_beat' => false ) );
-			$result = SP_Config()->flush();
-			if ( ! isset( SP_API()->last_request['response_code'] ) || ! in_array( SP_API()->last_request['response_code'], array( 200, 404 ) ) ) {
-				wp_redirect( admin_url( 'tools.php?page=searchpress&error=100' ) );
+
+			// The index may not exist yet, so use the global cluster health to check the heartbeat
+			add_filter( 'sp_cluster_health_uri', 'sp_global_cluster_health' );
+			if ( ! SP_Heartbeat()->check_beat() ) {
+				wp_redirect( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_NO_BEAT ) );
 			} else {
-				SP_Config()->create_mapping();
-				SP_Sync_Manager()->do_cron_reindex();
-				wp_redirect( admin_url( 'tools.php?page=searchpress' ) );
+				$result = SP_Config()->flush();
+				if ( ! isset( SP_API()->last_request['response_code'] ) || ! in_array( SP_API()->last_request['response_code'], array( 200, 404 ) ) ) {
+					wp_redirect( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_FLUSH_FAIL ) );
+				} else {
+					SP_Config()->create_mapping();
+					SP_Sync_Manager()->do_cron_reindex();
+					wp_redirect( admin_url( 'tools.php?page=searchpress' ) );
+				}
 			}
 			exit;
 		}
@@ -264,6 +271,7 @@ class SP_Admin {
 	public function get_error( $code ) {
 		switch ( $code ) {
 			case SP_ERROR_FLUSH_FAIL : return __( 'SearchPress could not flush the old data', 'searchpress' );
+			case SP_ERROR_NO_BEAT    : return __( 'SearchPress cannot reach the Elasticsearch server', 'searchpress' );
 		}
 		return __( 'Unknown error', 'searchpress' );
 	}
