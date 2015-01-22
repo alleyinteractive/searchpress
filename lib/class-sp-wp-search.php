@@ -45,8 +45,8 @@ class SP_WP_Search extends SP_Search {
 	 *                                  'post_excerpt^2',
 	 *                                  'post_content',
 	 *                                  'post_author.display_name',
-	 *                                  'terms.category.name.value',
-	 *                                  'terms.post_tag.name.value'
+	 *                                  'terms.category.name',
+	 *                                  'terms.post_tag.name'
 	 *                              ).
 	 *     @type string|array $post_type Which post type(s) to search.
 	 *                                   Default null.
@@ -99,8 +99,8 @@ class SP_WP_Search extends SP_Search {
 				'post_excerpt^2',
 				'post_content',
 				'post_author.display_name',
-				'terms.category.name.value',
-				'terms.post_tag.name.value'
+				'terms.category.name',
+				'terms.post_tag.name',
 			),
 			'post_type'      => null,
 			'terms'          => array(),

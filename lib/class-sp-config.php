@@ -121,9 +121,8 @@ class SP_Config {
 									"path" => "full",
 									"properties" => array(
 										"name" => array(
-											'type' => 'multi_field',
+											'type' => 'string',
 											'fields' => array(
-												'value' => array( 'type' => 'string' ),
 												'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false )
 											)
 										),
@@ -224,9 +223,8 @@ class SP_Config {
 							),
 						),
 						'post_title' => array(
-							'type' => 'multi_field',
+							'type' => 'string',
 							'fields' => array(
-								'post_title' => array( 'type' => 'string' ),
 								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false )
 							)
 						),
@@ -234,17 +232,15 @@ class SP_Config {
 						'post_content' => array( 'type' => 'string' ),
 						'post_status' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
 						'post_name' => array(
-							'type' => 'multi_field',
+							'type' => 'string',
 							'fields' => array(
-								'post_name' => array( 'type' => 'string' ),
 								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false )
 							)
 						),
 						'post_parent' => array( 'type' => 'long', 'include_in_all' => false ),
 						'post_type' => array(
-							'type' => 'multi_field',
+							'type' => 'string',
 							'fields' => array(
-								'post_type' => array( 'type' => 'string' ),
 								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false )
 							)
 						),
