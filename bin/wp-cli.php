@@ -83,32 +83,6 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Add date range when retrieving posts in bulk.
-	 * Dates need to be passed as mmddyyy. See synopsis for index function.
-	 *
-	 * @param $args array
-	 * @return $args array
-	 */
-	public function apply_date_range( $args ) {
-		$args['date_query'] = array(
-			array(
-				'after' => array(
-					'year'  => substr( $this->date_range['from'], - 4),
-					'month' => substr( $this->date_range['from'], 0, 2 ),
-					'day'   => substr( $this->date_range['from'], 2, 2 ),
-				),
-				'before' => array(
-					'year'  => substr( $this->date_range['to'], - 4),
-					'month' => substr( $this->date_range['to'], 0, 2 ),
-					'day'   => substr( $this->date_range['to'], 2, 2 ),
-				),
-				'inclusive' => true,
-			),
-		);
-		return $args;
-	}
-
-	/**
 	 * Index the current site or individual posts in elasticsearch, optionally flushing any existing data and adding the document mapping.
 	 *
 	 * ## OPTIONS
@@ -197,11 +171,12 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 				$assoc_args['bulk'] = $assoc_args['limit'];
 
 			if ( isset( $assoc_args['from'] ) && isset( $assoc_args['to'] ) ) {
-				$this->date_range = array(
+				global $searchpress_cli_date_range;
+				$searchpress_cli_date_range = array(
 					'from' => $assoc_args['from'],
 					'to' => $assoc_args['to'],
 				);
-				add_filter( 'searchpress_index_loop_args', array( $this, 'apply_date_range' ) );
+				add_filter( 'searchpress_index_loop_args', 'searchpress_cli_apply_date_range' );
 			}
 
 			$limit_number = $assoc_args['limit'] > 0 ? $assoc_args['limit'] : SP_Sync_Manager()->count_posts();
@@ -229,8 +204,9 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 
 				$this->contain_memory_leaks();
 
-				if ( ( $assoc_args['limit'] > 0 && $sync_meta->processed >= $assoc_args['limit'] ) || 0 == $sync_meta->total )
+				if ( ( $assoc_args['limit'] > 0 && $sync_meta->processed >= $assoc_args['limit'] ) || 0 == $sync_meta->total ) {
 					break;
+				}
 			} while ( $sync_meta->page < $total_pages_ceil );
 
 			$errors = ! empty( $sync_meta->messages['error'] ) ? count( $sync_meta->messages['error'] ) : 0;
@@ -300,4 +276,32 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 		return $ret . absint( ceil( $seconds ) ) . 's';
 	}
 
+}
+
+/**
+ * Add date range when retrieving posts in bulk.
+ * Dates need to be passed as mmddyyy. See synopsis for index function.
+ * Written outside of the class so it's not listed as an executable command w/ 'wp searchpress'
+ *
+ * @param $args array
+ * @return $args array
+ */
+function searchpress_cli_apply_date_range( $args ) {
+	global $searchpress_cli_date_range;
+	$args['date_query'] = array(
+		array(
+			'after' => array(
+				'year'  => substr( $searchpress_cli_date_range['from'], - 4),
+				'month' => substr( $searchpress_cli_date_range['from'], 0, 2 ),
+				'day'   => substr( $searchpress_cli_date_range['from'], 2, 2 ),
+			),
+			'before' => array(
+				'year'  => substr( $searchpress_cli_date_range['to'], - 4),
+				'month' => substr( $searchpress_cli_date_range['to'], 0, 2 ),
+				'day'   => substr( $searchpress_cli_date_range['to'], 2, 2 ),
+			),
+			'inclusive' => true,
+		),
+	);
+	return $args;
 }
