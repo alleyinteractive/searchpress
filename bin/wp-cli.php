@@ -129,7 +129,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 *      wp searchpress index 12340 12341 12342 12343 12344 12345
 	 *
 	 *
-	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [<post-id>]
+	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [--from=<mmddyyyy>] [--to=mmddyyyy] [<post-id>]
 	 */
 	public function index( $args, $assoc_args ) {
 		ob_end_clean();
