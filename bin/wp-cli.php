@@ -82,6 +82,31 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 		}
 	}
 
+	/**
+	 * Add date range when retrieving posts in bulk.
+	 * Dates need to be passed as mmddyyy. See synopsis for index function.
+	 *
+	 * @param $args array
+	 * @return $args array
+	 */
+	public function apply_date_range( $args ) {
+		$args['date_query'] = array(
+			array(
+				'after' => array(
+					'year'  => substr( $this->date_range['from'], - 4),
+					'month' => substr( $this->date_range['from'], 0, 2 ),
+					'day'   => substr( $this->date_range['from'], 2, 2 ),
+				),
+				'before' => array(
+					'year'  => substr( $this->date_range['to'], - 4),
+					'month' => substr( $this->date_range['to'], 0, 2 ),
+					'day'   => substr( $this->date_range['to'], 2, 2 ),
+				),
+				'inclusive' => true,
+			),
+		);
+		return $args;
+	}
 
 	/**
 	 * Index the current site or individual posts in elasticsearch, optionally flushing any existing data and adding the document mapping.
@@ -129,7 +154,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 *      wp searchpress index 12340 12341 12342 12343 12344 12345
 	 *
 	 *
-	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [--from=<mmddyyyy>] [--to=mmddyyyy] [<post-id>]
+	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [--from=<mmddyyyy>] [--to=<mmddyyyy>] [<post-id>]
 	 */
 	public function index( $args, $assoc_args ) {
 		ob_end_clean();
@@ -171,6 +196,14 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 			if ( $assoc_args['limit'] && $assoc_args['limit'] < $assoc_args['bulk'] )
 				$assoc_args['bulk'] = $assoc_args['limit'];
 
+			if ( isset( $assoc_args['from'] ) && isset( $assoc_args['to'] ) ) {
+				$this->date_range = array(
+					'from' => $assoc_args['from'],
+					'to' => $assoc_args['to'],
+				);
+				add_filter( 'searchpress_index_loop_args', array( $this, 'apply_date_range' ) );
+			}
+
 			$limit_number = $assoc_args['limit'] > 0 ? $assoc_args['limit'] : SP_Sync_Manager()->count_posts();
 			$limit_text = sprintf( _n( '%s post', '%s posts', $limit_number ), number_format( $limit_number ) );
 			WP_CLI::line( "Indexing {$limit_text}, " . number_format( $assoc_args['bulk'] ) . " at a time, starting on page {$assoc_args['page']}" );
@@ -189,12 +222,14 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 				$lap = microtime( true );
 				SP_Sync_Manager()->do_index_loop();
 
-				$seconds_per_page = ( microtime( true ) - $timestamp_start ) / ( $sync_meta->page - $start_page );
-				WP_CLI::line( "Completed page {$sync_meta->page}/{$total_pages_ceil} (" . number_format( ( microtime( true ) - $lap), 2 ) . 's / ' . round( memory_get_usage() / 1024 / 1024, 2 ) . 'M current / ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'M max), ' . $this->time_format( ( $total_pages - $sync_meta->page ) * $seconds_per_page ) . ' remaining' );
+				if ( 0 < ( $sync_meta->page - $start_page ) ) {
+					$seconds_per_page = ( microtime( true ) - $timestamp_start ) / ( $sync_meta->page - $start_page );
+					WP_CLI::line( "Completed page {$sync_meta->page}/{$total_pages_ceil} (" . number_format( ( microtime( true ) - $lap), 2 ) . 's / ' . round( memory_get_usage() / 1024 / 1024, 2 ) . 'M current / ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'M max), ' . $this->time_format( ( $total_pages - $sync_meta->page ) * $seconds_per_page ) . ' remaining' );
+				}
 
 				$this->contain_memory_leaks();
 
-				if ( $assoc_args['limit'] > 0 && $sync_meta->processed >= $assoc_args['limit'] )
+				if ( ( $assoc_args['limit'] > 0 && $sync_meta->processed >= $assoc_args['limit'] ) || 0 == $sync_meta->total )
 					break;
 			} while ( $sync_meta->page < $total_pages_ceil );
 
