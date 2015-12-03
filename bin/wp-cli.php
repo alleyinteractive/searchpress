@@ -298,14 +298,16 @@ function searchpress_cli_apply_date_range( $args ) {
 	global $searchpress_cli_date_range;
 	$args['date_query'] = array(
 		0 => array(
-			'after' => array(
-				'year'  => substr( $searchpress_cli_date_range['from'], - 4),
-				'month' => substr( $searchpress_cli_date_range['from'], 0, 2 ),
-				'day'   => substr( $searchpress_cli_date_range['from'], 2, 2 ),
-			),
 			'inclusive' => true,
 		),
 	);
+	if ( isset ( $searchpress_cli_date_range['from'] ) ) {
+		$args['date_query'][0]['after'] = array(
+			'year'  => substr( $searchpress_cli_date_range['from'], - 4),
+			'month' => substr( $searchpress_cli_date_range['from'], 0, 2 ),
+			'day'   => substr( $searchpress_cli_date_range['from'], 2, 2 ),
+		);
+	}
 	if ( isset ( $searchpress_cli_date_range['to'] ) ) {
 		$args['date_query'][0]['before'] = array(
 			'year'  => substr( $searchpress_cli_date_range['to'], - 4),
