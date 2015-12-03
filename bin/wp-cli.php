@@ -127,6 +127,11 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 *      # Index six specific posts
 	 *      wp searchpress index 12340 12341 12342 12343 12344 12345
 	 *
+	 *      # Index posts published between 11/1/2015 and 12/15/2015 inclusive
+	 *      wp searchpress index --from=11012015 --to=12152015
+	 *
+	 *      # Index posts published after 11/1/2015
+	 *      wp searchpress index --from=11012015
 	 *
 	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [--from=<mmddyyyy>] [--to=<mmddyyyy>] [<post-id>]
 	 */
@@ -170,12 +175,15 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 			if ( $assoc_args['limit'] && $assoc_args['limit'] < $assoc_args['bulk'] )
 				$assoc_args['bulk'] = $assoc_args['limit'];
 
-			if ( isset( $assoc_args['from'] ) && isset( $assoc_args['to'] ) ) {
+			if ( isset( $assoc_args['from'] ) || isset( $assoc_args['to'] ) ) {
 				global $searchpress_cli_date_range;
-				$searchpress_cli_date_range = array(
-					'from' => $assoc_args['from'],
-					'to' => $assoc_args['to'],
-				);
+				$searchpress_cli_date_range = array();
+				if ( isset( $assoc_args['from'] ) ) {
+					$searchpress_cli_date_range['from'] = $assoc_args['from'];
+				}
+				if ( isset( $assoc_args['to'] ) ) {
+					$searchpress_cli_date_range['to'] = $assoc_args['to'];
+				}
 				add_filter( 'searchpress_index_loop_args', 'searchpress_cli_apply_date_range' );
 			}
 
@@ -281,7 +289,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 /**
  * Add date range when retrieving posts in bulk.
  * Dates need to be passed as mmddyyy. See synopsis for index function.
- * Written outside of the class so it's not listed as an executable command w/ 'wp searchpress'
+ * Written outside of the class so it's not listed as an executable command w/ 'wp help searchpress'
  *
  * @param $args array
  * @return $args array
@@ -289,19 +297,21 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 function searchpress_cli_apply_date_range( $args ) {
 	global $searchpress_cli_date_range;
 	$args['date_query'] = array(
-		array(
+		0 => array(
 			'after' => array(
 				'year'  => substr( $searchpress_cli_date_range['from'], - 4),
 				'month' => substr( $searchpress_cli_date_range['from'], 0, 2 ),
 				'day'   => substr( $searchpress_cli_date_range['from'], 2, 2 ),
 			),
-			'before' => array(
-				'year'  => substr( $searchpress_cli_date_range['to'], - 4),
-				'month' => substr( $searchpress_cli_date_range['to'], 0, 2 ),
-				'day'   => substr( $searchpress_cli_date_range['to'], 2, 2 ),
-			),
 			'inclusive' => true,
 		),
 	);
+	if ( isset ( $searchpress_cli_date_range['to'] ) ) {
+		$args['date_query'][0]['before'] = array(
+			'year'  => substr( $searchpress_cli_date_range['to'], - 4),
+			'month' => substr( $searchpress_cli_date_range['to'], 0, 2 ),
+			'day'   => substr( $searchpress_cli_date_range['to'], 2, 2 ),
+		);
+	}
 	return $args;
 }
