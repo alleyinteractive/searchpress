@@ -359,23 +359,23 @@ class Tests_Searching extends WP_UnitTestCase {
 		);
 	}
 
-	//function test_query_offset_and_paged() {
-	//	$this->assertEquals(
-	//		array(
-	//			'many-trackbacks',
-	//			'one-trackback',
-	//			'comment-test',
-	//			'lorem-ipsum',
-	//			'cat-c',
-	//			'cat-b',
-	//			'cat-a',
-	//			'cats-a-and-c',
-	//			'cats-b-and-c',
-	//			'cats-a-and-b',
-	//		),
-	//		$this->search_and_get_field( array( 'paged' => 2, 'offset' => 3 ) )
-	//	);
-	//}
+	function test_query_offset_and_paged() {
+		$this->assertEquals(
+			array(
+				'tag-c',
+				'tag-b',
+				'tag-a',
+				'tags-a-b-c',
+				'raw-html-code',
+				'simple-markup-test',
+				'embedded-video',
+				'contributor-post-approved',
+				'one-comment',
+				'no-comments',
+			),
+			$this->search_and_get_field( array( 'paged' => 2, 'offset' => 3 ) )
+		);
+	}
 
 	function test_exlude_from_search_empty() {
 		global $wp_post_types;
