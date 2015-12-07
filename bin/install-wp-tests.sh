@@ -45,7 +45,7 @@ install_test_suite() {
 	svn co --quiet http://develop.svn.wordpress.org/trunk/tests/phpunit/includes/
 
 	# Fix an error with trac referencing
-	mkdir data
+	mkdir -p data
 
 	wget -nv -O wp-tests-config.php http://develop.svn.wordpress.org/trunk/wp-tests-config-sample.php
 	sed $ioption "s:dirname( __FILE__ ) . '/src/':'$WP_CORE_DIR':" wp-tests-config.php
