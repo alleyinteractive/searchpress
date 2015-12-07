@@ -7,6 +7,8 @@ WP_CLI::add_command( 'searchpress', 'Searchpress_CLI_Command' );
  */
 class Searchpress_CLI_Command extends WP_CLI_Command {
 
+	public $date_range;
+
 	/**
 	 * Prevent memory leaks from growing out of control
 	 */
@@ -82,6 +84,36 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 		}
 	}
 
+ 	/**
+	 * Add date range when retrieving posts in bulk.
+	 * Dates need to be passed as mmddyyy. See synopsis for index function.
+	 *
+	 * @param $args array
+	 * @return $args array
+	 */
+	public function __apply_date_range( $args ) {
+		$args['date_query'] = array(
+			0 => array(
+				'inclusive' => true,
+			),
+		);
+		if ( isset ( $this->date_range['from'] ) ) {
+			$args['date_query'][0]['after'] = array(
+				'year'  => substr( $this->date_range['from'], -4 ),
+				'month' => substr( $this->date_range['from'], 0, 2 ),
+				'day'   => substr( $this->date_range['from'], 3, 2 ),
+			);
+		}
+		if ( isset ( $this->date_range['to'] ) ) {
+			$args['date_query'][0]['before'] = array(
+				'year'  => substr( $this->date_range['to'], -4 ),
+				'month' => substr( $this->date_range['to'], 0, 2 ),
+				'day'   => substr( $this->date_range['to'], 3, 2 ),
+			);
+		}
+		return $args;
+	}
+
 	/**
 	 * Index the current site or individual posts in elasticsearch, optionally flushing any existing data and adding the document mapping.
 	 *
@@ -103,6 +135,12 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 * [--page=<num>]
 	 * : Which page to start on. This is helpful if you encountered an error on
 	 * page 145/150 or if you want to have multiple processes running at once
+	 *
+	 * [--from=<date>]
+	 * : Index posts published on or after this date.
+	 *
+	 * [--to=<date>]
+	 * : Index posts published on or before this date.
 	 *
 	 * [<post-id>]
 	 * : By default, this subcommand will query posts based on ID and pagination.
@@ -127,13 +165,13 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 *      # Index six specific posts
 	 *      wp searchpress index 12340 12341 12342 12343 12344 12345
 	 *
-	 *      # Index posts published between 11/1/2015 and 12/15/2015 inclusive
-	 *      wp searchpress index --from=11012015 --to=12152015
+	 *      # Index posts published between 11-1-2015 and 12-15-2015 inclusive
+	 *      wp searchpress index --from=11-01-2015 --to=12-15-2015
 	 *
-	 *      # Index posts published after 11/1/2015
-	 *      wp searchpress index --from=11012015
+	 *      # Index posts published after 11-1-2015
+	 *      wp searchpress index --from=11-01-2015
 	 *
-	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [--from=<mmddyyyy>] [--to=<mmddyyyy>] [<post-id>]
+	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [--from=<date>] [--to=<date>] [<post-id>]
 	 */
 	public function index( $args, $assoc_args ) {
 		ob_end_clean();
@@ -176,15 +214,14 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 				$assoc_args['bulk'] = $assoc_args['limit'];
 
 			if ( isset( $assoc_args['from'] ) || isset( $assoc_args['to'] ) ) {
-				global $searchpress_cli_date_range;
-				$searchpress_cli_date_range = array();
+				$this->date_range = array();
 				if ( isset( $assoc_args['from'] ) ) {
-					$searchpress_cli_date_range['from'] = $assoc_args['from'];
+					$this->date_range['from'] = $assoc_args['from'];
 				}
 				if ( isset( $assoc_args['to'] ) ) {
-					$searchpress_cli_date_range['to'] = $assoc_args['to'];
+					$this->date_range['to'] = $assoc_args['to'];
 				}
-				add_filter( 'searchpress_index_loop_args', 'searchpress_cli_apply_date_range' );
+				add_filter( 'searchpress_index_loop_args', array( $this, '__apply_date_range' ) );
 			}
 
 			$limit_number = $assoc_args['limit'] > 0 ? $assoc_args['limit'] : SP_Sync_Manager()->count_posts();
@@ -284,36 +321,4 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 		return $ret . absint( ceil( $seconds ) ) . 's';
 	}
 
-}
-
-/**
- * Add date range when retrieving posts in bulk.
- * Dates need to be passed as mmddyyy. See synopsis for index function.
- * Written outside of the class so it's not listed as an executable command w/ 'wp help searchpress'
- *
- * @param $args array
- * @return $args array
- */
-function searchpress_cli_apply_date_range( $args ) {
-	global $searchpress_cli_date_range;
-	$args['date_query'] = array(
-		0 => array(
-			'inclusive' => true,
-		),
-	);
-	if ( isset ( $searchpress_cli_date_range['from'] ) ) {
-		$args['date_query'][0]['after'] = array(
-			'year'  => substr( $searchpress_cli_date_range['from'], - 4),
-			'month' => substr( $searchpress_cli_date_range['from'], 0, 2 ),
-			'day'   => substr( $searchpress_cli_date_range['from'], 2, 2 ),
-		);
-	}
-	if ( isset ( $searchpress_cli_date_range['to'] ) ) {
-		$args['date_query'][0]['before'] = array(
-			'year'  => substr( $searchpress_cli_date_range['to'], - 4),
-			'month' => substr( $searchpress_cli_date_range['to'], 0, 2 ),
-			'day'   => substr( $searchpress_cli_date_range['to'], 2, 2 ),
-		);
-	}
-	return $args;
 }
