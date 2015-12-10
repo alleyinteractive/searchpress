@@ -97,16 +97,16 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 				'inclusive' => true,
 			),
 		);
-		if ( isset ( $this->date_range['from'] ) ) {
-			$from = strtotime( $this->date_range['from'] );
+		if ( isset ( $this->date_range['after'] ) ) {
+			$from = strtotime( $this->date_range['after'] );
 			$args['date_query'][0]['after'] = array(
 				'year'  => date( 'Y', $from ),
 				'month' => date( 'm', $from ),
 				'day'   => date( 'd', $from ),
 			);
 		}
-		if ( isset ( $this->date_range['to'] ) ) {
-			$to = strtotime( $this->date_range['to'] );
+		if ( isset ( $this->date_range['before'] ) ) {
+			$to = strtotime( $this->date_range['before'] );
 			$args['date_query'][0]['before'] = array(
 				'year'  => date( 'Y', $to ),
 				'month' => date( 'm', $to ),
@@ -138,10 +138,10 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 * : Which page to start on. This is helpful if you encountered an error on
 	 * page 145/150 or if you want to have multiple processes running at once
 	 *
-	 * [--from=<date>]
+	 * [--after-date=<date>]
 	 * : Index posts published on or after this date. Use YYYY-MM-DD.
 	 *
-	 * [--to=<date>]
+	 * [--before-date=<date>]
 	 * : Index posts published on or before this date. Use YYYY-MM-DD.
 	 *
 	 * [<post-id>]
@@ -168,12 +168,12 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 *      wp searchpress index 12340 12341 12342 12343 12344 12345
 	 *
 	 *      # Index posts published between 11-1-2015 and 12-30-2015 (inclusive)
-	 *      wp searchpress index --from=2015-11-01 --to=2015-12-30
+	 *      wp searchpress index --after-date=2015-11-01 --before-date=2015-12-30
 	 *
 	 *      # Index posts published after 11-1-2015 (inclusive)
-	 *      wp searchpress index --from=2015-11-01
+	 *      wp searchpress index --after-date=2015-11-01
 	 *
-	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [--from=<date>] [--to=<date>] [<post-id>]
+	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [--after-date=<date>] [--before-date=<date>] [<post-id>]
 	 */
 	public function index( $args, $assoc_args ) {
 		ob_end_clean();
@@ -216,13 +216,13 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 				$assoc_args['bulk'] = $assoc_args['limit'];
 			}
 
-			if ( isset( $assoc_args['from'] ) || isset( $assoc_args['to'] ) ) {
+			if ( isset( $assoc_args['after-date'] ) || isset( $assoc_args['before-date'] ) ) {
 				$this->date_range = array();
-				if ( isset( $assoc_args['from'] ) ) {
-					$this->date_range['from'] = $assoc_args['from'];
+				if ( isset( $assoc_args['after-date'] ) ) {
+					$this->date_range['after'] = $assoc_args['after-date'];
 				}
-				if ( isset( $assoc_args['to'] ) ) {
-					$this->date_range['to'] = $assoc_args['to'];
+				if ( isset( $assoc_args['before-date'] ) ) {
+					$this->date_range['before'] = $assoc_args['before-date'];
 				}
 				add_filter( 'searchpress_index_loop_args', array( $this, '__apply_date_range' ) );
 				add_filter( 'searchpress_index_count_args', array( $this, '__apply_date_range' ) );
