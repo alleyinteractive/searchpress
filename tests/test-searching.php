@@ -359,6 +359,9 @@ class Tests_Searching extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 18897
+	 */
 	function test_query_offset_and_paged() {
 		$this->assertEquals(
 			array(
