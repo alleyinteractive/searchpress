@@ -86,7 +86,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 
  	/**
 	 * Add date range when retrieving posts in bulk.
-	 * Dates need to be passed as mmddyyy. See synopsis for index function.
+	 * Dates need to be passed as YYYY-MM-DD. See synopsis for index function.
 	 *
 	 * @param $args array
 	 * @return $args array
@@ -99,16 +99,16 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 		);
 		if ( isset ( $this->date_range['from'] ) ) {
 			$args['date_query'][0]['after'] = array(
-				'year'  => substr( $this->date_range['from'], -4 ),
-				'month' => substr( $this->date_range['from'], 0, 2 ),
-				'day'   => substr( $this->date_range['from'], 3, 2 ),
+				'year'  => substr( $this->date_range['from'], 0, 4 ),
+				'month' => substr( $this->date_range['from'], 5, 2 ),
+				'day'   => substr( $this->date_range['from'], -2 ),
 			);
 		}
 		if ( isset ( $this->date_range['to'] ) ) {
 			$args['date_query'][0]['before'] = array(
-				'year'  => substr( $this->date_range['to'], -4 ),
-				'month' => substr( $this->date_range['to'], 0, 2 ),
-				'day'   => substr( $this->date_range['to'], 3, 2 ),
+				'year'  => substr( $this->date_range['to'], 0, 4 ),
+				'month' => substr( $this->date_range['to'], 5, 2 ),
+				'day'   => substr( $this->date_range['to'], -2 ),
 			);
 		}
 		return $args;
@@ -137,10 +137,10 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 * page 145/150 or if you want to have multiple processes running at once
 	 *
 	 * [--from=<date>]
-	 * : Index posts published on or after this date.
+	 * : Index posts published on or after this date. Use YYYY-MM-DD.
 	 *
 	 * [--to=<date>]
-	 * : Index posts published on or before this date.
+	 * : Index posts published on or before this date. Use YYYY-MM-DD.
 	 *
 	 * [<post-id>]
 	 * : By default, this subcommand will query posts based on ID and pagination.
@@ -165,11 +165,11 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 *      # Index six specific posts
 	 *      wp searchpress index 12340 12341 12342 12343 12344 12345
 	 *
-	 *      # Index posts published between 11-1-2015 and 12-15-2015 inclusive
-	 *      wp searchpress index --from=11-01-2015 --to=12-15-2015
+	 *      # Index posts published between 11-1-2015 and 12-30-2015 inclusive
+	 *      wp searchpress index --from=2015-11-01 --to=2015-12-30
 	 *
 	 *      # Index posts published after 11-1-2015
-	 *      wp searchpress index --from=11-01-2015
+	 *      wp searchpress index --from=2015-11-01
 	 *
 	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [--from=<date>] [--to=<date>] [<post-id>]
 	 */
