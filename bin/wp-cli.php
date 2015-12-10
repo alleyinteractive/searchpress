@@ -210,8 +210,9 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 				'page'  => 1
 			), $assoc_args );
 
-			if ( $assoc_args['limit'] && $assoc_args['limit'] < $assoc_args['bulk'] )
+			if ( $assoc_args['limit'] && $assoc_args['limit'] < $assoc_args['bulk'] ) {
 				$assoc_args['bulk'] = $assoc_args['limit'];
+			}
 
 			if ( isset( $assoc_args['from'] ) || isset( $assoc_args['to'] ) ) {
 				$this->date_range = array();
@@ -222,6 +223,9 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 					$this->date_range['to'] = $assoc_args['to'];
 				}
 				add_filter( 'searchpress_index_loop_args', array( $this, '__apply_date_range' ) );
+				add_filter( 'searchpress_index_count_args', array( $this, '__apply_date_range' ) );
+
+
 			}
 
 			$limit_number = $assoc_args['limit'] > 0 ? $assoc_args['limit'] : SP_Sync_Manager()->count_posts();
@@ -249,7 +253,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 
 				$this->contain_memory_leaks();
 
-				if ( ( $assoc_args['limit'] > 0 && $sync_meta->processed >= $assoc_args['limit'] ) || 0 == $sync_meta->total ) {
+				if ( $assoc_args['limit'] > 0 && $sync_meta->processed >= $assoc_args['limit'] ) {
 					break;
 				}
 			} while ( $sync_meta->page < $total_pages_ceil );
