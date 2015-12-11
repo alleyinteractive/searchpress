@@ -271,7 +271,7 @@ class SP_WP_Search extends SP_Search {
 				switch ( $facet['type'] ) {
 
 					case 'taxonomy':
-						$es_query_args['facets'][ $label ] = array(
+						$es_query_args['aggregations'][ $label ] = array(
 							'terms' => array(
 								'field' => "terms.{$facet['taxonomy']}.slug",
 								'size' => $facet['count'],
@@ -281,7 +281,7 @@ class SP_WP_Search extends SP_Search {
 						break;
 
 					case 'post_type':
-						$es_query_args['facets'][ $label ] = array(
+						$es_query_args['aggregations'][ $label ] = array(
 							'terms' => array(
 								'field' => 'post_type',
 								'size' => $facet['count'],
@@ -291,11 +291,10 @@ class SP_WP_Search extends SP_Search {
 						break;
 
 					case 'date_histogram':
-						$es_query_args['facets'][ $label ] = array(
+						$es_query_args['aggregations'][ $label ] = array(
 							'date_histogram' => array(
 								'interval' => $facet['interval'],
 								'field'    => ! empty( $facet['field'] ) ? "{$facet['field']}.date" : 'post_date.date',
-								'size'     => $facet['count'],
 							),
 						);
 
@@ -305,7 +304,7 @@ class SP_WP_Search extends SP_Search {
 
 			// If we have facets, we need to move our filters to a filtered
 			// query, or else they won't have an effect on the facets.
-			if ( ! empty( $es_query_args['facets'] ) ) {
+			if ( ! empty( $es_query_args['aggregations'] ) ) {
 				if ( ! empty( $es_query_args['filter'] ) ) {
 					if ( ! empty( $es_query_args['query'] ) ) {
 						$es_query = $es_query_args['query'];
@@ -393,10 +392,8 @@ class SP_WP_Search extends SP_Search {
 			}
 
 			$items = array();
-			if ( ! empty( $facet['terms'] ) ) {
-				$items = (array) $facet['terms'];
-			} elseif ( ! empty( $facet['entries'] ) ) {
-				$items = (array) $facet['entries'];
+			if ( ! empty( $facet['buckets'] ) ) {
+				$items = (array) $facet['buckets'];
 			}
 
 			// Some facet types like date_histogram don't support the max results parameter
@@ -411,9 +408,9 @@ class SP_WP_Search extends SP_Search {
 					switch ( $this->facets[ $label ]['type'] ) {
 						case 'taxonomy':
 							if ( function_exists( 'wpcom_vip_get_term_by' ) ) {
-								$term = wpcom_vip_get_term_by( 'slug', $item['term'], $this->facets[ $label ]['taxonomy'] );
+								$term = wpcom_vip_get_term_by( 'slug', $item['key'], $this->facets[ $label ]['taxonomy'] );
 							} else {
-								$term = get_term_by( 'slug', $item['term'], $this->facets[ $label ]['taxonomy'] );
+								$term = get_term_by( 'slug', $item['key'], $this->facets[ $label ]['taxonomy'] );
 							}
 
 							if ( ! $term ) {
@@ -433,19 +430,19 @@ class SP_WP_Search extends SP_Search {
 							break;
 
 						case 'post_type':
-							$post_type = get_post_type_object( $item['term'] );
+							$post_type = get_post_type_object( $item['key'] );
 
 							if ( ! $post_type || $post_type->exclude_from_search ) {
 								continue 2;  // switch() is considered a looping structure
 							}
 
-							$query_vars = array( 'post_type' => $item['term'] );
+							$query_vars = array( 'post_type' => $item['key'] );
 							$name       = $post_type->labels->singular_name;
 
 							break;
 
 						case 'date_histogram':
-							$timestamp = $item['time'] / 1000;
+							$timestamp = $item['key'] / 1000;
 
 							switch ( $this->facets[ $label ]['interval'] ) {
 								case 'year':
@@ -485,7 +482,7 @@ class SP_WP_Search extends SP_Search {
 					$datum = array(
 						'query_vars' => $query_vars,
 						'name'       => $name,
-						'count'      => $item['count'],
+						'count'      => $item['doc_count'],
 					);
 				}
 
