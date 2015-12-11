@@ -63,7 +63,11 @@ class Tests_Mapping_Postmeta extends WP_UnitTestCase {
 		SP_API()->post( '_refresh' );
 
 		if ( ! isset( $value ) ) {
-			$string = array();
+			if ( sp_phpunit_is_wp_at_least( 4.4 ) ) {
+				$string = array();
+			} else {
+				$string = array( '' );
+			}
 		} elseif ( is_array( $value ) ) {
 			$string = array( serialize( $value ) );
 		} else {
