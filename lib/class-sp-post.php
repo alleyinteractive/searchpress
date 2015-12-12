@@ -146,12 +146,23 @@ class SP_Post {
 			'boolean' => (bool) $value,
 		);
 
+		$time = false;
 		if ( is_numeric( $value ) ) {
-			$return['long']   = intval( $value );
+			$int = intval( $value );
+			$return['long']   = $int;
 			$return['double'] = floatval( $value );
-		}
 
-		if ( is_string( $value ) ) {
+			// If this is an integer (represented as a string), check to see if
+			// it is a valid timestamp
+			if ( (string) $int === (string) $value ) {
+				$year = intval( date( 'Y', $int ) );
+				// Ensure that the year is between 1-2038. Technically, the year
+				// range ES allows is 1-292278993, but PHP ints limit us to 2038.
+				if ( $year > 0 && $year < 2039 ) {
+					$time = $int;
+				}
+			}
+		} elseif ( is_string( $value ) ) {
 			// correct boolean values
 			if ( 'false' === strtolower( $value ) ) {
 				$return['boolean'] = false;
@@ -161,11 +172,12 @@ class SP_Post {
 
 			// add date/time if we have it.
 			$time = strtotime( $value );
-			if ( false !== $time ) {
-				$return['date']     = date( 'Y-m-d', $time );
-				$return['datetime'] = date( 'Y-m-d H:i:s', $time );
-				$return['time']     = date( 'H:i:s', $time );
-			}
+		}
+
+		if ( false !== $time ) {
+			$return['date']     = date( 'Y-m-d', $time );
+			$return['datetime'] = date( 'Y-m-d H:i:s', $time );
+			$return['time']     = date( 'H:i:s', $time );
 		}
 
 		return $return;
