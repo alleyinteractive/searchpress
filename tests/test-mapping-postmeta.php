@@ -1,0 +1,104 @@
+<?php
+
+/**
+ * Test the various intricacies of the post meta mapping.
+ *
+ * @group mapping
+ */
+class Tests_Mapping_Postmeta extends WP_UnitTestCase {
+
+	function setUp() {
+		parent::setUp();
+		sp_index_flush_data();
+	}
+
+	function _search_and_get_field( $args, $field = 'post_name' ) {
+		$args = wp_parse_args( $args, array(
+			'fields' => $field
+		) );
+		$posts = sp_wp_search( $args, true );
+		return sp_results_pluck( $posts, $field );
+	}
+
+	function meta_sample_data() {
+		// $value, $boolean, $long, $double, $datetime
+		return array(
+			array( rand_str(), true, null, null, null ),
+			array( 'To be or not to be', true, null, null, null ), // only stopwords, worth checking
+			array( 1, true, 1, 1, '1970-01-01 00:00:01' ),
+			array( -123, true, -123, -123, '1969-12-31 23:57:57' ),
+			array( 0, false, 0, 0, '1970-01-01 00:00:00' ),
+			array( '1', true, 1, 1, '1970-01-01 00:00:01' ),
+			array( '0', false, 0, 0, '1970-01-01 00:00:00' ),
+			array( 1.1, true, 1, 1.1, null ),
+			array( -1.1, true, -1, -1.1, null ),
+			array( 0.0, false, 0, 0, '1970-01-01 00:00:00' ),
+			array( 0.01, true, 0, 0.01, null ),
+			array( 0.9999999, true, 0, 0.9999999, null ),
+			array( '', false, null, null, null ),
+			array( null, false, null, null, null ),
+			array( array( 'foo' => array( 'bar' => array( 'bat' => true ) ) ), true, null, null, null ),
+			array( '2015-01-01', true, null, null, '2015-01-01 00:00:00' ),
+			array( '1/2/2015', true, null, null, '2015-01-02 00:00:00' ),
+			array( 'Jan 3rd 2030', true, null, null, '2030-01-03 00:00:00' ),
+			array( 1442600000, true, 1442600000, 1442600000, '2015-09-18 18:13:20' ),
+			array( 1234567, true, 1234567, 1234567, '1970-01-15 06:56:07' ),
+			array( '1442600000', true, 1442600000, 1442600000, '2015-09-18 18:13:20' ),
+			array( 1442600000.0001, true, 1442600000, 1442600000.0001, null ),
+			array( '2015-01-04T15:19:21-05:00', true, null, null, '2015-01-04 20:19:21' ), // Note the timezone
+			array( '18:13:20', true, null, null, date( 'Y-m-d' ) . ' 18:13:20' ),
+		);
+	}
+
+	/**
+	 * @dataProvider meta_sample_data
+	 */
+	function test_mapping_post_meta( $value, $boolean, $long, $double, $datetime ) {
+		$demo_post_id = $this->factory->post->create( array( 'post_title' => rand_str(), 'post_date' => '2015-01-02 03:04:05' ) );
+
+		// Test the various meta mappings. Ideally, these each would be their
+		// own test, but
+		add_post_meta( $demo_post_id, 'mapping_postmeta_test', $value );
+		SP_Sync_Manager()->sync_post( $demo_post_id );
+		SP_API()->post( '_refresh' );
+
+		if ( ! isset( $value ) ) {
+			if ( sp_phpunit_is_wp_at_least( 4.4 ) ) {
+				$string = array();
+			} else {
+				$string = array( '' );
+			}
+		} elseif ( is_array( $value ) ) {
+			$string = array( serialize( $value ) );
+		} else {
+			$string = array( strval( $value ) );
+		}
+
+		$this->assertSame( $string, $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.value' ), 'Checking meta.value' );
+		$this->assertSame( $string, $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.raw' ), 'Checking meta.raw' );
+		$this->assertSame( array( $boolean ), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.boolean' ), 'Checking meta.boolean' );
+
+		if ( isset( $long ) ) {
+			$this->assertSame( array( $long ), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.long' ), 'Checking meta.long' );
+		} else {
+			$this->assertSame( array(), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.long' ), 'Checking that meta.long is missing' );
+		}
+
+		if ( isset( $double ) ) {
+			$this->assertSame( array( $double ), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.double' ), 'Checking meta.double' );
+		} else {
+			$this->assertSame( array(), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.double' ), 'Checking that meta.double is missing' );
+		}
+
+		if ( isset( $datetime ) ) {
+			list( $date, $time ) = explode( ' ', $datetime );
+			$this->assertSame( array( $datetime ), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.datetime' ), 'Checking meta.datetime' );
+			$this->assertSame( array( $date ), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.date' ), 'Checking meta.date' );
+			$this->assertSame( array( $time ), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.time' ), 'Checking meta.time' );
+		} else {
+			$this->assertSame( array(), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.datetime' ), 'Checking that meta.datetime is missing' );
+			$this->assertSame( array(), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.date' ), 'Checking that meta.date is missing' );
+			$this->assertSame( array(), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.time' ), 'Checking that meta.time is missing' );
+		}
+	}
+}

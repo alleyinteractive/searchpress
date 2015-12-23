@@ -1,7 +1,10 @@
 <?php
 
 $_tests_dir = getenv( 'WP_TESTS_DIR' );
-if ( !$_tests_dir ) $_tests_dir = '/tmp/wordpress-tests-lib';
+
+if ( ! $_tests_dir ) {
+	$_tests_dir = '/tmp/wordpress-tests-lib';
+}
 
 require_once $_tests_dir . '/includes/functions.php';
 
@@ -63,7 +66,6 @@ function sp_index_flush_data() {
 	SP_Config()->create_mapping();
 }
 
-
 function sp_tests_verify_response_code( $response ) {
 	if ( '200' != wp_remote_retrieve_response_code( $response ) ) {
 		printf( "Could not index posts!\nResponse code %s\n", wp_remote_retrieve_response_code( $response ) );
@@ -99,6 +101,17 @@ function sp_tests_fake_cron() {
 			}
 		}
 	}
+}
+
+/**
+ * Is the current version of WordPress at least ... ?
+ *
+ * @param  float $min_version Minimum version required, e.g. 3.9.
+ * @return bool True if it is, false if it isn't.
+ */
+function sp_phpunit_is_wp_at_least( $min_version ) {
+	global $wp_version;
+	return floatval( $wp_version ) >= $min_version;
 }
 
 require $_tests_dir . '/includes/bootstrap.php';
