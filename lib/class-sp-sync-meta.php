@@ -35,7 +35,7 @@ class SP_Sync_Meta {
 	 * @access protected
 	 * @var string
 	 */
-	protected $error_transient;
+	protected $error_transient = 'sp_sync_meta_error';
 
 	/**
 	 * @codeCoverageIgnore

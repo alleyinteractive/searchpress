@@ -99,7 +99,6 @@ class SP_Config {
 								"path_match" => "post_meta.*",
 								"mapping" => array(
 									"type" => "object",
-									"path" => "full",
 									"properties" => array(
 										"value" => array( "type" => "string" ),
 										"raw" => array( "type" => "string", "index" => "not_analyzed", 'include_in_all' => false ),
@@ -118,7 +117,6 @@ class SP_Config {
 								"path_match" => "terms.*",
 								"mapping" => array(
 									"type" => "object",
-									"path" => "full",
 									"properties" => array(
 										"name" => array(
 											'type' => 'string',
@@ -149,7 +147,6 @@ class SP_Config {
 						'post_date' => array(
 							'type' => 'object',
 							'include_in_all' => false,
-							'path' => 'full',
 							'properties' => array(
 								'date'              => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss||YYYY-MM-dd' ),
 								'year'              => array( 'type' => 'short' ),
@@ -168,7 +165,6 @@ class SP_Config {
 						'post_date_gmt' => array(
 							'type' => 'object',
 							'include_in_all' => false,
-							'path' => 'full',
 							'properties' => array(
 								'date'              => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss||YYYY-MM-dd' ),
 								'year'              => array( 'type' => 'short' ),
@@ -187,7 +183,6 @@ class SP_Config {
 						'post_modified' => array(
 							'type' => 'object',
 							'include_in_all' => false,
-							'path' => 'full',
 							'properties' => array(
 								'date'              => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss||YYYY-MM-dd' ),
 								'year'              => array( 'type' => 'short' ),
@@ -206,7 +201,6 @@ class SP_Config {
 						'post_modified_gmt' => array(
 							'type' => 'object',
 							'include_in_all' => false,
-							'path' => 'full',
 							'properties' => array(
 								'date'              => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss||YYYY-MM-dd' ),
 								'year'              => array( 'type' => 'short' ),

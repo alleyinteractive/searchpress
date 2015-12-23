@@ -73,7 +73,7 @@ class SP_Search {
 				return ( ! empty( $this->search_results['hits']['total'] ) ) ? $this->search_results['hits']['total'] : 0;
 
 			case 'facets' :
-				return ( ! empty( $this->search_results['facets'] ) ) ? $this->search_results['facets'] : array();
+				return ( ! empty( $this->search_results['aggregations'] ) ) ? $this->search_results['aggregations'] : array();
 
 			default :
 				return $this->search_results;
