@@ -269,11 +269,15 @@ class SP_Integration {
 			// Date from and to
 			if ( ! empty( $this->sp['f'] ) ) {
 				$gte = strtotime( $this->sp['f'] );
-				$es_wp_query_args['date_range']['gte'] = date( 'Y-m-d 00:00:00', $gte );
+				if ( false !== $gte ) {
+					$es_wp_query_args['date_range']['gte'] = date( 'Y-m-d 00:00:00', $gte );
+				}
 			}
 			if ( ! empty( $this->sp['t'] ) ) {
 				$lte = strtotime( $this->sp['t'] );
-				$es_wp_query_args['date_range']['lte'] = date( 'Y-m-d 23:59:59', $lte );
+				if ( false !== $lte ) {
+					$es_wp_query_args['date_range']['lte'] = date( 'Y-m-d 23:59:59', $lte );
+				}
 			}
 		}
 
