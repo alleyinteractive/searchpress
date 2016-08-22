@@ -254,7 +254,7 @@ class SP_Sync_Meta {
 	 * @return boolean True if we do, false if we don't.
 	 */
 	public function has_errors() {
-		return get_transient( $this->error_transient );
+		return (bool) get_transient( $this->error_transient );
 	}
 
 	/**
