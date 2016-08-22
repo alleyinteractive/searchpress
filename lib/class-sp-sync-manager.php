@@ -89,9 +89,9 @@ class SP_Sync_Manager {
 		if ( ! empty( $response->error ) ) {
 			SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . $response->error->message, $response->error->data ) );
 		} elseif ( ! in_array( SP_API()->last_request['response_code'], $allowed_codes ) ) {
-			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%s] Elasticsearch response failed! Status code %d; %s', 'searchpress' ), date( 'Y-m-d H:i:s' ), SP_API()->last_request['response_code'], json_encode( SP_API()->last_request ) ) ) );
+			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%1$s] Elasticsearch response failed! Status code %2$d; %3$s', 'searchpress' ), date( 'Y-m-d H:i:s' ), SP_API()->last_request['response_code'], json_encode( SP_API()->last_request ) ) ) );
 		} elseif ( ! is_object( $response ) ) {
-			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%s] Unexpected response from Elasticsearch: %s', 'searchpress' ), date( 'Y-m-d H:i:s' ), json_encode( $response ) ) ) );
+			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%1$s] Unexpected response from Elasticsearch: %2$s', 'searchpress' ), date( 'Y-m-d H:i:s' ), json_encode( $response ) ) ) );
 		} else {
 			return false;
 		}
@@ -194,9 +194,9 @@ class SP_Sync_Manager {
 			foreach ( $response->items as $post ) {
 				// Status should be 200 or 201, depending on if we're updating or creating respectively
 				if ( ! isset( $post->index->status ) ) {
-					$sync_meta->log( new WP_Error( 'warning', __( "Error indexing post {$post->index->_id}; Response: " . json_encode( $post ), 'searchpress' ), $post ) );
+					$sync_meta->log( new WP_Error( 'warning', sprintf( __( 'Error indexing post %1$s; Response: %2$s', 'searchpress' ), $post->index->_id, json_encode( $post ) ), $post ) );
 				} elseif ( ! in_array( $post->index->status, array( 200, 201 ) ) ) {
-					$sync_meta->log( new WP_Error( 'warning', __( "Error indexing post {$post->index->_id}; HTTP response code: {$post->index->status}", 'searchpress' ), $post ) );
+					$sync_meta->log( new WP_Error( 'warning', sprintf( __( 'Error indexing post %1$s; HTTP response code: %2$s', 'searchpress' ), $post->index->_id, $post->index->status ), $post ) );
 				} else {
 					$sync_meta->success++;
 				}
