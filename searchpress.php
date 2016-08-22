@@ -29,7 +29,7 @@ if ( ! defined( 'SP_PLUGIN_URL' ) ) {
 	define( 'SP_PLUGIN_URL', plugins_url( '/', __FILE__ ) );
 }
 if ( ! defined( 'SP_PLUGIN_DIR' ) ) {
-	define( 'SP_PLUGIN_DIR', __DIR__ );
+	define( 'SP_PLUGIN_DIR', dirname( __FILE__ ) );
 }
 
 // Constants, etc.
