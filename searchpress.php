@@ -76,3 +76,5 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 if ( defined( 'SP_DEBUG' ) && SP_DEBUG ) {
     include SP_PLUGIN_DIR . '/lib/class-sp-debug.php';
 }
+
+do_action( 'searchpress_loaded' );
