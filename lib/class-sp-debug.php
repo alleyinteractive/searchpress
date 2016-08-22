@@ -13,19 +13,21 @@ class SP_Debug {
 	}
 
 	public static function debug( $action, $value = null ) {
-		if ( is_array( $value ) || is_object( $value ) )
+		if ( is_array( $value ) || is_object( $value ) ) {
 			$value = json_encode( $value );
-		elseif ( is_bool( $value ) )
+		} elseif ( is_bool( $value ) ) {
 			$value = true === $value ? '(bool) true' : '(bool) false';
-		elseif ( is_null( $value ) )
+		} elseif ( is_null( $value ) ) {
 			$value = '(null)';
+		}
 
 		SP_Sync_Meta()->log( new WP_Error( 'debug', "SP_Debug.$action (@" . self::split() . ") : $value" ) );
 	}
 
 	public static function is_cli() {
-		if ( null === self::$is_cli )
+		if ( null === self::$is_cli ) {
 			self::$is_cli = ( defined( 'WP_CLI' ) && WP_CLI );
+		}
 		return self::$is_cli;
 	}
 
