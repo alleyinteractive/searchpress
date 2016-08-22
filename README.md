@@ -32,7 +32,7 @@ Setup
 Changelog
 ---------
 
-### 0.2-alpha
+### 0.2
 
 * Adds unit testing
 * Significant updates to mapping *(breaking change)*
@@ -41,6 +41,9 @@ Changelog
 * Adds support for ES 1.0+ *(breaking change)*
 * Refactors search *(breaking change)*
 * Removes SP_Config::unserialize_meta()
+* Adds Heartbeat to automatically disable the integration if ES goes away
+* Update to latest WP Coding Standards
+* Assorted bug fixes
 
 
 ### 0.1
