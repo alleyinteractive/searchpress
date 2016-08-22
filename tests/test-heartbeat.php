@@ -61,7 +61,7 @@ class Tests_Heartbeat extends WP_UnitTestCase {
 		$this->assertLessThan( $was_scheduled, wp_next_scheduled( 'sp_heartbeat' ) );
 	}
 
-	function test_heartbeat_decreases_frequency_after_error() {
+	function test_heartbeat_decreases_frequency_after_error_resolved() {
 		SP_Heartbeat()->record_pulse();
 		$was_scheduled = wp_next_scheduled( 'sp_heartbeat' );
 
