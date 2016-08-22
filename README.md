@@ -13,11 +13,11 @@ Each stable release will be tagged and you'll be able to [download that release 
 `master` should be considered alpha/pre-release and should not be used in production environments. `master` will only ever contain stable code (as illustrated by Travis CI), but it's likely that things in master will change.
 
 
-
-Pre-requisites
---------------
+Prerequisites
+-------------
 
 * [elasticsearch](http://elasticsearch.org/)
+* PHP 5.3+
 
 
 Setup

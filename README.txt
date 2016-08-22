@@ -15,6 +15,11 @@ This plugin indexes your content in Elasticsearch, replaces WordPress' core sear
 with Elasticsearch, and provides an API for custom queries against the Elasticsearch
 server.
 
+== Prerequisites ==
+
+* PHP 5.3+
+* Elasticsearch
+
 == Installation ==
 
 1. Upload to the `/wp-content/plugins/` directory
