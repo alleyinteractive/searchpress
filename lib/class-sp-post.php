@@ -144,7 +144,6 @@ class SP_Post {
 	 * @return array
 	 */
 	public static function cast_meta_types( $value ) {
-		$value = (string) $value;
 		$return = array(
 			'value'   => $value,
 			'raw'     => $value,
@@ -159,7 +158,7 @@ class SP_Post {
 
 			// If this is an integer (represented as a string), check to see if
 			// it is a valid timestamp
-			if ( (string) $int === $value ) {
+			if ( (string) $int === (string) $value ) {
 				$year = intval( date( 'Y', $int ) );
 				// Ensure that the year is between 1-2038. Technically, the year
 				// range ES allows is 1-292278993, but PHP ints limit us to 2038.
