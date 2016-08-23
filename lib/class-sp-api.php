@@ -118,7 +118,8 @@ class SP_API {
 
 	public function parse_url( $url = '' ) {
 		if ( is_string( $url ) && preg_match( '#^https?://#i', $url ) ) {
-			return $url; }
+			return $url;
+		}
 
 		$defaults = array(
 			'host'  => $this->host,
@@ -126,10 +127,12 @@ class SP_API {
 		);
 
 		if ( ! $url ) {
-			$url = array(); }
+			$url = array();
+		}
 
 		if ( ! is_array( $url ) ) {
-			$url = array( 'action' => $url ); }
+			$url = array( 'action' => $url );
+		}
 
 		$url = wp_parse_args( $url, $defaults );
 		$formatted_url = $url['host'];
