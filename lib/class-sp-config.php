@@ -4,8 +4,6 @@
  * SearchPress configuration
  */
 
-if ( !class_exists( 'SP_Config' ) ) :
-
 class SP_Config {
 
 	private static $instance;
@@ -22,16 +20,6 @@ class SP_Config {
 	/**
 	 * @codeCoverageIgnore
 	 */
-	public function __clone() { wp_die( "Please don't __clone SP_Config" ); }
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	public function __wakeup() { wp_die( "Please don't __wakeup SP_Config" ); }
-
-	/**
-	 * @codeCoverageIgnore
-	 */
 	public static function instance() {
 		if ( ! isset( self::$instance ) ) {
 			self::$instance = new SP_Config;
@@ -44,7 +32,7 @@ class SP_Config {
 	 * @codeCoverageIgnore
 	 */
 	public function setup() {
-		# initialize anything for the singleton here
+		// initialize anything for the singleton here
 	}
 
 
@@ -61,78 +49,63 @@ class SP_Config {
 	public function create_mapping() {
 		$mapping = array(
 			'settings' => array(
-				# 'index' => array(
-				# 	'number_of_replicas' => 1,
-				# 	'number_of_shards' => 1
-				# ),
 				'analysis' => array(
 					'analyzer' => array(
 						'default' => array(
 							'tokenizer' => 'standard',
-							'filter' => array( 'standard', 'sp_word_delimiter', 'lowercase', 'stop', "sp_snowball" ),
-							'language' => 'English'
+							'filter' => array( 'standard', 'sp_word_delimiter', 'lowercase', 'stop', 'sp_snowball' ),
+							'language' => 'English',
 						),
-						# 'autocomplete' => array(
-						# 	'tokenizer' => 'lowercase',
-						# 	'filter' => array( 'edge_ngram' )
-						# )
 					),
 					'filter' => array(
 						'sp_word_delimiter' => array( 'type' => 'word_delimiter', 'preserve_original' => true ),
 						'sp_snowball' => array( 'type' => 'snowball', 'language' => 'English' ),
-					# 	'edge_ngram' => array(
-					# 		'side' => 'front',
-					# 		'max_gram' => 10,
-					# 		'min_gram' => 3,
-					# 		'type' => 'edgeNGram'
-					# 	)
-					)
-				)
+					),
+				),
 			),
-			# 'index' => array( 'query' => 'default_field' )
 			'mappings' => array(
 				'post' => array(
-					"date_detection" => false,
-					"dynamic_templates" => array(
+					'date_detection' => false,
+					'dynamic_templates' => array(
 						array(
-							"template_meta" => array(
-								"path_match" => "post_meta.*",
-								"mapping" => array(
-									"type" => "object",
-									"properties" => array(
-										"value" => array( "type" => "string" ),
-										"raw" => array( "type" => "string", "index" => "not_analyzed", 'include_in_all' => false ),
+							'template_meta' => array(
+								'path_match' => 'post_meta.*',
+								'mapping' => array(
+									'type' => 'object',
+									'properties' => array(
+										'value' => array( 'type' => 'string' ),
+										'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
 										'long' => array( 'type' => 'long' ),
 										'double' => array( 'type' => 'double' ),
 										'boolean' => array( 'type' => 'boolean' ),
 										'date' => array( 'type' => 'date', 'format' => 'YYYY-MM-dd' ),
 										'datetime' => array( 'type' => 'date', 'format' => 'YYYY-MM-dd HH:mm:ss' ),
-										'time' => array( 'type' => 'date', 'format' => 'HH:mm:ss' )
-									)
-								)
-							)
+										'time' => array( 'type' => 'date', 'format' => 'HH:mm:ss' ),
+									),
+								),
+							),
 						),
 						array(
-							"template_terms" => array(
-								"path_match" => "terms.*",
-								"mapping" => array(
-									"type" => "object",
-									"properties" => array(
-										"name" => array(
+							'template_terms' => array(
+								'path_match' => 'terms.*',
+								'mapping' => array(
+									'type' => 'object',
+									'properties' => array(
+										'name' => array(
 											'type' => 'string',
 											'fields' => array(
-												'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false )
-											)
+												'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
+											),
 										),
-										"term_id" => array( "type" => "long" ),
-										"parent" => array( "type" => "long" ),
-										"slug" => array( "type" => "string", "index" => "not_analyzed" )
-									)
-								)
-							)
-						)
+										'term_id' => array( 'type' => 'long' ),
+										'parent' => array( 'type' => 'long' ),
+										'slug' => array( 'type' => 'string', 'index' => 'not_analyzed' ),
+									),
+								),
+							),
+						),
 					),
-					"_all" => array( "analyzer" => "simple" ),
+					'_all' => array( 'analyzer' => 'simple' ),
 					'properties' => array(
 						'post_id'     => array( 'type' => 'long', 'include_in_all' => false ),
 						'post_author' => array(
@@ -141,8 +114,8 @@ class SP_Config {
 								'user_id'       => array( 'type' => 'long', 'include_in_all' => false ),
 								'display_name'  => array( 'type' => 'string' ),
 								'login'         => array( 'type' => 'string', 'index' => 'not_analyzed' ),
-								'user_nicename' => array( 'type' => 'string', 'index' => 'not_analyzed' )
-							)
+								'user_nicename' => array( 'type' => 'string', 'index' => 'not_analyzed' ),
+							),
 						),
 						'post_date' => array(
 							'type' => 'object',
@@ -219,8 +192,8 @@ class SP_Config {
 						'post_title' => array(
 							'type' => 'string',
 							'fields' => array(
-								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false )
-							)
+								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
+							),
 						),
 						'post_excerpt' => array( 'type' => 'string' ),
 						'post_content' => array( 'type' => 'string' ),
@@ -228,25 +201,25 @@ class SP_Config {
 						'post_name' => array(
 							'type' => 'string',
 							'fields' => array(
-								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false )
-							)
+								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
+							),
 						),
 						'post_parent' => array( 'type' => 'long', 'include_in_all' => false ),
 						'post_type' => array(
 							'type' => 'string',
 							'fields' => array(
-								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false )
-							)
+								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
+							),
 						),
 						'post_mime_type' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
 						'post_password' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
 						'menu_order' => array( 'type' => 'integer' ),
 						'permalink' => array( 'type' => 'string' ),
-						'terms' => array( "type" => "object" ),
-						'post_meta' => array( 'type' => 'object' )
-					)
-				)
-			)
+						'terms' => array( 'type' => 'object' ),
+						'post_meta' => array( 'type' => 'object' ),
+					),
+				),
+			),
 		);
 		$mapping = apply_filters( 'sp_config_mapping', $mapping );
 		return SP_API()->put( '', json_encode( $mapping ) );
@@ -264,7 +237,7 @@ class SP_Config {
 			'host'      => 'http://localhost:9200',
 			'must_init' => true,
 			'active'    => false,
-			'last_beat' => false
+			'last_beat' => false,
 		) );
 		return $this->settings;
 	}
@@ -290,11 +263,8 @@ class SP_Config {
 		$this->settings = wp_parse_args( $new_settings, $this->settings );
 		update_option( 'sp_settings', $this->settings );
 	}
-
 }
 
 function SP_Config() {
 	return SP_Config::instance();
 }
-
-endif;

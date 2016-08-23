@@ -1,9 +1,9 @@
 === SearchPress ===
-Contributors: mboynes,alleyinteractive
-Tags: comments, spam
+Contributors: mboynes, alleyinteractive
+Tags: search, elasticsearch, faceted search, performance
 Requires at least: 3.8
 Tested up to: 3.8
-Stable tag: 0.1
+Stable tag: 0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -11,7 +11,14 @@ Elasticsearch plugin for WordPress.
 
 == Description ==
 
-This plugin replaces WordPress' core search with Elasticsearch.
+This plugin indexes your content in Elasticsearch, replaces WordPress' core search
+with Elasticsearch, and provides an API for custom queries against the Elasticsearch
+server.
+
+== Prerequisites ==
+
+* PHP 5.3+
+* Elasticsearch
 
 == Installation ==
 

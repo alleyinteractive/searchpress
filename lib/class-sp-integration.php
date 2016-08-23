@@ -27,8 +27,6 @@
  * http://www.gnu.org/licenses/gpl-2.0.html
  */
 
-if ( !class_exists( 'SP_Integration' ) ) :
-
 class SP_Integration {
 
 	protected $do_found_posts;
@@ -47,16 +45,6 @@ class SP_Integration {
 	private function __construct() {
 		/* Don't do anything, needs to be initialized via instance() method */
 	}
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	public function __clone() { wp_die( "Please don't __clone SP_Integration" ); }
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	public function __wakeup() { wp_die( "Please don't __wakeup SP_Integration" ); }
 
 	/**
 	 * @codeCoverageIgnore
@@ -285,7 +273,6 @@ class SP_Integration {
 			$es_wp_query_args['date_range']['field'] = 'post_date';
 		}
 
-
 		/** Ordering */
 		// Set results sorting
 		if ( $orderby = $query->get( 'orderby' ) ) {
@@ -300,7 +287,6 @@ class SP_Integration {
 				$es_wp_query_args['order'] = $order;
 			}
 		}
-
 
 		// Facets
 		if ( ! empty( $this->facets ) ) {
@@ -345,7 +331,7 @@ class SP_Integration {
 		if ( $query->get( 'post_type' ) && 'any' != $query->get( 'post_type' ) ) {
 			$post_types = (array) $query->get( 'post_type' );
 		} elseif ( ! empty( $_GET['post_type'] ) ) {
-			$post_types = explode( ',', $_GET['post_type'] );
+			$post_types = explode( ',', sanitize_text_field( $_GET['post_type'] ) );
 		} else {
 			$post_types = false;
 		}
@@ -367,12 +353,9 @@ class SP_Integration {
 
 		return $vars;
 	}
-
 }
 
 function SP_Integration() {
 	return SP_Integration::instance();
 }
 add_action( 'after_setup_theme', 'SP_Integration' );
-
-endif;

@@ -113,7 +113,7 @@ class SP_WP_Search extends SP_Search {
 			'offset'         => null,
 			'paged'          => 1,
 			'facets'         => null,
-			'fields'         => array( 'post_id' )
+			'fields'         => array( 'post_id' ),
 		);
 
 		$args = wp_parse_args( $args, $defaults );
@@ -143,7 +143,7 @@ class SP_WP_Search extends SP_Search {
 
 		// Post type
 		if ( ! empty( $args['post_type'] ) ) {
-			if ( 'any' == $args['post_type'] ) {
+			if ( 'any' === $args['post_type'] ) {
 				$args['post_type'] = sp_searchable_post_types();
 			}
 			$filters[] = array( 'terms' => array( 'post_type.raw' => (array) $args['post_type'] ) );
@@ -184,14 +184,16 @@ class SP_WP_Search extends SP_Search {
 				if ( count( $terms ) ) {
 					$tax_fld = 'terms.' . $tax . '.slug';
 					foreach ( $terms as $term ) {
-						if ( 'and' == $comp )
+						if ( 'and' === $comp ) {
 							$filters[] = array( 'term' => array( $tax_fld => $term ) );
-						else
+						} else {
 							$or[] = array( 'term' => array( $tax_fld => $term ) );
+						}
 					}
 
-					if ( 'or' == $comp )
+					if ( 'or' === $comp ) {
 						$filters[] = array( 'or' => $or );
+					}
 				}
 			}
 		}
@@ -205,12 +207,16 @@ class SP_WP_Search extends SP_Search {
 		//  todo: add fuzzy searching to correct for spelling mistakes
 		//  todo: boost title, tag, and category matches
 		if ( ! empty( $args['query'] ) ) {
-			$multi_match = array( array( 'multi_match' => array(
-				'query'    => $args['query'],
-				'fields'   => $args['query_fields'],
-				'type'     => 'cross_fields',
-				'operator' => 'and'
-			) ) );
+			$multi_match = array(
+				array(
+					'multi_match' => array(
+						'query'    => $args['query'],
+						'fields'   => $args['query_fields'],
+						'type'     => 'cross_fields',
+						'operator' => 'and',
+					),
+				),
+			);
 
 			$es_query_args['query']['bool']['must'] = $multi_match;
 
@@ -224,12 +230,12 @@ class SP_WP_Search extends SP_Search {
 		// Ordering
 		$es_query_args['sort'] = array();
 		if ( is_string( $args['orderby'] ) ) {
-			$args['order'] = ( 'asc' == strtolower( $args['order'] ) ) ? 'asc' : 'desc';
+			$args['order'] = ( 'asc' === strtolower( $args['order'] ) ) ? 'asc' : 'desc';
 			$args['orderby'] = array( $args['orderby'] => $args['order'] );
 		}
 
 		foreach ( (array) $args['orderby'] as $orderby => $order ) {
-			$order = ( 'asc' == strtolower( $order ) ) ? 'asc' : 'desc';
+			$order = ( 'asc' === strtolower( $order ) ) ? 'asc' : 'desc';
 			// Translate orderby from WP field to ES field
 			switch ( strtolower( $orderby ) ) {
 				case 'relevance' :
@@ -311,8 +317,8 @@ class SP_WP_Search extends SP_Search {
 					}
 					$es_query_args['query'] = array(
 						'filtered' => array(
-							'filter' => $es_query_args['filter']
-						)
+							'filter' => $es_query_args['filter'],
+						),
 					);
 					unset( $es_query_args['filter'] );
 					if ( ! empty( $es_query ) ) {
@@ -381,7 +387,7 @@ class SP_WP_Search extends SP_Search {
 			$facet_data[ $label ]['items'] = array();
 
 			// All taxonomy terms are going to have the same query_var
-			if( 'taxonomy' == $this->facets[ $label ]['type'] ) {
+			if ( 'taxonomy' === $this->facets[ $label ]['type'] ) {
 				$tax_query_var = $this->get_taxonomy_query_var( $this->facets[ $label ]['taxonomy'] );
 
 				if ( ! $tax_query_var ) {
@@ -510,5 +516,4 @@ class SP_WP_Search extends SP_Search {
 
 		return $taxonomy->query_var;
 	}
-
 }
