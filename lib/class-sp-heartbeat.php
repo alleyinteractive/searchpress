@@ -4,8 +4,6 @@
  * Lub dub. Lub dub.
  */
 
-if ( !class_exists( 'SP_Heartbeat' ) ) :
-
 class SP_Heartbeat {
 
 	/**
@@ -55,10 +53,6 @@ class SP_Heartbeat {
 	private function __construct() {
 		/* Don't do anything, needs to be initialized via instance() method */
 	}
-
-	public function __clone() { wp_die( "Please don't __clone SP_Heartbeat" ); }
-
-	public function __wakeup() { wp_die( "Please don't __wakeup SP_Heartbeat" ); }
 
 	public static function instance() {
 		if ( ! isset( self::$instance ) ) {
@@ -221,5 +215,3 @@ function SP_Heartbeat() {
 	return SP_Heartbeat::instance();
 }
 add_action( 'after_setup_theme', 'SP_Heartbeat' );
-
-endif;
