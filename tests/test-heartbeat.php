@@ -137,5 +137,4 @@ class Tests_Heartbeat extends WP_UnitTestCase {
 		$this->assertFalse( $shutdown_ready );
 		$this->assertTrue( $ok_ready );
 	}
-
 }

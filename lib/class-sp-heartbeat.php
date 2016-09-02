@@ -13,10 +13,10 @@ class SP_Heartbeat {
 	private static $instance;
 
 	/**
-	 * What cluster status do we consider successful? Default is 'yellow'.
-	 * @var string
+	 * What cluster statuses do we consider successful? Default is ['yellow', 'green'].
+	 * @var array
 	 */
-	public $healthy_status = 'yellow';
+	public $healthy_statuses = array( 'yellow', 'green' );
 
 	/**
 	 * Store the intervals at which the heartbeat gets scheduled.
@@ -93,7 +93,7 @@ class SP_Heartbeat {
 		// Ensure we only check the beat once per request
 		if ( $force || ! isset( $this->beat_result ) ) {
 			$health = SP_API()->cluster_health();
-			$this->beat_result = ( ! empty( $health->status ) && $health->status == $this->healthy_status );
+			$this->beat_result = ( ! empty( $health->status ) && in_array( $health->status, $this->healthy_statuses ) );
 			if ( $this->beat_result ) {
 				$this->record_pulse();
 			} else {
