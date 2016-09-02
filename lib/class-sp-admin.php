@@ -282,15 +282,15 @@ class SP_Admin {
 				esc_url( admin_url( 'tools.php?page=searchpress' ) ),
 				esc_html__( 'Go to SearchPress Settings', 'searchpress' )
 			);
-		} elseif ( 'ok' != ( $heartbeat_status = SP_Heartbeat()->get_status() ) ) {
+		} elseif ( 'ok' !== ( $heartbeat_status = SP_Heartbeat()->get_status() ) ) {
 			$message_escaped = esc_html__( 'SearchPress cannot reach the Elasticsearch server!', 'searchpress' );
-			if ( 'never' == $heartbeat_status && ! $this->is_settings_page() ) {
+			if ( 'never' === $heartbeat_status && ! $this->is_settings_page() ) {
 				$message_escaped .= sprintf(
 					' <a href="%s">%s</a>',
 					esc_url( admin_url( 'tools.php?page=searchpress' ) ),
 					esc_html__( 'Check the server URL on the SearchPress settings page', 'searchpress' )
 				);
-			} else {
+			} elseif ( 'never' !== $heartbeat_status ) {
 				$message_escaped .= ' ' . sprintf( esc_html__( 'The Elasticsearch server was last seen %s ago.', 'searchpress' ), human_time_diff( SP_Heartbeat()->get_last_beat(), time() ) );
 			}
 			if ( 'shutdown' == $heartbeat_status ) {
