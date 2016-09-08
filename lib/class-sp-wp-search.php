@@ -305,6 +305,17 @@ class SP_WP_Search extends SP_Search {
 						);
 
 						break;
+
+					case 'author':
+						$es_query_args['aggs'][ $label ] = array(
+							'terms' => array(
+								'field' => $facet['field'],
+								'size' => $facet['count'],
+							),
+						);
+
+						break;
+
 				}
 			}
 
