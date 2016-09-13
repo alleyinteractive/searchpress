@@ -61,6 +61,7 @@ class Tests_Faceting extends WP_UnitTestCase {
 			'facets' => array(
 				'Tag'       => array( 'type' => 'taxonomy', 'taxonomy' => 'post_tag', 'count' => 10 ),
 				'Post Type' => array( 'type' => 'post_type', 'count' => 10 ),
+				'Author'    => array( 'type' => 'author', 'count' => 10 ),
 				'Histogram' => array( 'type' => 'date_histogram', 'interval' => 'year', 'count' => 10 ),
 			 ),
 		) );
@@ -69,6 +70,7 @@ class Tests_Faceting extends WP_UnitTestCase {
 		$this->assertNotEmpty( $facets );
 		$this->assertNotEmpty( $facets['Tag']['buckets'] );
 		$this->assertNotEmpty( $facets['Post Type']['buckets'] );
+		$this->assertNotEmpty( $facets['Author']['buckets'] );
 		$this->assertNotEmpty( $facets['Histogram']['buckets'] );
 	}
 
