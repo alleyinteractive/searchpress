@@ -466,7 +466,7 @@ class SP_WP_Search extends SP_Search {
 							}
 
 							$name = $user->display_name;
-							$query_vars = array( 'author' => $item['key'] );
+							$query_vars = 'author';
 
 							break;
 
