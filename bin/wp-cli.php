@@ -180,11 +180,11 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 
 		$timestamp_start = microtime( true );
 
-		if ( $assoc_args['flush'] ) {
+		if ( ! empty( $assoc_args['flush'] ) && $assoc_args['flush'] ) {
 			$this->flush();
 		}
 
-		if ( $assoc_args['put-mapping'] ) {
+		if ( ! empty( $assoc_args['put-mapping'] ) && $assoc_args['put-mapping'] ) {
 			$this->put_mapping();
 		}
 
