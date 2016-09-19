@@ -246,7 +246,7 @@ class SP_Post {
 
 		$query = "SELECT t.*, tt.* FROM {$wpdb->terms} AS t INNER JOIN {$wpdb->term_taxonomy} AS tt ON tt.term_id = t.term_id INNER JOIN {$wpdb->term_relationships} AS tr ON tr.term_taxonomy_id = tt.term_taxonomy_id WHERE tt.taxonomy IN (" . implode( ', ', array_fill( 0, count( $taxonomies ), '%s' ) ) . ') AND tr.object_id = %d ORDER BY t.term_id';
 
-		$params = array_merge( $taxonomies, array( $post->ID ) );
+		$params = array_merge( array( $query ), $taxonomies, array( $post->ID ) );
 
 		$object_terms = $wpdb->get_results( call_user_func_array( array( $wpdb, 'prepare' ), $params ) ); // WPCS: db call ok. WPCS: cache ok. WPCS: unprepared SQL ok.
 
