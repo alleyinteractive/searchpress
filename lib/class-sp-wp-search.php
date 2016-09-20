@@ -277,7 +277,7 @@ class SP_WP_Search extends SP_Search {
 				switch ( $facet['type'] ) {
 
 					case 'taxonomy':
-						$es_query_args['aggs'][ $label ] = array(
+						$es_query_args['aggregations'][ $label ] = array(
 							'terms' => array(
 								'field' => "terms.{$facet['taxonomy']}.slug",
 								'size' => $facet['count'],
@@ -287,7 +287,7 @@ class SP_WP_Search extends SP_Search {
 						break;
 
 					case 'post_type':
-						$es_query_args['aggs'][ $label ] = array(
+						$es_query_args['aggregations'][ $label ] = array(
 							'terms' => array(
 								'field' => 'post_type',
 								'size' => $facet['count'],
@@ -297,7 +297,7 @@ class SP_WP_Search extends SP_Search {
 						break;
 
 					case 'date_histogram':
-						$es_query_args['aggs'][ $label ] = array(
+						$es_query_args['aggregations'][ $label ] = array(
 							'date_histogram' => array(
 								'interval' => $facet['interval'],
 								'field'    => ! empty( $facet['field'] ) ? "{$facet['field']}.date" : 'post_date.date',
@@ -307,7 +307,7 @@ class SP_WP_Search extends SP_Search {
 						break;
 
 					case 'author':
-						$es_query_args['aggs'][ $label ] = array(
+						$es_query_args['aggregations'][ $label ] = array(
 							'terms' => array(
 								'field' => 'post_author.login',
 								'size' => $facet['count'],
@@ -321,7 +321,7 @@ class SP_WP_Search extends SP_Search {
 
 			// If we have facets, we need to move our filters to a filtered
 			// query, or else they won't have an effect on the facets.
-			if ( ! empty( $es_query_args['aggs'] ) ) {
+			if ( ! empty( $es_query_args['aggregations'] ) ) {
 				if ( ! empty( $es_query_args['filter'] ) ) {
 					if ( ! empty( $es_query_args['query'] ) ) {
 						$es_query = $es_query_args['query'];
