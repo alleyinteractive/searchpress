@@ -306,15 +306,15 @@ class SP_WP_Search extends SP_Search {
 
 						break;
 
-					// case 'author':
-					// 	$es_query_args['aggs'][ $label ] = array(
-					// 		'terms' => array(
-					// 			'field' => 'post_author.login',
-					// 			'size' => $facet['count'],
-					// 		),
-					// 	);
+					case 'author':
+						$es_query_args['aggs'][ $label ] = array(
+							'terms' => array(
+								'field' => 'post_author.login',
+								'size' => $facet['count'],
+							),
+						);
 
-					// 	break;
+						break;
 
 				}
 			}
@@ -460,17 +460,17 @@ class SP_WP_Search extends SP_Search {
 
 							break;
 
-						// case 'author':
-						// 	$user = get_user_by( 'login', $item['key'] );
+						case 'author':
+							$user = get_user_by( 'login', $item['key'] );
 
-						// 	if ( ! $user ) {
-						// 		continue 2;
-						// 	}
+							if ( ! $user ) {
+								continue 2;
+							}
 
-						// 	$name = $user->display_name;
-						// 	$query_vars = array( 'author' => $user->ID );
+							$name = $user->display_name;
+							$query_vars = array( 'author' => $user->ID );
 
-						// 	break;
+							break;
 
 						case 'date_histogram':
 							$timestamp = $item['key'] / 1000;
