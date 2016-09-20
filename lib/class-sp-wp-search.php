@@ -413,8 +413,6 @@ class SP_WP_Search extends SP_Search {
 				$items = (array) $facet['buckets'];
 			}
 
-			print_r( $items );
-
 			// Some facet types like date_histogram don't support the max results parameter
 			if ( count( $items ) > $this->facets[ $label ]['count'] ) {
 				$items = array_slice( $items, 0, $this->facets[ $label ]['count'] );
