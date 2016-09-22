@@ -10,6 +10,13 @@ class Tests_Faceting extends WP_UnitTestCase {
 
 		sp_index_flush_data();
 
+		$author_a = $this->factory->user->create( array( 'user_login' => 'author_a', 'user_pass' => rand_str(), 'role' => 'author' ) );
+		$post_author_a_1 = $this->factory->post->create( array( 'post_title' => rand_str(), 'post_author' => $author_a, 'post_date' => '2007-01-04 00:00:00' ) );
+		$post_author_a_2 = $this->factory->post->create( array( 'post_title' => rand_str(), 'post_author' => $author_a, 'post_date' => '2007-01-05 00:00:00' ) );
+
+		$author_b = $this->factory->user->create( array( 'user_login' => 'author_b', 'user_pass' => rand_str(), 'role' => 'author' ) );
+		$post_author_b_1 = $this->factory->post->create( array( 'post_title' => rand_str(), 'post_author' => $author_b, 'post_date' => '2007-01-03 00:00:00' ) );
+
 		$cat_a = $this->factory->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-a' ) );
 		$cat_b = $this->factory->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-b' ) );
 		$cat_c = $this->factory->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-c' ) );
@@ -61,6 +68,7 @@ class Tests_Faceting extends WP_UnitTestCase {
 			'facets' => array(
 				'Tag'       => array( 'type' => 'taxonomy', 'taxonomy' => 'post_tag', 'count' => 10 ),
 				'Post Type' => array( 'type' => 'post_type', 'count' => 10 ),
+				'Author'    => array( 'type' => 'author', 'count' => 10 ),
 				'Histogram' => array( 'type' => 'date_histogram', 'interval' => 'year', 'count' => 10 ),
 			 ),
 		) );
@@ -69,6 +77,7 @@ class Tests_Faceting extends WP_UnitTestCase {
 		$this->assertNotEmpty( $facets );
 		$this->assertNotEmpty( $facets['Tag']['buckets'] );
 		$this->assertNotEmpty( $facets['Post Type']['buckets'] );
+		$this->assertNotEmpty( $facets['Author']['buckets'] );
 		$this->assertNotEmpty( $facets['Histogram']['buckets'] );
 	}
 
@@ -100,7 +109,7 @@ class Tests_Faceting extends WP_UnitTestCase {
 		// Post Type
 		$this->assertEquals( 'Post', $facet_data['Post Type']['items'][0]['name'] );
 		$this->assertEquals( 'Page', $facet_data['Post Type']['items'][1]['name'] );
-		$this->assertEquals( 27, $facet_data['Post Type']['items'][0]['count'] );
+		$this->assertEquals( 30, $facet_data['Post Type']['items'][0]['count'] );
 		$this->assertEquals( 7, $facet_data['Post Type']['items'][1]['count'] );
 		$this->assertEquals( array( 'post_type' => 'post' ), $facet_data['Post Type']['items'][0]['query_vars'] );
 		$this->assertEquals( array( 'post_type' => 'page' ), $facet_data['Post Type']['items'][1]['query_vars'] );
@@ -138,7 +147,7 @@ class Tests_Faceting extends WP_UnitTestCase {
 		$this->assertEquals( '2008', $facet_data['Year']['items'][1]['name'] );
 		$this->assertEquals( '2009', $facet_data['Year']['items'][2]['name'] );
 		$this->assertEquals( '2010', $facet_data['Year']['items'][3]['name'] );
-		$this->assertEquals( 7, $facet_data['Year']['items'][0]['count'] );
+		$this->assertEquals( 10, $facet_data['Year']['items'][0]['count'] );
 		$this->assertEquals( 1, $facet_data['Year']['items'][1]['count'] );
 		$this->assertEquals( 13, $facet_data['Year']['items'][2]['count'] );
 		$this->assertEquals( 13, $facet_data['Year']['items'][3]['count'] );
@@ -148,11 +157,28 @@ class Tests_Faceting extends WP_UnitTestCase {
 		$this->assertEquals( array( 'year' => '2010' ), $facet_data['Year']['items'][3]['query_vars'] );
 
 		$this->assertEquals( 'January 2007', $facet_data['Month']['items'][0]['name'] );
-		$this->assertEquals( 7, $facet_data['Month']['items'][0]['count'] );
+		$this->assertEquals( 10, $facet_data['Month']['items'][0]['count'] );
 		$this->assertEquals( array( 'year' => '2007', 'monthnum' => 1 ), $facet_data['Month']['items'][0]['query_vars'] );
 
 		$this->assertEquals( 'January 1, 2007', $facet_data['Day']['items'][0]['name'] );
 		$this->assertEquals( 7, $facet_data['Day']['items'][0]['count'] );
 		$this->assertEquals( array( 'year' => '2007', 'monthnum' => 1, 'day' => 1 ), $facet_data['Day']['items'][0]['query_vars'] );
+	}
+
+	function test_author_facets() {
+		$s = new SP_WP_Search( array(
+			'post_type' => array( 'post', 'page' ),
+			'posts_per_page' => 0,
+			'facets' => array(
+				'Author'    => array( 'type' => 'author', 'count' => 10 ),
+			 ),
+		) );
+		$facet_data = $s->get_facet_data();
+
+		$this->assertEquals( 'author_a', $facet_data['Author']['items'][0]['name'] );
+		$this->assertEquals( 2, $facet_data['Author']['items'][0]['count'] );
+
+		$this->assertEquals( 'author_b', $facet_data['Author']['items'][1]['name'] );
+		$this->assertEquals( 1, $facet_data['Author']['items'][1]['count'] );
 	}
 }

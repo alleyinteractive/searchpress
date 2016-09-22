@@ -305,6 +305,17 @@ class SP_WP_Search extends SP_Search {
 						);
 
 						break;
+
+					case 'author':
+						$es_query_args['aggregations'][ $label ] = array(
+							'terms' => array(
+								'field' => 'post_author.login',
+								'size' => $facet['count'],
+							),
+						);
+
+						break;
+
 				}
 			}
 
@@ -444,6 +455,18 @@ class SP_WP_Search extends SP_Search {
 
 							$query_vars = array( 'post_type' => $item['key'] );
 							$name       = $post_type->labels->singular_name;
+
+							break;
+
+						case 'author':
+							$user = get_user_by( 'login', $item['key'] );
+
+							if ( ! $user ) {
+								continue 2;
+							}
+
+							$name = $user->display_name;
+							$query_vars = array( 'author' => $user->ID );
 
 							break;
 
