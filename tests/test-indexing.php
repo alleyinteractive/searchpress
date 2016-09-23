@@ -9,20 +9,17 @@ class Tests_Indexing extends WP_UnitTestCase {
 		parent::setUp();
 
 		sp_index_flush_data();
-		SP_Sync_Meta()->reset();
-		if ( $ts = wp_next_scheduled( 'sp_reindex' ) ) {
-			wp_unschedule_event( $ts, 'sp_reindex' );
-		}
+		wp_clear_scheduled_hook( 'sp_reindex' );
+		SP_Cron()->setup();
 	}
 
 	function tearDown() {
 		SP_Config()->update_settings( array( 'host' => 'http://localhost:9200', 'active' => true ) );
 		SP_API()->setup();
 		SP_Sync_Meta()->reset( 'save' );
+		SP_Sync_Manager()->published_posts = false;
 		sp_index_flush_data();
-		if ( $ts = wp_next_scheduled( 'sp_reindex' ) ) {
-			wp_unschedule_event( $ts, 'sp_reindex' );
-		}
+		wp_clear_scheduled_hook( 'sp_reindex' );
 	}
 
 	function search_and_get_field( $args, $field = 'post_name' ) {
@@ -122,10 +119,6 @@ class Tests_Indexing extends WP_UnitTestCase {
 	}
 
 	function test_cron_indexing() {
-		if ( $ts = wp_next_scheduled( 'sp_reindex' ) ) {
-			wp_unschedule_event( $ts, 'sp_reindex' );
-		}
-
 		$posts = array(
 			$this->factory->post->create( array( 'post_title' => 'test one' ) ),
 			$this->factory->post->create( array( 'post_title' => 'test two' ) ),
@@ -197,6 +190,7 @@ class Tests_Indexing extends WP_UnitTestCase {
 		SP_Sync_Meta()->bulk = 3;
 		SP_Sync_Meta()->save();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
+		$this->assertTrue( empty( SP_Sync_Meta()->messages['error'] ) );
 		$this->_fake_cron();
 
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
