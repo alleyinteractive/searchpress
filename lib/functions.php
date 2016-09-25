@@ -64,3 +64,14 @@ function sp_wp_search( $wp_args, $raw_result = false ) {
 	$s = new SP_WP_Search( $wp_args );
 	return $raw_result ? $s->get_results() : $s->get_posts();
 }
+
+/**
+ * To be used with the sp_cluster_health_uri filter, force SP to check the
+ * global cluster cluster health instead of the index's health. This is helpful
+ * when the index doesn't exist yet.
+ *
+ * @return string Always returns '/_cluster/health'.
+ */
+function sp_global_cluster_health() {
+	return '/_cluster/health';
+}

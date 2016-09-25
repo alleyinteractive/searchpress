@@ -44,6 +44,9 @@ require_once SP_PLUGIN_DIR . '/lib/class-sp-api.php';
 // Settings, mappings, etc. for ES
 require_once SP_PLUGIN_DIR . '/lib/class-sp-config.php';
 
+// Heartbeat
+require_once SP_PLUGIN_DIR . '/lib/class-sp-heartbeat.php';
+
 // An object wrapper that becomes the indexed ES documents
 require_once SP_PLUGIN_DIR . '/lib/class-sp-post.php';
 

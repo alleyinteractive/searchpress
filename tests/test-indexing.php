@@ -17,7 +17,6 @@ class Tests_Indexing extends WP_UnitTestCase {
 
 	function tearDown() {
 		SP_Config()->update_settings( array( 'host' => 'http://localhost:9200', 'active' => true ) );
-		SP_API()->setup();
 		SP_Sync_Meta()->reset( 'save' );
 		sp_index_flush_data();
 		if ( $ts = wp_next_scheduled( 'sp_reindex' ) ) {
@@ -157,13 +156,13 @@ class Tests_Indexing extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
-		$this->_fake_cron();
+		sp_tests_fake_cron();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
-		$this->_fake_cron();
+		sp_tests_fake_cron();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
-		$this->_fake_cron();
+		sp_tests_fake_cron();
 		$this->assertEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
 		SP_API()->post( '_refresh' );
@@ -190,14 +189,11 @@ class Tests_Indexing extends WP_UnitTestCase {
 
 		SP_Config()->update_settings( array( 'host' => 'http://localhost', 'active' => false ) );
 
-		// Because we changed the host, we have to re-init SP_API
-		SP_API()->setup();
-
 		SP_Sync_Manager()->do_cron_reindex();
 		SP_Sync_Meta()->bulk = 3;
 		SP_Sync_Meta()->save();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
-		$this->_fake_cron();
+		sp_tests_fake_cron();
 
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
 	}
@@ -220,23 +216,17 @@ class Tests_Indexing extends WP_UnitTestCase {
 		// This domain is used in unit tests, and we'll get a 404 from trying to use it with ES
 		SP_Config()->update_settings( array( 'host' => 'http://asdftestblog1.files.wordpress.com', 'active' => false ) );
 
-		// Because we changed the host, we have to re-init SP_API
-		SP_API()->setup();
-
 		SP_Sync_Manager()->do_cron_reindex();
 		SP_Sync_Meta()->bulk = 3;
 		SP_Sync_Meta()->save();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
-		$this->_fake_cron();
+		sp_tests_fake_cron();
 
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
 	}
 
 	function test_singular_index_invalid_response() {
 		SP_Config()->update_settings( array( 'host' => 'http://localhost', 'active' => true ) );
-
-		// Because we changed the host, we have to re-init SP_API
-		SP_API()->setup();
 
 		$posts = array(
 			$this->factory->post->create( array( 'post_title' => 'searchpress' ) ),
@@ -250,9 +240,6 @@ class Tests_Indexing extends WP_UnitTestCase {
 		// This domain is used in unit tests, and we'll get a 404 from trying to use it with ES
 		SP_Config()->update_settings( array( 'host' => 'http://asdftestblog1.files.wordpress.com', 'active' => true ) );
 
-		// Because we changed the host, we have to re-init SP_API
-		SP_API()->setup();
-
 		$posts = array(
 			$this->factory->post->create( array( 'post_title' => 'searchpress' ) ),
 		);
@@ -264,29 +251,4 @@ class Tests_Indexing extends WP_UnitTestCase {
 	// @todo Test updating terms
 	// @todo Test deleting terms
 
-	/**
-	 * Fakes a cron job
-	 */
-	function _fake_cron() {
-		$crons = _get_cron_array();
-		foreach ( $crons as $timestamp => $cronhooks ) {
-			foreach ( $cronhooks as $hook => $keys ) {
-				if ( substr( $hook, 0, 3 ) !== 'sp_' ) {
-					continue; // only run our own jobs.
-				}
-
-				foreach ( $keys as $k => $v ) {
-					$schedule = $v['schedule'];
-
-					if ( $schedule != false ) {
-						$new_args = array( $timestamp, $schedule, $hook, $v['args'] );
-						call_user_func_array( 'wp_reschedule_event', $new_args );
-					}
-
-					wp_unschedule_event( $timestamp, $hook, $v['args'] );
-					do_action_ref_array( $hook, $v['args'] );
-				}
-			}
-		}
-	}
 }
