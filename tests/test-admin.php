@@ -317,7 +317,7 @@ class Tests_Admin extends WP_UnitTestCase {
 		$this->expectOutputString( '' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		$_GET = array( 'page' => 'searchpress' );
-		SP_Sync_Meta()->running = true;
+		SP_Config()->update_settings( array( 'must_init' => true ) );
 		SP_Admin()->admin_notices();
 	}
 
@@ -329,7 +329,7 @@ class Tests_Admin extends WP_UnitTestCase {
 	}
 
 	public function test_admin_notices_has_errors() {
-		$this->expectOutputRegex( '/SearchPress encountered an error while syncing/' );
+		$this->expectOutputRegex( '/SearchPress encountered an error/' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		SP_Sync_Meta()->log( new WP_Error( 'error', 'Testing error notice' ) );
 		SP_Admin()->admin_notices();
