@@ -17,13 +17,7 @@ class SP_Sync_Manager {
 
 	private static $instance;
 
-	public $users = array();
-
-	public $sync_meta;
-
 	public $published_posts = false;
-	public $total_pages = 1;
-	public $batch_pages = 1;
 
 	/**
 	 * @codeCoverageIgnore
@@ -140,7 +134,6 @@ class SP_Sync_Manager {
 		do_action( 'sp_debug', '[SP_Sync_Manager] Queried Posts', $args );
 
 		$this->published_posts = $query->found_posts;
-		$this->batch_pages = $query->max_num_pages;
 
 		$indexed_posts = array();
 		foreach ( $posts as $post ) {
@@ -202,11 +195,11 @@ class SP_Sync_Manager {
 				}
 			}
 		}
-		$this->total_pages = ceil( $this->published_posts / $sync_meta->bulk );
+		$total_pages = ceil( $this->published_posts / $sync_meta->bulk );
 		$sync_meta->page++;
 
 		if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
-			if ( $sync_meta->processed >= $sync_meta->total || $sync_meta->page > $this->total_pages ) {
+			if ( $sync_meta->processed >= $sync_meta->total || $sync_meta->page > $total_pages ) {
 				SP_Config()->update_settings( array( 'active' => true ) );
 				$this->cancel_reindex();
 			} else {
