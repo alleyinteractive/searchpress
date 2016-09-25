@@ -50,10 +50,16 @@ class SP_Heartbeat {
 	 */
 	protected $last_beat;
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	private function __construct() {
 		/* Don't do anything, needs to be initialized via instance() method */
 	}
 
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public static function instance() {
 		if ( ! isset( self::$instance ) ) {
 			self::$instance = new SP_Heartbeat;
@@ -64,6 +70,8 @@ class SP_Heartbeat {
 
 	/**
 	 * Setup the singleton.
+	 *
+	 * @codeCoverageIgnore
 	 */
 	public function setup() {
 		$this->intervals = array(
@@ -173,6 +181,8 @@ class SP_Heartbeat {
 
 	/**
 	 * If no heartbeat is scheduled, schedule the default one.
+	 *
+	 * @codeCoverageIgnore
 	 */
 	protected function maybe_schedule_cron() {
 		if ( ! wp_next_scheduled( $this->cron_event ) ) {
