@@ -39,8 +39,10 @@ class Tests_Admin extends WP_UnitTestCase {
 		wp_set_current_user( $this->current_user );
 		SP_Config()->update_settings( $this->sp_settings );
 		SP_Sync_Manager()->published_posts = false;
-		wp_clear_scheduled_hook( 'sp_reindex' );
 		SP_Sync_Meta()->reset( 'save' );
+		SP_Heartbeat()->record_pulse();
+		wp_clear_scheduled_hook( 'sp_reindex' );
+		wp_clear_scheduled_hook( 'sp_heartbeat' );
 
 		// Restore current_screen.
 		$GLOBALS['current_screen'] = $this->old_screen;
@@ -225,6 +227,28 @@ class Tests_Admin extends WP_UnitTestCase {
 		}
 	}
 
+	public function test_trigger_full_sync_no_beat() {
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
+		$_POST = array(
+			'sp_sync_nonce' => wp_create_nonce( 'sp_sync' ),
+		);
+
+		// Kill the heartbeat
+		SP_Config()->update_settings( array( 'host' => 'http://asdftestblog1.files.wordpress.com' ) );
+		$beat_result = SP_Heartbeat()->check_beat( true );
+
+		/**
+		 * @see Tests_Admin::prevent_redirect() For how wp_die() is leveraged here.
+		 */
+		try {
+			SP_Admin()->full_sync();
+			$this->fail( 'Failed to trigger full sync' );
+		} catch ( WPDieException $e ) {
+			// Verify the redirect url
+			$this->assertSame( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_NO_BEAT ), $e->getMessage() );
+		}
+	}
+
 	/**
 	 * @expectedException WPDieException
 	 * @expectedExceptionMessage You do not have sufficient permissions to access this page.
@@ -335,8 +359,33 @@ class Tests_Admin extends WP_UnitTestCase {
 		SP_Admin()->admin_notices();
 	}
 
+	public function test_admin_notices_heartbeat_never() {
+		$this->expectOutputRegex( '/Check the server URL on the SearchPress settings page/' );
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
+		delete_option( 'sp_heartbeat' );
+		SP_Heartbeat()->get_last_beat( true );
+		SP_Admin()->admin_notices();
+	}
+
+	public function test_admin_notices_heartbeat_last_seen() {
+		$this->expectOutputRegex( '/The Elasticsearch server was last seen/' );
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
+		update_option( 'sp_heartbeat', time() - SP_Heartbeat()->thresholds['alert'] );
+		SP_Heartbeat()->get_last_beat( true );
+		SP_Admin()->admin_notices();
+	}
+
+	public function test_admin_notices_heartbeat_shutdown() {
+		$this->expectOutputRegex( '/SearchPress has deactivated itself/' );
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
+		update_option( 'sp_heartbeat', time() - SP_Heartbeat()->thresholds['shutdown'] );
+		SP_Heartbeat()->get_last_beat( true );
+		SP_Admin()->admin_notices();
+	}
+
 	public function test_errors() {
 		$this->assertSame( 'SearchPress could not flush the old data', SP_Admin()->get_error( SP_ERROR_FLUSH_FAIL ) );
+		$this->assertSame( 'SearchPress cannot reach the Elasticsearch server', SP_Admin()->get_error( SP_ERROR_NO_BEAT ) );
 		$this->assertSame( 'Unknown error', SP_Admin()->get_error( null ) );
 	}
 

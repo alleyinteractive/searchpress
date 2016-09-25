@@ -217,22 +217,22 @@ class SP_Admin {
 
 		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $_POST['sp_sync_nonce'] ), 'sp_sync' ) ) {
 			wp_die( 'You are not authorized to perform that action' );
-		} else {
-			SP_Config()->update_settings( array( 'must_init' => false, 'active' => false, 'last_beat' => false ) );
+		}
 
-			// The index may not exist yet, so use the global cluster health to check the heartbeat
-			add_filter( 'sp_cluster_health_uri', 'sp_global_cluster_health' );
-			if ( ! SP_Heartbeat()->check_beat() ) {
-				return $this->redirect( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_NO_BEAT ) );
+		SP_Config()->update_settings( array( 'must_init' => false, 'active' => false, 'last_beat' => false ) );
+
+		// The index may not exist yet, so use the global cluster health to check the heartbeat
+		add_filter( 'sp_cluster_health_uri', 'sp_global_cluster_health' );
+		if ( ! SP_Heartbeat()->check_beat() ) {
+			return $this->redirect( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_NO_BEAT ) );
+		} else {
+			$result = SP_Config()->flush();
+			if ( ! isset( SP_API()->last_request['response_code'] ) || ! in_array( SP_API()->last_request['response_code'], array( 200, 404 ) ) ) {
+				return $this->redirect( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_FLUSH_FAIL ) );
 			} else {
-				$result = SP_Config()->flush();
-				if ( ! isset( SP_API()->last_request['response_code'] ) || ! in_array( SP_API()->last_request['response_code'], array( 200, 404 ) ) ) {
-					return $this->redirect( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_FLUSH_FAIL ) );
-				} else {
-					SP_Config()->create_mapping();
-					SP_Sync_Manager()->do_cron_reindex();
-					return $this->redirect( admin_url( 'tools.php?page=searchpress' ) );
-				}
+				SP_Config()->create_mapping();
+				SP_Sync_Manager()->do_cron_reindex();
+				return $this->redirect( admin_url( 'tools.php?page=searchpress' ) );
 			}
 		}
 	}
@@ -244,10 +244,10 @@ class SP_Admin {
 
 		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $_POST['sp_sync_nonce'] ), 'sp_sync' ) ) {
 			wp_die( esc_html__( 'You are not authorized to perform that action', 'searchpress' ) );
-		} else {
-			SP_Sync_Manager()->cancel_reindex();
-			return $this->redirect( admin_url( 'tools.php?page=searchpress&cancel=1' ) );
 		}
+
+		SP_Sync_Manager()->cancel_reindex();
+		return $this->redirect( admin_url( 'tools.php?page=searchpress&cancel=1' ) );
 	}
 
 	public function clear_log() {
@@ -257,10 +257,10 @@ class SP_Admin {
 
 		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $_POST['sp_sync_nonce'] ), 'sp_flush_log_nonce' ) ) {
 			wp_die( esc_html__( 'You are not authorized to perform that action', 'searchpress' ) );
-		} else {
-			SP_Sync_Meta()->clear_log();
-			return $this->redirect( admin_url( 'tools.php?page=searchpress&clear_log=1' ) );
 		}
+
+		SP_Sync_Meta()->clear_log();
+		return $this->redirect( admin_url( 'tools.php?page=searchpress&clear_log=1' ) );
 	}
 
 	public function sp_sync_status() {
