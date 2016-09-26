@@ -140,7 +140,7 @@ class Tests_Heartbeat extends WP_UnitTestCase {
 	}
 
 	public function test_ready_override() {
-		$this->assertTrue( SP_Heartbeat()->is_ready() );
+		$this->assertTrue( SP_Heartbeat()->is_ready( null ) );
 		$this->assertFalse( SP_Heartbeat()->is_ready( false ) );
 	}
 }
