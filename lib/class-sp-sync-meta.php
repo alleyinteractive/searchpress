@@ -8,9 +8,7 @@
  * @author Matthew Boynes
  */
 
-class SP_Sync_Meta {
-
-	private static $instance;
+class SP_Sync_Meta extends SP_Singleton {
 
 	/**
 	 * Stores information about the current or most recent bulk sync.
@@ -35,21 +33,6 @@ class SP_Sync_Meta {
 	 * @var string
 	 */
 	protected $error_transient = 'sp_sync_meta_error';
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	private function __construct() {
-		/* Don't do anything, needs to be initialized via instance() method */
-	}
-
-	public static function instance() {
-		if ( ! isset( self::$instance ) ) {
-			self::$instance = new SP_Sync_Meta;
-			self::$instance->setup();
-		}
-		return self::$instance;
-	}
 
 	/**
 	 * Setup the singleton; initialize and load the data.

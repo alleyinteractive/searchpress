@@ -27,7 +27,7 @@
  * http://www.gnu.org/licenses/gpl-2.0.html
  */
 
-class SP_Integration {
+class SP_Integration extends SP_Singleton {
 
 	protected $do_found_posts;
 
@@ -36,26 +36,6 @@ class SP_Integration {
 	protected $sp;
 
 	public $search_obj;
-
-	private static $instance;
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	private function __construct() {
-		/* Don't do anything, needs to be initialized via instance() method */
-	}
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	public static function instance() {
-		if ( ! isset( self::$instance ) ) {
-			self::$instance = new SP_Integration;
-			self::$instance->setup();
-		}
-		return self::$instance;
-	}
 
 	/**
 	 * @codeCoverageIgnore
