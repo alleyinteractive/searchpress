@@ -106,6 +106,34 @@ class Tests_Faceting extends WP_UnitTestCase {
 		$this->assertEquals( array( 'post_type' => 'page' ), $facet_data['Post Type']['items'][1]['query_vars'] );
 	}
 
+	public function test_post_type() {
+		$label = rand_str();
+		register_post_type( 'custom-post-type', array(
+			'public' => true,
+			'labels' => array(
+				'singular_name' => $label,
+			),
+		) );
+		$this->factory->post->create( array( 'post_title' => 'first lorem', 'post_date' => '2010-01-01 00:00:00', 'post_type' => 'custom-post-type' ) );
+		$this->factory->post->create( array( 'post_title' => 'second lorem', 'post_date' => '2010-02-01 00:00:00', 'post_type' => 'custom-post-type' ) );
+		// Force refresh the index so the data is available immediately
+		SP_API()->post( '_refresh' );
+
+		$s = new SP_WP_Search( array(
+			'post_type' => array( 'post', 'page', 'custom-post-type' ),
+			'posts_per_page' => 0,
+			'facets' => array(
+				'Post Type' => array( 'type' => 'post_type', 'count' => 10 ),
+			 ),
+		) );
+		$facet_data = $s->get_facet_data();
+
+		$this->assertCount( 3, $facet_data['Post Type']['items'] );
+		$this->assertEquals( $label, $facet_data['Post Type']['items'][2]['name'] );
+		$this->assertEquals( 2, $facet_data['Post Type']['items'][2]['count'] );
+		$this->assertEquals( array( 'post_type' => 'custom-post-type' ), $facet_data['Post Type']['items'][2]['query_vars'] );
+	}
+
 	function test_tax_query_var() {
 		$s = new SP_WP_Search( array(
 			'post_type' => array( 'post', 'page' ),
