@@ -4,13 +4,7 @@
  * Lub dub. Lub dub.
  */
 
-class SP_Heartbeat {
-
-	/**
-	 * Singleton instance
-	 * @var object
-	 */
-	private static $instance;
+class SP_Heartbeat extends SP_Singleton {
 
 	/**
 	 * What cluster statuses do we consider successful? Default is ['yellow', 'green'].
@@ -49,24 +43,6 @@ class SP_Heartbeat {
 	 * @var int
 	 */
 	protected $last_beat;
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	private function __construct() {
-		/* Don't do anything, needs to be initialized via instance() method */
-	}
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	public static function instance() {
-		if ( ! isset( self::$instance ) ) {
-			self::$instance = new SP_Heartbeat;
-			self::$instance->setup();
-		}
-		return self::$instance;
-	}
 
 	/**
 	 * Setup the singleton.

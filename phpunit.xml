@@ -18,6 +18,7 @@
 				<directory suffix=".php">./tests/</directory>
 				<directory suffix=".php">./bin/</directory>
 				<file>./lib/class-sp-debug.php</file>
+				<file>./lib/class-sp-singleton.php</file>
 			</exclude>
 		</whitelist>
 	</filter>

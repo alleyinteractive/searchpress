@@ -32,6 +32,9 @@ if ( ! defined( 'SP_PLUGIN_DIR' ) ) {
 	define( 'SP_PLUGIN_DIR', dirname( __FILE__ ) );
 }
 
+// Base Singleton class
+require_once SP_PLUGIN_DIR . '/lib/class-sp-singleton.php';
+
 // Constants, etc.
 require_once SP_PLUGIN_DIR . '/lib/globals.php';
 

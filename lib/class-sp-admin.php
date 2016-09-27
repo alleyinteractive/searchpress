@@ -4,30 +4,13 @@
  *
  */
 
-class SP_Admin {
-
-	private static $instance;
+class SP_Admin extends SP_Singleton {
 
 	/**
 	 * The capability required to manage SearchPress. Defaults to 'manage_options'.
 	 * @var string
 	 */
 	protected $capability;
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	private function __construct() {
-		/* Don't do anything, needs to be initialized via instance() method */
-	}
-
-	public static function instance() {
-		if ( ! isset( self::$instance ) ) {
-			self::$instance = new SP_Admin;
-			self::$instance->setup();
-		}
-		return self::$instance;
-	}
 
 	public function setup() {
 		/**

@@ -4,29 +4,9 @@
  * SearchPress configuration
  */
 
-class SP_Config {
-
-	private static $instance;
+class SP_Config extends SP_Singleton {
 
 	public $settings;
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	private function __construct() {
-		/* Don't do anything, needs to be initialized via instance() method */
-	}
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	public static function instance() {
-		if ( ! isset( self::$instance ) ) {
-			self::$instance = new SP_Config;
-			self::$instance->setup();
-		}
-		return self::$instance;
-	}
 
 	/**
 	 * @codeCoverageIgnore

@@ -13,25 +13,9 @@
  * @author Matthew Boynes
  */
 
-class SP_Sync_Manager {
-
-	private static $instance;
+class SP_Sync_Manager extends SP_Singleton {
 
 	public $published_posts = false;
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	private function __construct() {
-		/* Don't do anything, needs to be initialized via instance() method */
-	}
-
-	public static function instance() {
-		if ( ! isset( self::$instance ) ) {
-			self::$instance = new SP_Sync_Manager;
-		}
-		return self::$instance;
-	}
 
 	/**
 	 * Sync a single post (on creation or update)
