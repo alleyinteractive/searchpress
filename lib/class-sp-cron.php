@@ -4,36 +4,7 @@
  *
  */
 
-if ( !class_exists( 'SP_Cron' ) ) :
-
-class SP_Cron {
-
-	private static $instance;
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	private function __construct() {
-		/* Don't do anything, needs to be initialized via instance() method */
-	}
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	public function __clone() { wp_die( "Please don't __clone SP_Cron" ); }
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	public function __wakeup() { wp_die( "Please don't __wakeup SP_Cron" ); }
-
-	public static function instance() {
-		if ( ! isset( self::$instance ) ) {
-			self::$instance = new SP_Cron;
-			self::$instance->setup();
-		}
-		return self::$instance;
-	}
+class SP_Cron extends SP_Singleton {
 
 	/**
 	 * Setup the actions for this singleton.
@@ -78,5 +49,3 @@ function SP_Cron() {
 if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
 	SP_Cron();
 }
-
-endif;
