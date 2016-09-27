@@ -123,6 +123,8 @@ class SP_Post {
 			'_previous_revision',
 			'_wpas_done_all',
 			'_encloseme',
+			'_sp_index',
+			'_sp_meta',
 		) );
 		foreach ( $ignored_meta as $key ) {
 			unset( $meta[ $key ] );
@@ -344,16 +346,18 @@ class SP_Post {
 
 
 	public function should_be_indexed() {
+		$should_be_indexed = true;
+
 		// Check post type
 		if ( ! in_array( $this->data['post_type'], SP_Config()->sync_post_types() ) ) {
-			return false;
+			$should_be_indexed = false;
 		}
 
 		// Check post status
-		if ( ! in_array( $this->data['post_status'], SP_Config()->sync_statuses() ) ) {
-			return false;
+		if ( $should_be_indexed && ! in_array( $this->data['post_status'], SP_Config()->sync_statuses() ) ) {
+			$should_be_indexed = false;
 		}
 
-		return apply_filters( 'sp_post_should_be_indexed', true, $this );
+		return apply_filters( 'sp_post_should_be_indexed', $should_be_indexed, $this );
 	}
 }

@@ -18,42 +18,55 @@ class SP_Sync_Manager extends SP_Singleton {
 	public $published_posts = false;
 
 	/**
-	 * Sync a single post (on creation or update)
-	 *
-	 * @todo if post should not be added, it's deleted (to account for unpublishing, etc). Make that more elegant.
+	 * Setup the singleton.
+	 */
+	public function setup() {
+		/**
+		 * SP_Sync_Manager only gets instantiated when necessary, so we register these hooks outside of the class
+		 */
+		if ( SP_Config()->active() ) {
+			// When posts get_updated, queue up syncs
+			add_action( 'save_post',    array( $this, 'sync_post' ) );
+			add_action( 'deleted_post', array( $this, 'delete_post' ) );
+			add_action( 'trashed_post', array( $this, 'delete_post' ) );
+
+			// When terms or term relationships get updated, queue up syncs
+			// add_action( 'added_term_relationship',    array( $this, 'sync_post' ) );
+			// add_action( 'deleted_term_relationships', array( $this, 'sync_post' ) );
+
+			// When users get updated, queue up syncs for their posts
+			// @TODO
+		}
+	}
+
+	/**
+	 * Prepare a single post to be synced.
 	 *
 	 * @param int $post_id
 	 * @return void
 	 */
 	public function sync_post( $post_id ) {
-		$post = new SP_Post( get_post( $post_id ) );
-		if ( $post->should_be_indexed() ) {
-			$response = SP_API()->index_post( $post );
-			if ( ! $this->parse_error( $response, array( 200, 201 ) ) ) {
-				do_action( 'sp_debug', '[SP_Sync_Manager] Indexed Post', $response );
-			} else {
-				do_action( 'sp_debug', '[SP_Sync_Manager] Error Indexing Post', $response );
-			}
-		} else {
-			// This is excessive, figure out a better way around it
-			$this->delete_post( $post_id );
-		}
+		update_post_meta( $post_id, '_sp_index', '1' );
+		SP_Cron()->schedule_queue_index();
 	}
 
 	/**
 	 * Delete a post from the ES index.
 	 *
+	 * @todo move the update_option to shutdown? if 100 posts are deleted in one
+	 *       request, that would reduce the writes from 100 to 1.
+	 *
 	 * @param  int $post_id
 	 */
 	public function delete_post( $post_id ) {
-		$response = SP_API()->delete_post( $post_id );
-
-		// We're OK with 404 responses here because a post might not be in the index
-		if ( ! $this->parse_error( $response, array( 200, 404 ) ) ) {
-			do_action( 'sp_debug', '[SP_Sync_Manager] Deleted Post', $response );
-		} else {
-			do_action( 'sp_debug', '[SP_Sync_Manager] Error Deleting Post', $response );
+		$to_delete = get_option( 'sp_delete', array() );
+		if ( ! is_array( $to_delete ) ) {
+			$to_delete = array();
 		}
+		$to_delete[] = $post_id;
+
+		update_option( 'sp_delete', $to_delete, 'no' );
+		SP_Cron()->schedule_queue_index();
 	}
 
 	/**
@@ -234,20 +247,54 @@ class SP_Sync_Manager extends SP_Singleton {
 		}
 		return $this->published_posts;
 	}
+
+	/**
+	 * Update the index from the queue.
+	 *
+	 * @todo  if post should not be added, it's deleted (to account for unpublishing, etc). Make that more elegant.
+	 * @todo  abort if we're currently indexing?
+	 * @todo  try again on errors, perhaps up to 3 times?
+	 * @todo  store sp index version and date in post meta?
+	 */
+	public function update_index_from_queue() {
+		global $wpdb;
+		$post_ids = $wpdb->get_col( "SELECT SQL_CALC_FOUND_ROWS `post_id` FROM {$wpdb->postmeta} WHERE `meta_key`='_sp_index' LIMIT 500" );
+		$total = $wpdb->get_var( 'SELECT FOUND_ROWS()' );
+		if ( ! empty( $post_ids ) ) {
+			$posts = $this->get_posts( array(
+				'post__in' => $post_ids,
+				'posts_per_page' => count( $post_ids ),
+			) );
+			$response = SP_API()->index_posts( $posts );
+
+			do_action( 'sp_debug', sprintf( '[SP_Sync_Manager] Indexed %d Posts', count( $posts ) ), $response );
+
+			if ( '200' != SP_API()->last_request['response_code'] ) {
+				$sync_meta->log( new WP_Error( 'error', __( 'ES response failed', 'searchpress' ), SP_API()->last_request ) );
+				$sync_meta->save();
+			} elseif ( ! is_object( $response ) || ! isset( $response->items ) || ! is_array( $response->items ) ) {
+				$sync_meta->log( new WP_Error( 'error', __( 'Error indexing data', 'searchpress' ), $response ) );
+				$sync_meta->save();
+			} else {
+				foreach ( $response->items as $post ) {
+					// Status should be 200 or 201, depending on if we're updating or creating respectively
+					if ( ! isset( $post->index->status ) ) {
+						$sync_meta->log( new WP_Error( 'warning', sprintf( __( 'Error indexing post %1$s; Response: %2$s', 'searchpress' ), $post->index->_id, json_encode( $post ) ), $post ) );
+					} elseif ( ! in_array( $post->index->status, array( 200, 201 ) ) ) {
+						$sync_meta->log( new WP_Error( 'warning', sprintf( __( 'Error indexing post %1$s; HTTP response code: %2$s', 'searchpress' ), $post->index->_id, $post->index->status ), $post ) );
+					} else { // Success!
+						delete_post_meta( $post->index->_id, '_sp_index', '1' );
+					}
+				}
+			}
+
+			if ( $total > count( $post_ids ) ) {
+				SP_Cron()->schedule_queue_index();
+			}
+		}
+	}
 }
 
 function SP_Sync_Manager() {
 	return SP_Sync_Manager::instance();
-}
-
-
-/**
- * SP_Sync_Manager only gets instantiated when necessary, so we register these hooks outside of the class
- */
-if ( SP_Config()->active() ) {
-	add_action( 'save_post',                  array( SP_Sync_Manager(), 'sync_post' ) );
-	// add_action( 'added_term_relationship',    array( SP_Sync_Manager(), 'sync_post' ) );
-	// add_action( 'deleted_term_relationships', array( SP_Sync_Manager(), 'sync_post' ) );
-	add_action( 'deleted_post',               array( SP_Sync_Manager(), 'delete_post' ) );
-	add_action( 'trashed_post',               array( SP_Sync_Manager(), 'delete_post' ) );
 }
