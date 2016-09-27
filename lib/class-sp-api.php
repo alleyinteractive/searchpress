@@ -4,9 +4,7 @@
  * Basic WordPress-oriented Elasticsearch API client
  */
 
-class SP_API {
-
-	private static $instance;
+class SP_API extends SP_Singleton {
 
 	public $connection;
 
@@ -19,24 +17,6 @@ class SP_API {
 	public $request_defaults = array();
 
 	public $last_request;
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	private function __construct() {
-		/* Don't do anything, needs to be initialized via instance() method */
-	}
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	public static function instance() {
-		if ( ! isset( self::$instance ) ) {
-			self::$instance = new SP_API;
-			self::$instance->setup();
-		}
-		return self::$instance;
-	}
 
 	/**
 	 * @codeCoverageIgnore

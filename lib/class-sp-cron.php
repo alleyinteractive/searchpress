@@ -4,24 +4,7 @@
  *
  */
 
-class SP_Cron {
-
-	private static $instance;
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	private function __construct() {
-		/* Don't do anything, needs to be initialized via instance() method */
-	}
-
-	public static function instance() {
-		if ( ! isset( self::$instance ) ) {
-			self::$instance = new SP_Cron;
-			self::$instance->setup();
-		}
-		return self::$instance;
-	}
+class SP_Cron extends SP_Singleton {
 
 	/**
 	 * Setup the actions for this singleton.
