@@ -289,7 +289,7 @@ class SP_WP_Search extends SP_Search {
 					case 'post_type':
 						$es_query_args['aggregations'][ $label ] = array(
 							'terms' => array(
-								'field' => 'post_type',
+								'field' => 'post_type.raw',
 								'size' => $facet['count'],
 							),
 						);
