@@ -13,43 +13,9 @@
  * @author Matthew Boynes
  */
 
-if ( !class_exists( 'SP_Sync_Manager' ) ) :
-
-class SP_Sync_Manager {
-
-	private static $instance;
-
-	public $users = array();
-
-	public $sync_meta;
+class SP_Sync_Manager extends SP_Singleton {
 
 	public $published_posts = false;
-	public $total_pages = 1;
-	public $batch_pages = 1;
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	private function __construct() {
-		/* Don't do anything, needs to be initialized via instance() method */
-	}
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	public function __clone() { wp_die( "Please don't __clone SP_Sync_Manager" ); }
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	public function __wakeup() { wp_die( "Please don't __wakeup SP_Sync_Manager" ); }
-
-	public static function instance() {
-		if ( ! isset( self::$instance ) ) {
-			self::$instance = new SP_Sync_Manager;
-		}
-		return self::$instance;
-	}
 
 	/**
 	 * Sync a single post (on creation or update)
@@ -69,7 +35,7 @@ class SP_Sync_Manager {
 				do_action( 'sp_debug', '[SP_Sync_Manager] Error Indexing Post', $response );
 			}
 		} else {
-			# This is excessive, figure out a better way around it
+			// This is excessive, figure out a better way around it
 			$this->delete_post( $post_id );
 		}
 	}
@@ -82,7 +48,7 @@ class SP_Sync_Manager {
 	public function delete_post( $post_id ) {
 		$response = SP_API()->delete_post( $post_id );
 
-		# We're OK with 404 responses here because a post might not be in the index
+		// We're OK with 404 responses here because a post might not be in the index
 		if ( ! $this->parse_error( $response, array( 200, 404 ) ) ) {
 			do_action( 'sp_debug', '[SP_Sync_Manager] Deleted Post', $response );
 		} else {
@@ -101,9 +67,9 @@ class SP_Sync_Manager {
 		if ( ! empty( $response->error ) ) {
 			SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . $response->error->message, $response->error->data ) );
 		} elseif ( ! in_array( SP_API()->last_request['response_code'], $allowed_codes ) ) {
-			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%s] Elasticsearch response failed! Status code %d; %s', 'searchpress' ), date( 'Y-m-d H:i:s' ), SP_API()->last_request['response_code'], json_encode( SP_API()->last_request ) ) ) );
+			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%1$s] Elasticsearch response failed! Status code %2$d; %3$s', 'searchpress' ), date( 'Y-m-d H:i:s' ), SP_API()->last_request['response_code'], json_encode( SP_API()->last_request ) ) ) );
 		} elseif ( ! is_object( $response ) ) {
-			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%s] Unexpected response from Elasticsearch: %s', 'searchpress' ), date( 'Y-m-d H:i:s' ), json_encode( $response ) ) ) );
+			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%1$s] Unexpected response from Elasticsearch: %2$s', 'searchpress' ), date( 'Y-m-d H:i:s' ), json_encode( $response ) ) ) );
 		} else {
 			return false;
 		}
@@ -120,7 +86,7 @@ class SP_Sync_Manager {
 	public function get_range( $start, $limit ) {
 		return $this->get_posts( array(
 			'offset'         => $start,
-			'posts_per_page' => $limit
+			'posts_per_page' => $limit,
 		) );
 	}
 
@@ -152,7 +118,6 @@ class SP_Sync_Manager {
 		do_action( 'sp_debug', '[SP_Sync_Manager] Queried Posts', $args );
 
 		$this->published_posts = $query->found_posts;
-		$this->batch_pages = $query->max_num_pages;
 
 		$indexed_posts = array();
 		foreach ( $posts as $post ) {
@@ -177,7 +142,7 @@ class SP_Sync_Manager {
 		// Reload the sync meta to ensure it hasn't been canceled while we were getting those posts
 		$sync_meta->reload();
 
-		if ( !$posts || is_wp_error( $posts ) || ! $sync_meta->running ) {
+		if ( ! $posts || is_wp_error( $posts ) || ! $sync_meta->running ) {
 			return false;
 		}
 
@@ -192,7 +157,7 @@ class SP_Sync_Manager {
 		$sync_meta->processed += count( $posts );
 
 		if ( '200' != SP_API()->last_request['response_code'] ) {
-			# Should probably throw an error here or something
+			// Should probably throw an error here or something
 			$sync_meta->log( new WP_Error( 'error', __( 'ES response failed', 'searchpress' ), SP_API()->last_request ) );
 			$sync_meta->save();
 			$this->cancel_reindex();
@@ -206,19 +171,19 @@ class SP_Sync_Manager {
 			foreach ( $response->items as $post ) {
 				// Status should be 200 or 201, depending on if we're updating or creating respectively
 				if ( ! isset( $post->index->status ) ) {
-					$sync_meta->log( new WP_Error( 'warning', __( "Error indexing post {$post->index->_id}; Response: " . json_encode( $post ), 'searchpress' ), $post ) );
+					$sync_meta->log( new WP_Error( 'warning', sprintf( __( 'Error indexing post %1$s; Response: %2$s', 'searchpress' ), $post->index->_id, json_encode( $post ) ), $post ) );
 				} elseif ( ! in_array( $post->index->status, array( 200, 201 ) ) ) {
-					$sync_meta->log( new WP_Error( 'warning', __( "Error indexing post {$post->index->_id}; HTTP response code: {$post->index->status}", 'searchpress' ), $post ) );
+					$sync_meta->log( new WP_Error( 'warning', sprintf( __( 'Error indexing post %1$s; HTTP response code: %2$s', 'searchpress' ), $post->index->_id, $post->index->status ), $post ) );
 				} else {
 					$sync_meta->success++;
 				}
 			}
 		}
-		$this->total_pages = ceil( $this->published_posts / $sync_meta->bulk );
+		$total_pages = ceil( $this->published_posts / $sync_meta->bulk );
 		$sync_meta->page++;
 
 		if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
-			if ( $sync_meta->processed >= $sync_meta->total || $sync_meta->page > $this->total_pages ) {
+			if ( $sync_meta->processed >= $sync_meta->total || $sync_meta->page > $total_pages ) {
 				SP_Config()->update_settings( array( 'active' => true ) );
 				$this->cancel_reindex();
 			} else {
@@ -256,7 +221,7 @@ class SP_Sync_Manager {
 			$args = wp_parse_args( $args, array(
 				'post_type' => null,
 				'post_status' => 'publish',
-				'posts_per_page' => 1
+				'posts_per_page' => 1,
 			) );
 			if ( empty( $args['post_type'] ) ) {
 				$args['post_type'] = sp_searchable_post_types();
@@ -286,5 +251,3 @@ if ( SP_Config()->active() ) {
 	add_action( 'deleted_post',               array( SP_Sync_Manager(), 'delete_post' ) );
 	add_action( 'trashed_post',               array( SP_Sync_Manager(), 'delete_post' ) );
 }
-
-endif;

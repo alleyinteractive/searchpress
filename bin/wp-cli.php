@@ -180,16 +180,16 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 
 		$timestamp_start = microtime( true );
 
-		if ( $assoc_args['flush'] ) {
+		if ( ! empty( $assoc_args['flush'] ) ) {
 			$this->flush();
 		}
 
-		if ( $assoc_args['put-mapping'] ) {
+		if ( ! empty( $assoc_args['put-mapping'] ) ) {
 			$this->put_mapping();
 		}
 
 		if ( ! empty( $args ) ) {
-			# Individual post indexing
+			// Individual post indexing
 			$num_posts = count( $args );
 			WP_CLI::line( sprintf( _n( "Indexing %d post", "Indexing %d posts", $num_posts ), $num_posts ) );
 
@@ -204,7 +204,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 			WP_CLI::success( "Index complete!" );
 
 		} else {
-			# Bulk indexing
+			// Bulk indexing
 
 			$assoc_args = array_merge( array(
 				'bulk'  => 2000,
@@ -232,7 +232,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 			$limit_text = sprintf( _n( '%s post', '%s posts', $limit_number ), number_format( $limit_number ) );
 			WP_CLI::line( "Indexing {$limit_text}, " . number_format( $assoc_args['bulk'] ) . " at a time, starting on page {$assoc_args['page']}" );
 
-			# Keep tabs on where we are and what we've done
+			// Keep tabs on where we are and what we've done
 			$sync_meta = SP_Sync_Meta();
 			$sync_meta->page = intval( $assoc_args['page'] ) - 1;
 			$sync_meta->bulk = $assoc_args['bulk'];

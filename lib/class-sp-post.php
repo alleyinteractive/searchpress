@@ -7,7 +7,11 @@
 */
 class SP_Post {
 
-	# This stores what will eventually become our JSON
+	/**
+	 * This stores what will eventually become our JSON
+	 *
+	 * @var array
+	 */
 	public $data = array();
 
 	/**
@@ -49,7 +53,7 @@ class SP_Post {
 	 * @return void
 	 */
 	public function __get( $property ) {
-		# let the post ID be accessed either way
+		// let the post ID be accessed either way
 		if ( 'ID' == $property ) {
 			$property = 'post_id';
 		}
@@ -69,7 +73,7 @@ class SP_Post {
 		$apply_filters = apply_filters( 'sp_post_index_filtered_data', false );
 
 		$this->data['post_id']           = intval( $post->ID );
-		# We're storing the login here instead of user ID, as that's more flexible
+		// We're storing the login here instead of user ID, as that's more flexible
 		$this->data['post_author']       = $this->get_user( $post->post_author );
 		$this->data['post_date']         = $this->get_date( $post->post_date, 'post_date' );
 		$this->data['post_date_gmt']     = $this->get_date( $post->post_date_gmt, 'post_date_gmt' );
@@ -109,7 +113,7 @@ class SP_Post {
 	public static function get_meta( $post_id ) {
 		$meta = (array) get_post_meta( $post_id );
 
-		# Remove a filtered set of meta that we don't want indexed
+		// Remove a filtered set of meta that we don't want indexed
 		$ignored_meta = apply_filters( 'sp_post_ignored_postmeta', array(
 			'_edit_lock',
 			'_edit_last',
@@ -118,7 +122,7 @@ class SP_Post {
 			'_wp_trash_meta_status',
 			'_previous_revision',
 			'_wpas_done_all',
-			'_encloseme'
+			'_encloseme',
 		) );
 		foreach ( $ignored_meta as $key ) {
 			unset( $meta[ $key ] );
@@ -214,7 +218,7 @@ class SP_Post {
 				'term_id' => intval( $term->term_id ),
 				'slug'    => strval( $term->slug ),
 				'name'    => strval( $term->name ),
-				'parent'  => intval( $term->parent )
+				'parent'  => intval( $term->parent ),
 			);
 		}
 
@@ -224,23 +228,29 @@ class SP_Post {
 
 
 	/**
-	 * Does the same thing as get_terms but in 1 query instead of <num of taxonomies> + 1
+	 * Does the same thing as get_terms but in 1 query instead of
+	 * <num of taxonomies> + 1. Only used in WP-CLI commands.
 	 *
 	 * @codeCoverageIgnore
 	 *
 	 * @param object $post
-	 * @return object
+	 * @return array Terms to index.
 	 */
 	private static function get_terms_efficiently( $post ) {
 		global $wpdb;
 
 		$taxonomies = get_object_taxonomies( $post->post_type );
-		$taxonomies = "'" . implode("', '", $taxonomies) . "'";
-		$post_id = intval( $post->ID );
-		$query = "SELECT t.*, tt.* FROM $wpdb->terms AS t INNER JOIN $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id INNER JOIN $wpdb->term_relationships AS tr ON tr.term_taxonomy_id = tt.term_taxonomy_id WHERE tt.taxonomy IN ($taxonomies) AND tr.object_id = $post_id ORDER BY t.term_id";
+		if ( empty( $taxonomies ) ) {
+			return array();
+		}
 
-		$object_terms = $wpdb->get_results( $query );
-		if ( !$object_terms || is_wp_error( $object_terms ) ) {
+		$query = "SELECT t.*, tt.* FROM {$wpdb->terms} AS t INNER JOIN {$wpdb->term_taxonomy} AS tt ON tt.term_id = t.term_id INNER JOIN {$wpdb->term_relationships} AS tr ON tr.term_taxonomy_id = tt.term_taxonomy_id WHERE tt.taxonomy IN (" . implode( ', ', array_fill( 0, count( $taxonomies ), '%s' ) ) . ') AND tr.object_id = %d ORDER BY t.term_id';
+
+		$params = array_merge( array( $query ), $taxonomies, array( $post->ID ) );
+
+		$object_terms = $wpdb->get_results( call_user_func_array( array( $wpdb, 'prepare' ), $params ) ); // WPCS: db call ok. WPCS: cache ok. WPCS: unprepared SQL ok.
+
+		if ( ! $object_terms || is_wp_error( $object_terms ) ) {
 			return array();
 		}
 
@@ -250,7 +260,7 @@ class SP_Post {
 				'term_id' => intval( $term->term_id ),
 				'slug'    => strval( $term->slug ),
 				'name'    => strval( $term->name ),
-				'parent'  => intval( $term->parent )
+				'parent'  => intval( $term->parent ),
 			);
 		}
 
@@ -334,12 +344,12 @@ class SP_Post {
 
 
 	public function should_be_indexed() {
-		# Check post type
+		// Check post type
 		if ( ! in_array( $this->data['post_type'], SP_Config()->sync_post_types() ) ) {
 			return false;
 		}
 
-		# Check post status
+		// Check post status
 		if ( ! in_array( $this->data['post_status'], SP_Config()->sync_statuses() ) ) {
 			return false;
 		}

@@ -4,58 +4,48 @@
  *
  */
 
-if ( !class_exists( 'SP_Admin' ) ) :
-
-class SP_Admin {
-
-	private static $instance;
+class SP_Admin extends SP_Singleton {
 
 	/**
-	 * @codeCoverageIgnore
+	 * The capability required to manage SearchPress. Defaults to 'manage_options'.
+	 * @var string
 	 */
-	private function __construct() {
-		/* Don't do anything, needs to be initialized via instance() method */
-	}
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	public function __clone() { wp_die( "Please don't __clone SP_Admin" ); }
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	public function __wakeup() { wp_die( "Please don't __wakeup SP_Admin" ); }
-
-	public static function instance() {
-		if ( ! isset( self::$instance ) ) {
-			self::$instance = new SP_Admin;
-			self::$instance->setup();
-		}
-		return self::$instance;
-	}
+	protected $capability;
 
 	public function setup() {
-		add_action( 'admin_menu',                array( $this, 'admin_menu' )     );
-		add_action( 'admin_post_sp_full_sync',   array( $this, 'full_sync' )      );
-		add_action( 'admin_post_sp_cancel_sync', array( $this, 'cancel_sync' )    );
-		add_action( 'admin_post_sp_settings',    array( $this, 'save_settings' )  );
-		add_action( 'admin_post_sp_clear_log',   array( $this, 'clear_log' )  );
-		add_action( 'wp_ajax_sp_sync_status',    array( $this, 'sp_sync_status' ) );
-		add_action( 'admin_notices',             array( $this, 'admin_notices' )  );
-		add_action( 'admin_enqueue_scripts',     array( $this, 'assets' )         );
+		/**
+		 * Filter the capability required to manage SearchPress.
+		 *
+		 * @param string $capability Defaults to 'manage_options'.
+		 */
+		$this->capability = apply_filters( 'sp_admin_settings_capability', 'manage_options' );
+
+		if ( current_user_can( $this->capability ) ) {
+			add_action( 'admin_menu',                array( $this, 'admin_menu' ) );
+			add_action( 'admin_post_sp_full_sync',   array( $this, 'full_sync' ) );
+			add_action( 'admin_post_sp_cancel_sync', array( $this, 'cancel_sync' ) );
+			add_action( 'admin_post_sp_settings',    array( $this, 'save_settings' ) );
+			add_action( 'admin_post_sp_clear_log',   array( $this, 'clear_log' ) );
+			add_action( 'wp_ajax_sp_sync_status',    array( $this, 'sp_sync_status' ) );
+			add_action( 'admin_notices',             array( $this, 'admin_notices' ) );
+			add_action( 'admin_enqueue_scripts',     array( $this, 'assets' ) );
+		}
 	}
 
-
+	/**
+	 * Hook into the admin menu to add the SearchPress item.
+	 *
+	 * @codeCoverageIgnore
+	 */
 	public function admin_menu() {
 		// Add new admin menu and save returned page hook
-		$hook_suffix = add_management_page( __( 'SearchPress', 'searchpress' ), __( 'SearchPress', 'searchpress' ), 'manage_options', 'searchpress', array( $this, 'sync' ) );
+		$hook_suffix = add_management_page( __( 'SearchPress', 'searchpress' ), __( 'SearchPress', 'searchpress' ), $this->capability, 'searchpress', array( $this, 'sync' ) );
 	}
 
 
 	public function sync() {
-		if ( !current_user_can( 'manage_options' ) ) {
-			wp_die( __( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
+		if ( ! current_user_can( $this->capability ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
 		}
 		$sync = SP_Sync_Meta();
 		if ( $sync->running ) {
@@ -70,7 +60,7 @@ class SP_Admin {
 			<h2><?php esc_html_e( 'SearchPress', 'searchpress' ); ?></h2>
 
 			<?php if ( isset( $_GET['error'] ) ) : ?>
-				<div class="error updated"><p><?php esc_html( sprintf( __( 'An error has occurred: %s', 'searchpress' ), $this->get_error( $_GET['error'] ) ) ) ?></p></div>
+				<div class="error updated"><p><?php echo esc_html( sprintf( __( 'An error has occurred: %s', 'searchpress' ), $this->get_error( sanitize_text_field( $_GET['error'] ) ) ) ) ?></p></div>
 			<?php endif ?>
 
 			<?php if ( isset( $_GET['complete'] ) ) : ?>
@@ -83,25 +73,24 @@ class SP_Admin {
 				<?php if ( ! empty( $sync->messages ) ) : ?>
 					<a class="nav-tab<?php $this->tab_active( 'log', $active_tab ) ?>" href="#sp-log"><?php esc_html_e( 'Log', 'searchpress' ); ?></a>
 				<?php endif ?>
-				<!-- <a class="nav-tab" href="#sp-"><?php esc_html_e( '', 'searchpress' ); ?></a> -->
 			</h3>
 
 			<div id="sp-settings" class="tab-content">
-				<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ) ?>">
 					<input type="hidden" name="action" value="sp_settings" />
 					<?php wp_nonce_field( 'sp_settings', 'sp_settings_nonce' ); ?>
 					<p>
 						<input type="text" name="sp_host" value="<?php echo esc_url( SP_Config()->get_setting( 'host' ) ) ?>" style="width:100%;max-width:500px" />
 					</p>
 					<p>
-						<label for="sp_reindex"><input type="checkbox" name="sp_reindex" id="sp_reindex" value="1" /> <?php esc_html_e( 'Immediately initiate a full sync', 'searchpress' ); ?>
+						<label for="sp_reindex"><input type="checkbox" name="sp_reindex" id="sp_reindex" value="1" /> <?php esc_html_e( 'Immediately initiate a full sync', 'searchpress' ); ?></label>
 					</p>
 					<?php submit_button( __( 'Save Settings', 'searchpress' ), 'primary' ) ?>
 				</form>
 			</div>
 
 			<div id="sp-sync" class="tab-content">
-				<?php if ( $sync->running ) : ?>
+				<?php if ( $sync->running && intval( $sync->total ) ) : ?>
 
 					<h3><?php esc_html_e( 'Sync in progress', 'searchpress' ); ?></h3>
 					<p><?php esc_html_e( 'You do not need to stay on this page while the sync runs.', 'searchpress' ); ?></p>
@@ -109,7 +98,7 @@ class SP_Admin {
 						<div class="progress-text"><span id="sync-processed"><?php echo number_format( intval( $sync->processed ) ) ?></span> / <span id="sync-total"><?php echo number_format( intval( $sync->total ) ) ?></span></div>
 						<div class="progress-bar" data-processed="<?php echo intval( $sync->processed ) ?>" data-total="<?php echo intval( $sync->total ) ?>" style="width:<?php echo intval( round( 100 * $sync->processed / $sync->total ) ) ?>%;"></div>
 					</div>
-					<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ) ?>">
 						<input type="hidden" name="action" value="sp_cancel_sync" />
 						<?php wp_nonce_field( 'sp_sync', 'sp_sync_nonce' ); ?>
 						<?php submit_button( __( 'Cancel Sync', 'searchpress' ), 'delete' ) ?>
@@ -128,15 +117,15 @@ class SP_Admin {
 					</p>
 					<p><?php esc_html_e( 'Your site will not use SearchPress until the indexing is complete.', 'searchpress' ); ?></p>
 
-					<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ) ?>">
 						<input type="hidden" name="action" value="sp_full_sync" />
 						<?php wp_nonce_field( 'sp_sync', 'sp_sync_nonce' ); ?>
 						<?php submit_button( __( 'Run Full Sync', 'searchpress' ), 'delete' ) ?>
 					</form>
 
 					<h3><?php esc_html_e( 'Last full sync', 'searchpress' ); ?></h3>
-					<p><?php printf( esc_html__( 'Started at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->started ) ) ?></p>
-					<p><?php printf( esc_html__( 'Completed at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->finished ) ) ?></p>
+					<p><?php echo esc_html( sprintf( __( 'Started at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->started ) ) ) ?></p>
+					<p><?php echo esc_html( sprintf( __( 'Completed at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->finished ) ) ) ?></p>
 
 				<?php endif ?>
 			</div>
@@ -154,7 +143,7 @@ class SP_Admin {
 						</ol>
 					<?php endforeach ?>
 
-					<form method="post" action="<?php echo admin_url( 'admin-post.php' ) ?>">
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ) ?>">
 						<input type="hidden" name="action" value="sp_clear_log" />
 						<?php wp_nonce_field( 'sp_flush_log_nonce', 'sp_sync_nonce' ); ?>
 						<?php submit_button( __( 'Clear Log', 'searchpress' ), 'delete' ) ?>
@@ -182,81 +171,108 @@ class SP_Admin {
 	}
 
 	public function save_settings() {
-		if ( !isset( $_POST['sp_settings_nonce'] ) || ! wp_verify_nonce( $_POST['sp_settings_nonce'], 'sp_settings' ) ) {
-			wp_die( 'You are not authorized to perform that action' );
-		} else {
-			if ( isset( $_POST['sp_host'] ) ) {
-				SP_Config()->update_settings( array( 'host' => esc_url( $_POST['sp_host'] ) ) );
-			}
-			if ( isset( $_POST['sp_reindex'] ) && '1' == $_POST['sp_reindex'] ) {
-				# The full sync process checks the nonce, so we have to insert it into the postdata
-				$_POST['sp_sync_nonce'] = wp_create_nonce( 'sp_sync' );
-				$this->full_sync();
-			} else {
-				wp_redirect( admin_url( 'tools.php?page=searchpress&save=1' ) );
-			}
+		if ( ! current_user_can( $this->capability ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
 		}
 
-		exit;
+		if ( ! isset( $_POST['sp_settings_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $_POST['sp_settings_nonce'] ), 'sp_settings' ) ) {
+			wp_die( 'You are not authorized to perform that action' );
+		}
+
+		if ( isset( $_POST['sp_host'] ) ) {
+			SP_Config()->update_settings( array( 'host' => esc_url_raw( $_POST['sp_host'] ) ) );
+		}
+		if ( isset( $_POST['sp_reindex'] ) && '1' == $_POST['sp_reindex'] ) {
+			// The full sync process checks the nonce, so we have to insert it into the postdata
+			$_POST['sp_sync_nonce'] = wp_create_nonce( 'sp_sync' );
+
+			// This will redirect and exit
+			$this->full_sync();
+		}
+
+		return $this->redirect( admin_url( 'tools.php?page=searchpress&save=1' ) );
 	}
 
 	public function full_sync() {
-		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( $_POST['sp_sync_nonce'], 'sp_sync' ) ) {
+		if ( ! current_user_can( $this->capability ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
+		}
+
+		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $_POST['sp_sync_nonce'] ), 'sp_sync' ) ) {
 			wp_die( 'You are not authorized to perform that action' );
+		}
+
+		SP_Config()->update_settings( array( 'must_init' => false, 'active' => false, 'last_beat' => false ) );
+
+		// The index may not exist yet, so use the global cluster health to check the heartbeat
+		add_filter( 'sp_cluster_health_uri', 'sp_global_cluster_health' );
+		if ( ! SP_Heartbeat()->check_beat() ) {
+			return $this->redirect( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_NO_BEAT ) );
 		} else {
-			SP_Config()->update_settings( array( 'must_init' => false, 'active' => false, 'last_beat' => false ) );
 			$result = SP_Config()->flush();
 			if ( ! isset( SP_API()->last_request['response_code'] ) || ! in_array( SP_API()->last_request['response_code'], array( 200, 404 ) ) ) {
-				wp_redirect( admin_url( 'tools.php?page=searchpress&error=100' ) );
+				return $this->redirect( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_FLUSH_FAIL ) );
 			} else {
 				SP_Config()->create_mapping();
 				SP_Sync_Manager()->do_cron_reindex();
-				wp_redirect( admin_url( 'tools.php?page=searchpress' ) );
+				return $this->redirect( admin_url( 'tools.php?page=searchpress' ) );
 			}
-			exit;
 		}
 	}
 
 	public function cancel_sync() {
-		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( $_POST['sp_sync_nonce'], 'sp_sync' ) ) {
-			wp_die( __( 'You are not authorized to perform that action', 'searchpress' ) );
-		} else {
-			SP_Sync_Manager()->cancel_reindex();
-			wp_redirect( admin_url( 'tools.php?page=searchpress&cancel=1' ) );
-			exit;
+		if ( ! current_user_can( $this->capability ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
 		}
+
+		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $_POST['sp_sync_nonce'] ), 'sp_sync' ) ) {
+			wp_die( esc_html__( 'You are not authorized to perform that action', 'searchpress' ) );
+		}
+
+		SP_Sync_Manager()->cancel_reindex();
+		return $this->redirect( admin_url( 'tools.php?page=searchpress&cancel=1' ) );
 	}
 
 	public function clear_log() {
-		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( $_POST['sp_sync_nonce'], 'sp_flush_log_nonce' ) ) {
-			wp_die( __( 'You are not authorized to perform that action', 'searchpress' ) );
+		if ( ! current_user_can( $this->capability ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
+		}
+
+		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $_POST['sp_sync_nonce'] ), 'sp_flush_log_nonce' ) ) {
+			wp_die( esc_html__( 'You are not authorized to perform that action', 'searchpress' ) );
+		}
+
+		SP_Sync_Meta()->clear_log();
+		return $this->redirect( admin_url( 'tools.php?page=searchpress&clear_log=1' ) );
+	}
+
+	public function sp_sync_status() {
+		if ( ! current_user_can( $this->capability ) ) {
+			wp_send_json_error();
+		}
+
+		if ( SP_Sync_Meta()->running ) {
+			echo wp_json_encode( array(
+				'processed' => SP_Sync_Meta()->processed,
+				'page' => SP_Sync_Meta()->page,
+			) );
 		} else {
-			SP_Sync_Meta()->clear_log();
-			wp_redirect( admin_url( 'tools.php?page=searchpress&clear_log=1' ) );
+			echo wp_json_encode( array(
+				'processed' => 'complete',
+			) );
+		}
+
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
 			exit;
 		}
 	}
 
-	public function sp_sync_status() {
-		if ( SP_Sync_Meta()->running ) {
-			echo json_encode( array(
-				'processed' => SP_Sync_Meta()->processed,
-				'page' => SP_Sync_Meta()->page
-			) );
-		} else {
-			echo json_encode( array(
-				'processed' => 'complete'
-			) );
-		}
-		exit;
-	}
-
 	public function assets() {
-		if ( isset( $_GET['page'] ) && 'searchpress' == $_GET['page'] ) {
+		if ( current_user_can( $this->capability ) && $this->is_settings_page() ) {
 			wp_enqueue_style( 'searchpress-admin-css', SP_PLUGIN_URL . '/assets/admin.css', array(), '0.2' );
 			wp_enqueue_script( 'searchpress-admin-js', SP_PLUGIN_URL . '/assets/admin.js', array( 'jquery' ), '0.2', true );
 			wp_localize_script( 'searchpress-admin-js', 'searchpress', array(
-				'admin_url' => esc_url_raw( admin_url( "tools.php?page=searchpress" ) ),
+				'admin_url' => esc_url_raw( admin_url( 'tools.php?page=searchpress' ) ),
 			) );
 		}
 	}
@@ -264,35 +280,77 @@ class SP_Admin {
 	public function get_error( $code ) {
 		switch ( $code ) {
 			case SP_ERROR_FLUSH_FAIL : return __( 'SearchPress could not flush the old data', 'searchpress' );
+			case SP_ERROR_NO_BEAT    : return __( 'SearchPress cannot reach the Elasticsearch server', 'searchpress' );
 		}
 		return __( 'Unknown error', 'searchpress' );
 	}
 
+	public function is_settings_page() {
+		return ( isset( $_GET['page'] ) && 'searchpress' == $_GET['page'] );
+	}
+
 	public function admin_notices() {
-		if ( isset( $_GET['page'] ) && 'searchpress' == $_GET['page'] ) {
+		if ( ! current_user_can( $this->capability ) ) {
 			return;
-		} elseif ( SP_Sync_Meta()->running ) {
-			printf(
-				'<div class="updated"><p>%s <a href="%s">%s</a></p></div>',
-				__( 'SearchPress sync is currently running.', 'searchpress' ),
-				admin_url( 'tools.php?page=searchpress' ),
-				__( 'View status', 'searchpress' )
-			);
-		} elseif ( SP_Config()->must_init() ) {
-			printf(
-				'<div class="updated error"><p>%s <a href="%s">%s</a></p></div>',
-				__( 'SearchPress needs to be configured and synced before you can use it.', 'searchpress' ),
-				admin_url( 'tools.php?page=searchpress' ),
-				__( 'Go to SearchPress Settings', 'searchpress' )
-			);
-		} elseif ( SP_Sync_Meta()->has_errors() ) {
-			printf(
-				'<div class="updated error"><p>%s <a href="%s">%s</a></p></div>',
-				__( 'SearchPress encountered an error while syncing.', 'searchpress' ),
-				admin_url( 'tools.php?page=searchpress#sp-log' ),
-				__( 'Go to Log', 'searchpress' )
-			);
 		}
+
+		if ( SP_Config()->must_init() ) {
+			if ( $this->is_settings_page() ) {
+				return;
+			}
+			printf(
+				'<div class="updated error"><p>%s <a href="%s">%s</a></p></div>',
+				esc_html__( 'SearchPress needs to be configured and synced before you can use it.', 'searchpress' ),
+				esc_url( admin_url( 'tools.php?page=searchpress' ) ),
+				esc_html__( 'Go to SearchPress Settings', 'searchpress' )
+			);
+		} elseif ( 'ok' !== ( $heartbeat_status = SP_Heartbeat()->get_status() ) ) {
+			$message_escaped = esc_html__( 'SearchPress cannot reach the Elasticsearch server!', 'searchpress' );
+			if ( 'never' === $heartbeat_status && ! $this->is_settings_page() ) {
+				$message_escaped .= sprintf(
+					' <a href="%s">%s</a>',
+					esc_url( admin_url( 'tools.php?page=searchpress' ) ),
+					esc_html__( 'Check the server URL on the SearchPress settings page', 'searchpress' )
+				);
+			} elseif ( 'never' !== $heartbeat_status ) {
+				$message_escaped .= ' ' . sprintf( esc_html__( 'The Elasticsearch server was last seen %s ago.', 'searchpress' ), human_time_diff( SP_Heartbeat()->get_last_beat(), time() ) );
+			}
+			if ( 'shutdown' == $heartbeat_status ) {
+				$message_escaped .= "\n" . esc_html__( "SearchPress has deactivated itself to preserve site search for your visitors. Your site will use WordPress' built-in search until the Elasticsearch server comes back online.", 'searchpress' );
+			}
+			echo '<div class="updated error">' . wpautop( $message_escaped ) . '</div>'; // WPCS: XSS ok.
+		} elseif ( SP_Sync_Meta()->running ) {
+			$message_escaped = esc_html__( 'SearchPress sync is currently running.', 'searchpress' );
+			if ( ! $this->is_settings_page() ) {
+				$message_escaped .= sprintf(
+					' <a href="%s">%s</a>',
+					esc_url( admin_url( 'tools.php?page=searchpress' ) ),
+					esc_html__( 'View status', 'searchpress' )
+				);
+			}
+			echo '<div class="updated">' . wpautop( $message_escaped ) . '</div>'; // WPCS: XSS ok.
+		} elseif ( SP_Sync_Meta()->has_errors() ) {
+			$message_escaped = esc_html__( 'SearchPress encountered an error.', 'searchpress' );
+			if ( ! $this->is_settings_page() ) {
+				$message_escaped .= sprintf(
+					' <a href="%s">%s</a>',
+					esc_url( admin_url( 'tools.php?page=searchpress#sp-log' ) ),
+					esc_html__( 'Go to Log', 'searchpress' )
+				);
+			}
+			echo '<div class="updated error">' . wpautop( $message_escaped ) . '</div>'; // WPCS: XSS ok.
+		}
+	}
+
+	/**
+	 * Redirect and exit.
+	 *
+	 * @codeCoverageIgnore
+	 * @param  string $location Url to which to redirect.
+	 */
+	protected function redirect( $location ) {
+		wp_safe_redirect( $location );
+		exit;
 	}
 }
 
@@ -300,5 +358,3 @@ function SP_Admin() {
 	return SP_Admin::instance();
 }
 add_action( 'after_setup_theme', 'SP_Admin' );
-
-endif;

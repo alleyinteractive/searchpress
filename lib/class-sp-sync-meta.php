@@ -7,11 +7,8 @@
  *
  * @author Matthew Boynes
  */
-if ( !class_exists( 'SP_Sync_Meta' ) ) :
 
-class SP_Sync_Meta {
-
-	private static $instance;
+class SP_Sync_Meta extends SP_Singleton {
 
 	/**
 	 * Stores information about the current or most recent bulk sync.
@@ -36,31 +33,6 @@ class SP_Sync_Meta {
 	 * @var string
 	 */
 	protected $error_transient = 'sp_sync_meta_error';
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	private function __construct() {
-		/* Don't do anything, needs to be initialized via instance() method */
-	}
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	public function __clone() { wp_die( "Please don't __clone SP_Sync_Meta" ); }
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	public function __wakeup() { wp_die( "Please don't __wakeup SP_Sync_Meta" ); }
-
-	public static function instance() {
-		if ( ! isset( self::$instance ) ) {
-			self::$instance = new SP_Sync_Meta;
-			self::$instance->setup();
-		}
-		return self::$instance;
-	}
 
 	/**
 	 * Setup the singleton; initialize and load the data.
@@ -181,7 +153,7 @@ class SP_Sync_Meta {
 			if ( ! in_array( $method, array( 'success', 'warning', 'error' ) ) ) {
 				$method = 'line';
 			}
-			$message = $error->get_error_data() ? $error->get_error_message() . "; Data: " . json_encode( $error->get_error_data() ) : $error->get_error_message();
+			$message = $error->get_error_data() ? $error->get_error_message() . '; Data: ' . json_encode( $error->get_error_data() ) : $error->get_error_message();
 			call_user_func( array( 'WP_CLI', $method ), $message );
 			$this->data['messages'][ $error->get_error_code() ][] = $message;
 		} else {
@@ -268,5 +240,3 @@ class SP_Sync_Meta {
 function SP_Sync_Meta() {
 	return SP_Sync_Meta::instance();
 }
-
-endif;
