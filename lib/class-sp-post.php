@@ -5,7 +5,7 @@
 *
 * @todo should we index paginated posts differently? Would be nice to click a search result and go to correct page
 */
-class SP_Post {
+class SP_Post extends SP_Indexable {
 
 	/**
 	 * This stores what will eventually become our JSON
@@ -28,6 +28,7 @@ class SP_Post {
 			return;
 		}
 
+		$this->id = $post->ID;
 		$this->fill( $post );
 	}
 
@@ -75,21 +76,21 @@ class SP_Post {
 		$this->data['post_id']           = intval( $post->ID );
 		// We're storing the login here instead of user ID, as that's more flexible
 		$this->data['post_author']       = $this->get_user( $post->post_author );
-		$this->data['post_date']         = $this->get_date( $post->post_date, 'post_date' );
-		$this->data['post_date_gmt']     = $this->get_date( $post->post_date_gmt, 'post_date_gmt' );
-		$this->data['post_modified']     = $this->get_date( $post->post_modified, 'post_modified' );
-		$this->data['post_modified_gmt'] = $this->get_date( $post->post_modified_gmt, 'post_modified_gmt' );
-		$this->data['post_title']        = $apply_filters ? strval( get_the_title( $post->ID ) ) : strval( $post->post_title );
-		$this->data['post_excerpt']      = strval( $post->post_excerpt );
-		$this->data['post_content']      = $apply_filters ? strval( str_replace( ']]>', ']]&gt;', apply_filters( 'the_content', $post->post_content ) ) ) : strval( $post->post_content );
-		$this->data['post_status']       = strval( $post->post_status );
-		$this->data['post_name']         = strval( $post->post_name );
+		$this->data['post_date']         = $this->get_date( $post->post_date );
+		$this->data['post_date_gmt']     = $this->get_date( $post->post_date_gmt );
+		$this->data['post_modified']     = $this->get_date( $post->post_modified );
+		$this->data['post_modified_gmt'] = $this->get_date( $post->post_modified_gmt );
+		$this->data['post_title']        = self::limit_string( $apply_filters ? strval( get_the_title( $post->ID ) ) : strval( $post->post_title ) );
+		$this->data['post_excerpt']      = self::limit_word_length( strval( $post->post_excerpt ) );
+		$this->data['post_content']      = self::limit_word_length( $apply_filters ? strval( str_replace( ']]>', ']]&gt;', apply_filters( 'the_content', $post->post_content ) ) ) : strval( $post->post_content ) );
+		$this->data['post_status']       = self::limit_string( strval( $post->post_status ) );
+		$this->data['post_name']         = self::limit_string( strval( $post->post_name ) );
 		$this->data['post_parent']       = intval( $post->post_parent );
-		$this->data['post_type']         = strval( $post->post_type );
-		$this->data['post_mime_type']    = strval( $post->post_mime_type );
-		$this->data['post_password']     = strval( $post->post_password );
+		$this->data['post_type']         = self::limit_string( strval( $post->post_type ) );
+		$this->data['post_mime_type']    = self::limit_string( strval( $post->post_mime_type ) );
+		$this->data['post_password']     = self::limit_string( strval( $post->post_password ) );
 		$this->data['menu_order']        = intval( $post->menu_order );
-		$this->data['permalink']         = strval( esc_url_raw( get_permalink( $post->ID ) ) );
+		$this->data['permalink']         = self::limit_string( strval( esc_url_raw( get_permalink( $post->ID ) ) ) );
 
 		$this->data['terms']             = $this->get_terms( $post );
 		$this->data['post_meta']         = $this->get_meta( $post->ID );
@@ -138,57 +139,6 @@ class SP_Post {
 
 
 	/**
-	 * Split the meta values into different types for meta query casting.
-	 *
-	 * @param  string $value Meta value.
-	 * @return array
-	 */
-	public static function cast_meta_types( $value ) {
-		$return = array(
-			'value'   => $value,
-			'raw'     => $value,
-			'boolean' => (bool) $value,
-		);
-
-		$time = false;
-		if ( is_numeric( $value ) ) {
-			$int = intval( $value );
-			$return['long']   = $int;
-			$return['double'] = floatval( $value );
-
-			// If this is an integer (represented as a string), check to see if
-			// it is a valid timestamp
-			if ( (string) $int === (string) $value ) {
-				$year = intval( date( 'Y', $int ) );
-				// Ensure that the year is between 1-2038. Technically, the year
-				// range ES allows is 1-292278993, but PHP ints limit us to 2038.
-				if ( $year > 0 && $year < 2039 ) {
-					$time = $int;
-				}
-			}
-		} elseif ( is_string( $value ) ) {
-			// correct boolean values
-			if ( 'false' === strtolower( $value ) ) {
-				$return['boolean'] = false;
-			} elseif ( 'true' === strtolower( $value ) ) {
-				$return['boolean'] = true;
-			}
-
-			// add date/time if we have it.
-			$time = strtotime( $value );
-		}
-
-		if ( false !== $time ) {
-			$return['date']     = date( 'Y-m-d', $time );
-			$return['datetime'] = date( 'Y-m-d H:i:s', $time );
-			$return['time']     = date( 'H:i:s', $time );
-		}
-
-		return $return;
-	}
-
-
-	/**
 	 * Get all terms across all taxonomies for a given post
 	 *
 	 * @param object $post
@@ -216,8 +166,8 @@ class SP_Post {
 		foreach ( (array) $object_terms as $term ) {
 			$terms[ $term->taxonomy ][] = array(
 				'term_id' => intval( $term->term_id ),
-				'slug'    => strval( $term->slug ),
-				'name'    => strval( $term->name ),
+				'slug'    => self::limit_string( strval( $term->slug ) ),
+				'name'    => self::limit_string( strval( $term->name ) ),
 				'parent'  => intval( $term->parent ),
 			);
 		}
@@ -284,9 +234,9 @@ class SP_Post {
 		if ( $user instanceof WP_User ) {
 			$data = array(
 				'user_id'       => intval( $user_id ),
-				'login'         => strval( $user->user_login ),
-				'display_name'  => strval( $user->display_name ),
-				'user_nicename' => strval( $user->user_nicename ),
+				'login'         => self::limit_string( strval( $user->user_login ) ),
+				'display_name'  => self::limit_string( strval( $user->display_name ) ),
+				'user_nicename' => self::limit_string( strval( $user->user_nicename ) ),
 			);
 		} else {
 			$data = array(
@@ -302,37 +252,6 @@ class SP_Post {
 		return $data;
 	}
 
-
-	/**
-	 * Parse out the properties of a date.
-	 *
-	 * @param  string $date  A date, expected to be in mysql format.
-	 * @param  string $field The field for which we're pulling this information.
-	 * @return array The parsed date.
-	 */
-	public function get_date( $date, $field ) {
-		if ( empty( $date ) || '0000-00-00 00:00:00' == $date ) {
-			return null;
-		}
-
-		$ts = strtotime( $date );
-		return array(
-			'date'              => strval( $date ),
-			'year'              => intval( date( 'Y', $ts ) ),
-			'month'             => intval( date( 'm', $ts ) ),
-			'day'               => intval( date( 'd', $ts ) ),
-			'hour'              => intval( date( 'H', $ts ) ),
-			'minute'            => intval( date( 'i', $ts ) ),
-			'second'            => intval( date( 's', $ts ) ),
-			'week'              => intval( date( 'W', $ts ) ),
-			'day_of_week'       => intval( date( 'N', $ts ) ),
-			'day_of_year'       => intval( date( 'z', $ts ) ),
-			'seconds_from_day'  => intval( mktime( date( 'H', $ts ), date( 'i', $ts ), date( 's', $ts ), 1, 1, 1970 ) ),
-			'seconds_from_hour' => intval( mktime( 0, date( 'i', $ts ), date( 's', $ts ), 1, 1, 1970 ) ),
-		);
-	}
-
-
 	/**
 	 * Return this object as JSON
 	 *
@@ -341,7 +260,6 @@ class SP_Post {
 	public function to_json() {
 		return json_encode( apply_filters( 'sp_post_pre_index', $this->data ) );
 	}
-
 
 	public function should_be_indexed() {
 		// Check post type

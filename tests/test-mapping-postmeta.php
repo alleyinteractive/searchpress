@@ -101,4 +101,43 @@ class Tests_Mapping_Postmeta extends WP_UnitTestCase {
 			$this->assertSame( array(), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.time' ), 'Checking that meta.time is missing' );
 		}
 	}
+
+	public function long_string_data() {
+		return array(
+			// $string, $should_truncate_indexed, $should_truncate_raw
+			array( str_repeat( 'a', 1000 ), false, false ),
+			array( str_repeat( 'a', 50000 ), true, true ),
+			array( trim( str_repeat( 'test ', 200 ) ), false, false ),
+			array( trim( str_repeat( 'test ', 10000 ) ), false, true ),
+		);
+	}
+
+	/**
+	 * @dataProvider long_string_data
+	 */
+	public function test_long_strings( $string, $should_truncate_indexed, $should_truncate_raw ) {
+		$demo_post_id = $this->factory->post->create( array( 'post_title' => rand_str(), 'post_date' => '2015-01-02 03:04:05', 'post_content' => $string ) );
+
+		add_post_meta( $demo_post_id, 'long_string_test', $string );
+		SP_Sync_Manager()->sync_post( $demo_post_id );
+		SP_API()->post( '_refresh' );
+
+		// These fields are not indexed
+		if ( $should_truncate_raw ) {
+			$meta_raw = $this->_search_and_get_field( array(), 'post_meta.long_string_test.raw' );
+			$this->assertNotSame( array( $string ), $meta_raw, 'Checking meta.raw' );
+			$this->assertContains( $meta_raw[0], $string );
+		} else {
+			$this->assertSame( array( $string ), $this->_search_and_get_field( array(), 'post_meta.long_string_test.raw' ), 'Checking meta.raw' );
+		}
+
+		// These fields are indexed
+		if ( $should_truncate_indexed ) {
+			$this->assertNotSame( array( $string ), $this->_search_and_get_field( array(), 'post_content' ), 'Checking post_content' );
+			$this->assertNotSame( array( $string ), $this->_search_and_get_field( array(), 'post_meta.long_string_test.value' ), 'Checking meta.value' );
+		} else {
+			$this->assertSame( array( $string ), $this->_search_and_get_field( array(), 'post_content' ), 'Checking post_content' );
+			$this->assertSame( array( $string ), $this->_search_and_get_field( array(), 'post_meta.long_string_test.value' ), 'Checking meta.value' );
+		}
+	}
 }
