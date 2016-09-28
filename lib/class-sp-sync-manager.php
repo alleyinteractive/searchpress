@@ -65,7 +65,13 @@ class SP_Sync_Manager extends SP_Singleton {
 	 */
 	protected function parse_error( $response, $allowed_codes = array( 200 ) ) {
 		if ( ! empty( $response->error ) ) {
-			SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . $response->error->message, $response->error->data ) );
+			if ( isset( $response->error->message, $response->error->data ) ) {
+				SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . $response->error->message, $response->error->data ) );
+			} elseif ( isset( $response->error->reason ) ) {
+				SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . $response->error->reason ) );
+			} else {
+				SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . json_encode( $response->error ) ) );
+			}
 		} elseif ( ! in_array( SP_API()->last_request['response_code'], $allowed_codes ) ) {
 			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%1$s] Elasticsearch response failed! Status code %2$d; %3$s', 'searchpress' ), date( 'Y-m-d H:i:s' ), SP_API()->last_request['response_code'], json_encode( SP_API()->last_request ) ) ) );
 		} elseif ( ! is_object( $response ) ) {

@@ -242,6 +242,20 @@ class Tests_Indexing extends WP_UnitTestCase {
 		$this->assertTrue( SP_Sync_Meta()->has_errors() );
 	}
 
+	function test_invalid_data() {
+		$big_number = '14e7546788';
+		$post_id = $this->factory->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'publish' ) );
+		add_post_meta( $post_id, 'big_number', '14e7546788' );
+		$this->assertFalse( is_finite( floatval( $big_number ) ) );
+		add_filter( 'sp_post_pre_index', function( $data ) use ( $big_number ) {
+			$data['post_meta']['big_number'][0]['double'] = floatval( $big_number );
+			return $data;
+		} );
+		$this->assertFalse( SP_Sync_Meta()->has_errors() );
+		SP_Sync_Manager()->sync_post( $post_id );
+		$this->assertTrue( SP_Sync_Meta()->has_errors() );
+	}
+
 	// @todo Test updating terms
 	// @todo Test deleting terms
 
