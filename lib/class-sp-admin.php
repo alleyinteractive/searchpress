@@ -269,8 +269,8 @@ class SP_Admin extends SP_Singleton {
 
 	public function assets() {
 		if ( current_user_can( $this->capability ) && $this->is_settings_page() ) {
-			wp_enqueue_style( 'searchpress-admin-css', SP_PLUGIN_URL . '/assets/admin.css', array(), '0.2' );
-			wp_enqueue_script( 'searchpress-admin-js', SP_PLUGIN_URL . '/assets/admin.js', array( 'jquery' ), '0.2', true );
+			wp_enqueue_style( 'searchpress-admin-css', SP_PLUGIN_URL . '/assets/admin.css', array(), '0.3' );
+			wp_enqueue_script( 'searchpress-admin-js', SP_PLUGIN_URL . '/assets/admin.js', array( 'jquery' ), '0.3', true );
 			wp_localize_script( 'searchpress-admin-js', 'searchpress', array(
 				'admin_url' => esc_url_raw( admin_url( 'tools.php?page=searchpress' ) ),
 			) );
