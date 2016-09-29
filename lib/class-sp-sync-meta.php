@@ -153,7 +153,7 @@ class SP_Sync_Meta extends SP_Singleton {
 			if ( ! in_array( $method, array( 'success', 'warning', 'error' ) ) ) {
 				$method = 'line';
 			}
-			$message = $error->get_error_data() ? $error->get_error_message() . '; Data: ' . json_encode( $error->get_error_data() ) : $error->get_error_message();
+			$message = $error->get_error_data() ? $error->get_error_message() . '; Data: ' . wp_json_encode( $error->get_error_data() ) : $error->get_error_message();
 			call_user_func( array( 'WP_CLI', $method ), $message );
 			$this->data['messages'][ $error->get_error_code() ][] = $message;
 		} else {

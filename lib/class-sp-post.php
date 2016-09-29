@@ -272,7 +272,7 @@ class SP_Post extends SP_Indexable {
 	 * @return string
 	 */
 	public function to_json() {
-		return json_encode( apply_filters( 'sp_post_pre_index', $this->data ) );
+		return wp_json_encode( apply_filters( 'sp_post_pre_index', $this->data ) );
 	}
 
 	public function should_be_indexed() {

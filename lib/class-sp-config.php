@@ -202,7 +202,7 @@ class SP_Config extends SP_Singleton {
 			),
 		);
 		$mapping = apply_filters( 'sp_config_mapping', $mapping );
-		return SP_API()->put( '', json_encode( $mapping ) );
+		return SP_API()->put( '', wp_json_encode( $mapping ) );
 	}
 
 

@@ -86,7 +86,7 @@ class SP_API extends SP_Singleton {
 			return $result['body'];
 		}
 
-		return json_encode( array(
+		return wp_json_encode( array(
 			'error' => array(
 				'code' => $result->get_error_code(),
 				'message' => $result->get_error_message(),
