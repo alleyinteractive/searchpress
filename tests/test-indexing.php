@@ -264,7 +264,7 @@ class Tests_Indexing extends WP_UnitTestCase {
 		SP_Sync_Manager()->sync_post( $post_id );
 		SP_API()->post( '_refresh' );
 
-		$posts = sp_wp_search( array( 'fields' => [ 'post_meta._oembed_test.raw' ] ), true );
+		$posts = sp_wp_search( array( 'fields' => array( 'post_meta._oembed_test.raw' ) ), true );
 		$results = sp_results_pluck( $posts, 'post_meta._oembed_test.raw' );
 
 		$this->assertEmpty( $results );
