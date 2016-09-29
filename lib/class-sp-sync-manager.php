@@ -242,6 +242,16 @@ class SP_Sync_Manager extends SP_Singleton {
 		}
 		return $this->published_posts;
 	}
+
+	/**
+	 * Get the number of posts indexed in Elasticsearch.
+	 *
+	 * @return int
+	 */
+	public function count_posts_indexed() {
+		$count = SP_API()->get( 'post/_count' );
+		return ! empty( $count->count ) ? intval( $count->count ) : 0;
+	}
 }
 
 function SP_Sync_Manager() {
