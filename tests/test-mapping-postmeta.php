@@ -47,6 +47,7 @@ class Tests_Mapping_Postmeta extends WP_UnitTestCase {
 			array( 1442600000.0001, true, 1442600000, 1442600000.0001, null ),
 			array( '2015-01-04T15:19:21-05:00', true, null, null, '2015-01-04 20:19:21' ), // Note the timezone
 			array( '18:13:20', true, null, null, date( 'Y-m-d' ) . ' 18:13:20' ),
+			array( '14e7647469', true, null, null, null ),
 		);
 	}
 
@@ -122,7 +123,7 @@ class Tests_Mapping_Postmeta extends WP_UnitTestCase {
 		SP_Sync_Manager()->sync_post( $demo_post_id );
 		SP_API()->post( '_refresh' );
 
-		// These fields are not indexed
+		// These fields are not analyzed
 		if ( $should_truncate_raw ) {
 			$meta_raw = $this->_search_and_get_field( array(), 'post_meta.long_string_test.raw' );
 			$this->assertNotSame( array( $string ), $meta_raw, 'Checking meta.raw' );
@@ -131,7 +132,7 @@ class Tests_Mapping_Postmeta extends WP_UnitTestCase {
 			$this->assertSame( array( $string ), $this->_search_and_get_field( array(), 'post_meta.long_string_test.raw' ), 'Checking meta.raw' );
 		}
 
-		// These fields are indexed
+		// These fields are analyzed
 		if ( $should_truncate_indexed ) {
 			$this->assertNotSame( array( $string ), $this->_search_and_get_field( array(), 'post_content' ), 'Checking post_content' );
 			$this->assertNotSame( array( $string ), $this->_search_and_get_field( array(), 'post_meta.long_string_test.value' ), 'Checking meta.value' );

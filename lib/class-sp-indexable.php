@@ -41,16 +41,17 @@ abstract class SP_Indexable {
 	 */
 	public static function cast_meta_types( $value ) {
 		$return = array(
-			'value'   => self::limit_word_length( $value ),
-			'raw'     => self::limit_string( $value ),
+			'value'   => $value,
+			'raw'     => $value,
 			'boolean' => (bool) $value,
 		);
 
 		$time = false;
-		if ( is_numeric( $value ) ) {
+		$double = floatval( $value );
+		if ( is_numeric( $value ) && is_finite( $double ) ) {
 			$int = intval( $value );
 			$return['long']   = $int;
-			$return['double'] = floatval( $value );
+			$return['double'] = $double;
 
 			// If this is an integer (represented as a string), check to see if
 			// it is a valid timestamp
@@ -63,6 +64,9 @@ abstract class SP_Indexable {
 				}
 			}
 		} elseif ( is_string( $value ) ) {
+			$return['value'] = self::limit_word_length( $value );
+			$return['raw']   = self::limit_string( $value );
+
 			// correct boolean values
 			if ( 'false' === strtolower( $value ) ) {
 				$return['boolean'] = false;
