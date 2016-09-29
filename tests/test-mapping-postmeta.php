@@ -57,8 +57,6 @@ class Tests_Mapping_Postmeta extends WP_UnitTestCase {
 	function test_mapping_post_meta( $value, $boolean, $long, $double, $datetime ) {
 		$demo_post_id = $this->factory->post->create( array( 'post_title' => rand_str(), 'post_date' => '2015-01-02 03:04:05' ) );
 
-		// Test the various meta mappings. Ideally, these each would be their
-		// own test, but
 		add_post_meta( $demo_post_id, 'mapping_postmeta_test', $value );
 		SP_Sync_Manager()->sync_post( $demo_post_id );
 		SP_API()->post( '_refresh' );
@@ -75,6 +73,8 @@ class Tests_Mapping_Postmeta extends WP_UnitTestCase {
 			$string = array( strval( $value ) );
 		}
 
+		// Test the various meta mappings. Ideally, these each would be their
+		// own test, but this is considerably faster.
 		$this->assertSame( $string, $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.value' ), 'Checking meta.value' );
 		$this->assertSame( $string, $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.raw' ), 'Checking meta.raw' );
 		$this->assertSame( array( $boolean ), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.boolean' ), 'Checking meta.boolean' );
