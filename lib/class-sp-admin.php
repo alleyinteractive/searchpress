@@ -341,7 +341,7 @@ class SP_Admin extends SP_Singleton {
 			wp_die( esc_html__( 'You are not authorized to perform that action', 'searchpress' ) );
 		}
 
-		$new_status = intval( 'inactive' === $_POST['currently'] );
+		$new_status = ( 'inactive' === $_POST['currently'] );
 		if ( $new_status !== SP_Config()->get_setting( 'active' ) ) {
 			SP_Config()->update_settings( array( 'active' => $new_status ) );
 		}

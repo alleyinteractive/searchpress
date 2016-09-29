@@ -276,7 +276,19 @@ class Tests_Indexing extends WP_UnitTestCase {
 		$this->assertEmpty( $results );
 	}
 
-	// @todo Test updating terms
-	// @todo Test deleting terms
+	public function test_counts() {
+		SP_Sync_Manager()->published_posts = false;
+		$this->assertSame( 0, SP_Sync_Manager()->count_posts() );
+		$this->assertSame( 0, SP_Sync_Manager()->count_posts_indexed() );
+
+		$this->factory->post->create( array( 'post_title' => 'test post 1', 'post_name' => 'test-post-1', 'post_status' => 'publish' ) );
+		$this->factory->post->create( array( 'post_title' => 'test post 2', 'post_name' => 'test-post-2', 'post_status' => 'publish' ) );
+		$this->factory->post->create( array( 'post_title' => 'test post 3', 'post_name' => 'test-post-3', 'post_status' => 'publish' ) );
+		SP_API()->post( '_refresh' );
+
+		SP_Sync_Manager()->published_posts = false;
+		$this->assertSame( 3, SP_Sync_Manager()->count_posts() );
+		$this->assertSame( 3, SP_Sync_Manager()->count_posts_indexed() );
+	}
 
 }

@@ -238,7 +238,7 @@ class SP_Sync_Manager extends SP_Singleton {
 			$args = apply_filters( 'searchpress_index_count_args', $args );
 
 			$query = new WP_Query( $args );
-			$this->published_posts = $query->found_posts;
+			$this->published_posts = intval( $query->found_posts );
 		}
 		return $this->published_posts;
 	}
