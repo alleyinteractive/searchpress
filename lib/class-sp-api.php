@@ -6,13 +6,9 @@
 
 class SP_API extends SP_Singleton {
 
-	public $connection;
-
 	public $host;
 
 	public $index = '';
-
-	public $type = 'post';
 
 	public $request_defaults = array();
 
@@ -24,6 +20,7 @@ class SP_API extends SP_Singleton {
 	public function setup() {
 		$url = get_site_url();
 		$this->index = preg_replace( '#^.*?//(.*?)/?$#', '$1', $url );
+		$this->host = SP_Config()->get_setting( 'host' );
 		$this->request_defaults = array(
 			'sslverify'          => false,
 			'timeout'            => 10,
@@ -99,13 +96,13 @@ class SP_API extends SP_Singleton {
 		if ( is_string( $url ) ) {
 			if ( preg_match( '#^https?://#i', $url ) ) {
 				return $url;
-			} elseif ( '/' == substr( $url, 0, 1 ) ) {
-				return SP_Config()->get_setting( 'host' ) . $url;
+			} elseif ( '/' === substr( $url, 0, 1 ) ) {
+				return $this->host . $url;
 			}
 		}
 
 		$defaults = array(
-			'host'  => SP_Config()->get_setting( 'host' ),
+			'host'  => $this->host,
 			'index' => $this->index,
 		);
 

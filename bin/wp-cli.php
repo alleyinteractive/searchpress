@@ -144,7 +144,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 * [--before-date=<date>]
 	 * : Index posts published on or before this date. Use YYYY-MM-DD.
 	 *
-	 * [<post-id>]
+	 * [<post-id>...]
 	 * : By default, this subcommand will query posts based on ID and pagination.
 	 * Instead, you can specify one or more individual post IDs to process. Multiple
 	 * post IDs should be space-delimited (see examples)
@@ -173,7 +173,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 *      # Index posts published after 11-1-2015 (inclusive)
 	 *      wp searchpress index --after-date=2015-11-01
 	 *
-	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [--after-date=<date>] [--before-date=<date>] [<post-id>]
+	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [--after-date=<date>] [--before-date=<date>] [<post-id>...]
 	 */
 	public function index( $args, $assoc_args ) {
 		ob_end_clean();
