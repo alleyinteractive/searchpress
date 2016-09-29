@@ -19,6 +19,8 @@ class Tests_Indexing extends WP_UnitTestCase {
 		SP_Sync_Manager()->published_posts = false;
 		sp_index_flush_data();
 		wp_clear_scheduled_hook( 'sp_reindex' );
+
+		parent::tearDown();
 	}
 
 	function search_and_get_field( $args, $field = 'post_name' ) {
