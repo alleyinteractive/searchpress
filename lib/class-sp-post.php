@@ -129,11 +129,25 @@ class SP_Post extends SP_Indexable {
 			unset( $meta[ $key ] );
 		}
 
-		foreach ( $meta as &$values ) {
+		/**
+		 * Filter the post meta to be indexed before type casting.
+		 *
+		 * @param array $meta The meta to be indexed.
+		 * @param int $post_id The post ID.
+		 */
+		$meta = apply_filters( 'sp_post_indexable_meta', $meta, $post_id );
+
+		foreach ( $meta as $key => &$values ) {
+			// Ignore oembed meta, which continuously expands the mapping
+			if ( '_oembed_' === substr( $key, 0, 8 ) ) {
+				unset( $meta[ $key ] );
+				continue;
+			}
 			$values = array_map( array( 'SP_Post', 'cast_meta_types' ), $values );
 		}
 
 		do_action( 'sp_debug', '[SP_Post] Compiled Meta', $meta );
+
 		return $meta;
 	}
 

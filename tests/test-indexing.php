@@ -244,7 +244,7 @@ class Tests_Indexing extends WP_UnitTestCase {
 		$this->assertTrue( SP_Sync_Meta()->has_errors() );
 	}
 
-	function test_invalid_data() {
+	public function test_invalid_data() {
 		$big_number = '14e7546788';
 		$post_id = $this->factory->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'publish' ) );
 		add_post_meta( $post_id, 'big_number', '14e7546788' );
@@ -256,6 +256,18 @@ class Tests_Indexing extends WP_UnitTestCase {
 		$this->assertFalse( SP_Sync_Meta()->has_errors() );
 		SP_Sync_Manager()->sync_post( $post_id );
 		$this->assertTrue( SP_Sync_Meta()->has_errors() );
+	}
+
+	public function test_oembed_meta_keys() {
+		$post_id = $this->factory->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'publish' ) );
+		add_post_meta( $post_id, '_oembed_test', rand_str() );
+		SP_Sync_Manager()->sync_post( $post_id );
+		SP_API()->post( '_refresh' );
+
+		$posts = sp_wp_search( array( 'fields' => [ 'post_meta._oembed_test.raw' ] ), true );
+		$results = sp_results_pluck( $posts, 'post_meta._oembed_test.raw' );
+
+		$this->assertEmpty( $results );
 	}
 
 	// @todo Test updating terms
