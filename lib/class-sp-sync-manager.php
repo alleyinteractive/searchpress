@@ -64,7 +64,9 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @return bool   True if errors are found, false if successful.
 	 */
 	protected function parse_error( $response, $allowed_codes = array( 200 ) ) {
-		if ( ! empty( $response->error ) ) {
+		if ( is_wp_error( $response ) ) {
+			SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . $response->get_error_message(), $response->get_error_data() ) );
+		} elseif ( ! empty( $response->error ) ) {
 			if ( isset( $response->error->message, $response->error->data ) ) {
 				SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . $response->error->message, $response->error->data ) );
 			} elseif ( isset( $response->error->reason ) ) {
