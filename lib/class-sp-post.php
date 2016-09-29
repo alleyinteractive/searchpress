@@ -124,6 +124,7 @@ class SP_Post extends SP_Indexable {
 			'_previous_revision',
 			'_wpas_done_all',
 			'_encloseme',
+			'_pingme',
 		) );
 		foreach ( $ignored_meta as $key ) {
 			unset( $meta[ $key ] );
