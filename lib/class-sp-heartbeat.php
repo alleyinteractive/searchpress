@@ -200,4 +200,4 @@ class SP_Heartbeat extends SP_Singleton {
 function SP_Heartbeat() {
 	return SP_Heartbeat::instance();
 }
-add_action( 'after_setup_theme', 'SP_Heartbeat' );
+add_action( 'after_setup_theme', 'SP_Heartbeat', 20 );
