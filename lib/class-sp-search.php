@@ -50,7 +50,7 @@ class SP_Search {
 	 */
 	public function search( $es_args ) {
 		$this->es_args = apply_filters( 'sp_search_query_args', $es_args );
-		$this->search_results = SP_API()->search( json_encode( $this->es_args ), array( 'output' => ARRAY_A ) );
+		$this->search_results = SP_API()->search( wp_json_encode( $this->es_args ), array( 'output' => ARRAY_A ) );
 		return $this->search_results;
 	}
 

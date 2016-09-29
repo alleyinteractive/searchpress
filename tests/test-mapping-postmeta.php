@@ -47,6 +47,7 @@ class Tests_Mapping_Postmeta extends WP_UnitTestCase {
 			array( 1442600000.0001, true, 1442600000, 1442600000.0001, null ),
 			array( '2015-01-04T15:19:21-05:00', true, null, null, '2015-01-04 20:19:21' ), // Note the timezone
 			array( '18:13:20', true, null, null, date( 'Y-m-d' ) . ' 18:13:20' ),
+			array( '14e7647469', true, null, null, null ),
 		);
 	}
 
@@ -56,8 +57,6 @@ class Tests_Mapping_Postmeta extends WP_UnitTestCase {
 	function test_mapping_post_meta( $value, $boolean, $long, $double, $datetime ) {
 		$demo_post_id = $this->factory->post->create( array( 'post_title' => rand_str(), 'post_date' => '2015-01-02 03:04:05' ) );
 
-		// Test the various meta mappings. Ideally, these each would be their
-		// own test, but
 		add_post_meta( $demo_post_id, 'mapping_postmeta_test', $value );
 		SP_Sync_Manager()->sync_post( $demo_post_id );
 		SP_API()->post( '_refresh' );
@@ -74,6 +73,8 @@ class Tests_Mapping_Postmeta extends WP_UnitTestCase {
 			$string = array( strval( $value ) );
 		}
 
+		// Test the various meta mappings. Ideally, these each would be their
+		// own test, but this is considerably faster.
 		$this->assertSame( $string, $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.value' ), 'Checking meta.value' );
 		$this->assertSame( $string, $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.raw' ), 'Checking meta.raw' );
 		$this->assertSame( array( $boolean ), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.boolean' ), 'Checking meta.boolean' );
@@ -99,6 +100,45 @@ class Tests_Mapping_Postmeta extends WP_UnitTestCase {
 			$this->assertSame( array(), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.datetime' ), 'Checking that meta.datetime is missing' );
 			$this->assertSame( array(), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.date' ), 'Checking that meta.date is missing' );
 			$this->assertSame( array(), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.time' ), 'Checking that meta.time is missing' );
+		}
+	}
+
+	public function long_string_data() {
+		return array(
+			// $string, $should_truncate_indexed, $should_truncate_raw
+			array( str_repeat( 'a', 1000 ), false, false ),
+			array( str_repeat( 'a', 50000 ), true, true ),
+			array( trim( str_repeat( 'test ', 200 ) ), false, false ),
+			array( trim( str_repeat( 'test ', 10000 ) ), false, true ),
+		);
+	}
+
+	/**
+	 * @dataProvider long_string_data
+	 */
+	public function test_long_strings( $string, $should_truncate_indexed, $should_truncate_raw ) {
+		$demo_post_id = $this->factory->post->create( array( 'post_title' => rand_str(), 'post_date' => '2015-01-02 03:04:05', 'post_content' => $string ) );
+
+		add_post_meta( $demo_post_id, 'long_string_test', $string );
+		SP_Sync_Manager()->sync_post( $demo_post_id );
+		SP_API()->post( '_refresh' );
+
+		// These fields are not analyzed
+		if ( $should_truncate_raw ) {
+			$meta_raw = $this->_search_and_get_field( array(), 'post_meta.long_string_test.raw' );
+			$this->assertNotSame( array( $string ), $meta_raw, 'Checking meta.raw' );
+			$this->assertContains( $meta_raw[0], $string );
+		} else {
+			$this->assertSame( array( $string ), $this->_search_and_get_field( array(), 'post_meta.long_string_test.raw' ), 'Checking meta.raw' );
+		}
+
+		// These fields are analyzed
+		if ( $should_truncate_indexed ) {
+			$this->assertNotSame( array( $string ), $this->_search_and_get_field( array(), 'post_content' ), 'Checking post_content' );
+			$this->assertNotSame( array( $string ), $this->_search_and_get_field( array(), 'post_meta.long_string_test.value' ), 'Checking meta.value' );
+		} else {
+			$this->assertSame( array( $string ), $this->_search_and_get_field( array(), 'post_content' ), 'Checking post_content' );
+			$this->assertSame( array( $string ), $this->_search_and_get_field( array(), 'post_meta.long_string_test.value' ), 'Checking meta.value' );
 		}
 	}
 }

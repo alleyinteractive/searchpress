@@ -35,6 +35,9 @@ if ( ! defined( 'SP_PLUGIN_DIR' ) ) {
 // Base Singleton class
 require_once SP_PLUGIN_DIR . '/lib/class-sp-singleton.php';
 
+// Base indexable class
+require_once SP_PLUGIN_DIR . '/lib/class-sp-indexable.php';
+
 // Constants, etc.
 require_once SP_PLUGIN_DIR . '/lib/globals.php';
 

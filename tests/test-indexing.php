@@ -19,6 +19,8 @@ class Tests_Indexing extends WP_UnitTestCase {
 		SP_Sync_Manager()->published_posts = false;
 		sp_index_flush_data();
 		wp_clear_scheduled_hook( 'sp_reindex' );
+
+		parent::tearDown();
 	}
 
 	function search_and_get_field( $args, $field = 'post_name' ) {
@@ -240,6 +242,38 @@ class Tests_Indexing extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
 		$this->assertTrue( SP_Sync_Meta()->has_errors() );
+	}
+
+	public function test_invalid_data() {
+		// Elasticsearch will fail to index a post if the date is in the wrong
+		// format.
+		add_filter( 'sp_post_pre_index', function( $data ) {
+			$data['post_date']['date'] = rand_str();
+			return $data;
+		} );
+		$this->assertFalse( SP_Sync_Meta()->has_errors() );
+		$post_id = $this->factory->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'publish' ) );
+		$this->assertTrue( SP_Sync_Meta()->has_errors() );
+	}
+
+	public function test_empty_data() {
+		// Send ES empty data
+		add_filter( 'sp_post_pre_index', '__return_empty_array' );
+		$this->assertFalse( SP_Sync_Meta()->has_errors() );
+		$post_id = $this->factory->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'publish' ) );
+		$this->assertTrue( SP_Sync_Meta()->has_errors() );
+	}
+
+	public function test_oembed_meta_keys() {
+		$post_id = $this->factory->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'publish' ) );
+		add_post_meta( $post_id, '_oembed_test', rand_str() );
+		SP_Sync_Manager()->sync_post( $post_id );
+		SP_API()->post( '_refresh' );
+
+		$posts = sp_wp_search( array( 'fields' => array( 'post_meta._oembed_test.raw' ) ), true );
+		$results = sp_results_pluck( $posts, 'post_meta._oembed_test.raw' );
+
+		$this->assertEmpty( $results );
 	}
 
 	// @todo Test updating terms

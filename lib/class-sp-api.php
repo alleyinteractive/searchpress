@@ -83,7 +83,7 @@ class SP_API extends SP_Singleton {
 			return $result['body'];
 		}
 
-		return json_encode( array(
+		return wp_json_encode( array(
 			'error' => array(
 				'code' => $result->get_error_code(),
 				'message' => $result->get_error_message(),
@@ -125,14 +125,23 @@ class SP_API extends SP_Singleton {
 	}
 
 	public function index_post( $post ) {
-		return $this->put( 'post/' . $post->post_id, $post->to_json() );
+		$json = $post->to_json();
+		if ( empty( $json ) ) {
+			return new WP_Error( 'invalid-json', __( 'Invalid JSON', 'searchpress' ) );
+		}
+		return $this->put( 'post/' . $post->post_id, $json );
 	}
 
 	public function index_posts( $posts ) {
 		$body = array();
 		foreach ( $posts as $post ) {
-			$body[] = '{ "index": { "_id" : ' . $post->post_id . ' } }';
-			$body[] = addcslashes( $post->to_json(), "\n" );
+			$json = $post->to_json();
+			if ( empty( $json ) ) {
+				SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( 'Unable to index post %d: Invalid JSON', 'searchpress' ), $post->post_id ) ) );
+			} else {
+				$body[] = '{ "index": { "_id" : ' . $post->post_id . ' } }';
+				$body[] = addcslashes( $json, "\n" );
+			}
 		}
 		return $this->put( 'post/_bulk', wp_check_invalid_utf8( implode( "\n", $body ), true ) . "\n" );
 	}
