@@ -342,7 +342,7 @@ class SP_Admin extends SP_Singleton {
 		}
 
 		$new_status = ( 'inactive' === $_POST['currently'] );
-		if ( $new_status !== SP_Config()->get_setting( 'active' ) ) {
+		if ( SP_Config()->get_setting( 'active' ) !== $new_status ) {
 			SP_Config()->update_settings( array( 'active' => $new_status ) );
 		}
 
