@@ -1,11 +1,14 @@
-div.progress {
+.tools_page_searchpress .tab-content {
+	display: none;
+}
+.tools_page_searchpress div.progress {
 	position: relative;
 	height: 50px;
 	border: 2px solid #111;
 	background: #333;
 	margin: 9px 0 18px;
 }
-div.progress-bar {
+.tools_page_searchpress div.progress-bar {
 	background: #0074a2;
 	position: absolute;
 	left: 0;
@@ -13,7 +16,7 @@ div.progress-bar {
 	height: 50px;
 	z-index: 1;
 }
-div.progress-text {
+.tools_page_searchpress div.progress-text {
 	color: white;
 	text-shadow: 1px 1px 0 #333;
 	line-height: 50px;
@@ -21,4 +24,45 @@ div.progress-text {
 	position: absolute;
 	width: 100%;
 	z-index: 2;
+}
+.tools_page_searchpress h3 input {
+	vertical-align: baseline !important;
+	margin-left: 9px !important;
+}
+.tools_page_searchpress p {
+	width: 500px;
+	max-width: 100%;
+}
+#searchpress-stats {
+	margin: 20px 0;
+}
+#searchpress-stats td, th {
+	padding: 5px 10px;
+	text-align: center;
+}
+#searchpress-stats tbody td {
+	font-size: 3em;
+}
+#searchpress-stats .status-ok {
+	color: #46b450;
+}
+#searchpress-stats .status-alert {
+	color: #ffb900;
+}
+#searchpress-stats .status-shutdown {
+	color: #dc3232;
+}
+#searchpress-stats .status-never {
+	color: #ffb900;
+}
+#searchpress-stats .status-inactive {
+	color: #aaa;
+}
+#searchpress-stats tfoot th {
+	color: #888;
+	font-size: 1em;
+	white-space: nowrap;
+}
+.tools_page_searchpress [role='tooltip'] {
+	display: block !important;
 }

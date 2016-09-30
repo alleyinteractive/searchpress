@@ -3,7 +3,7 @@ jQuery( function( $ ) {
 		e.preventDefault();
 		$( '.nav-tab-active' ).removeClass( 'nav-tab-active' );
 		$( '.tab-content' ).hide();
-		$( $( this ).attr( 'href' ) ).show();
+		$( $( this ).attr( 'href' ) ).fadeIn();
 		$( this ).addClass( 'nav-tab-active' );
 	} );
 	$( 'a.nav-tab-active' ).click();
