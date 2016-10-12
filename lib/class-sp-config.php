@@ -17,7 +17,7 @@ class SP_Config extends SP_Singleton {
 
 
 	public function sync_statuses() {
-		return apply_filters( 'sp_config_sync_statuses', array( 'publish' ) );
+		return apply_filters( 'sp_config_sync_statuses', sp_searchable_post_statuses() );
 	}
 
 

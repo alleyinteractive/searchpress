@@ -106,7 +106,7 @@ class SP_Sync_Manager extends SP_Singleton {
 	 */
 	public function get_posts( $args = array() ) {
 		$args = wp_parse_args( $args, array(
-			'post_status'         => 'publish',
+			'post_status'         => null,
 			'post_type'           => null,
 			'orderby'             => 'ID',
 			'order'               => 'ASC',
@@ -115,7 +115,11 @@ class SP_Sync_Manager extends SP_Singleton {
 		) );
 
 		if ( empty( $args['post_type'] ) ) {
-			$args['post_type'] = sp_searchable_post_types();
+			$args['post_type'] = SP_Config()->sync_post_types();
+		}
+
+		if ( empty( $args['post_status'] ) ) {
+			$args['post_status'] = SP_Config()->sync_statuses();
 		}
 
 		$args = apply_filters( 'searchpress_index_loop_args', $args );
@@ -228,11 +232,14 @@ class SP_Sync_Manager extends SP_Singleton {
 		if ( false === $this->published_posts ) {
 			$args = wp_parse_args( $args, array(
 				'post_type' => null,
-				'post_status' => 'publish',
+				'post_status' => null,
 				'posts_per_page' => 1,
 			) );
 			if ( empty( $args['post_type'] ) ) {
-				$args['post_type'] = sp_searchable_post_types();
+				$args['post_type'] = SP_Config()->sync_post_types();
+			}
+			if ( empty( $args['post_status'] ) ) {
+				$args['post_status'] = SP_Config()->sync_statuses();
 			}
 
 			$args = apply_filters( 'searchpress_index_count_args', $args );

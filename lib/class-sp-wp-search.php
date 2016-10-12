@@ -103,6 +103,7 @@ class SP_WP_Search extends SP_Search {
 				'terms.post_tag.name',
 			),
 			'post_type'      => null,
+			'post_status'    => null,
 			'terms'          => array(),
 			'author'         => null,
 			'author_name'    => array(),
@@ -147,6 +148,14 @@ class SP_WP_Search extends SP_Search {
 				$args['post_type'] = sp_searchable_post_types();
 			}
 			$filters[] = array( 'terms' => array( 'post_type.raw' => (array) $args['post_type'] ) );
+		}
+
+		// Post status
+		if ( ! empty( $args['post_status'] ) ) {
+			if ( 'any' === $args['post_status'] ) {
+				$args['post_status'] = sp_searchable_post_statuses();
+			}
+			$filters[] = array( 'terms' => array( 'post_status' => (array) $args['post_status'] ) );
 		}
 
 		// Author

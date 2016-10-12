@@ -114,8 +114,8 @@ class SP_Search {
 		} else {
 			$ids = $this->pluck_field( 'post_id' );
 			$this->posts = get_posts( array(
-				'post_type'      => 'any',
-				'post_status'    => 'any',
+				'post_type'      => array_values( get_post_types() ),
+				'post_status'    => array_values( get_post_statuses() ),
 				'posts_per_page' => $this->get_results( 'total' ),
 				'post__in'       => $ids,
 				'orderby'        => 'post__in',
