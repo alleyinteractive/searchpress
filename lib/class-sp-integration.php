@@ -338,4 +338,4 @@ class SP_Integration extends SP_Singleton {
 function SP_Integration() {
 	return SP_Integration::instance();
 }
-add_action( 'after_setup_theme', 'SP_Integration' );
+add_action( 'after_setup_theme', 'SP_Integration', 30 ); // Must init after SP_Heartbeat

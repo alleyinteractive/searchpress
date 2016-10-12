@@ -11,6 +11,7 @@ class Tests_Heartbeat extends WP_UnitTestCase {
 	}
 
 	function tearDown() {
+		SP_Heartbeat()->record_pulse();
 		wp_clear_scheduled_hook( 'sp_heartbeat' );
 		parent::tearDown();
 	}
@@ -136,5 +137,10 @@ class Tests_Heartbeat extends WP_UnitTestCase {
 
 		$this->assertFalse( $shutdown_ready );
 		$this->assertTrue( $ok_ready );
+	}
+
+	public function test_ready_override() {
+		$this->assertTrue( SP_Heartbeat()->is_ready( null ) );
+		$this->assertFalse( SP_Heartbeat()->is_ready( false ) );
 	}
 }

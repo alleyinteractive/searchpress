@@ -46,6 +46,8 @@ class SP_Heartbeat extends SP_Singleton {
 
 	/**
 	 * Setup the singleton.
+	 *
+	 * @codeCoverageIgnore
 	 */
 	public function setup() {
 		$this->intervals = array(
@@ -155,6 +157,8 @@ class SP_Heartbeat extends SP_Singleton {
 
 	/**
 	 * If no heartbeat is scheduled, schedule the default one.
+	 *
+	 * @codeCoverageIgnore
 	 */
 	protected function maybe_schedule_cron() {
 		if ( ! wp_next_scheduled( $this->cron_event ) ) {
@@ -196,4 +200,4 @@ class SP_Heartbeat extends SP_Singleton {
 function SP_Heartbeat() {
 	return SP_Heartbeat::instance();
 }
-add_action( 'after_setup_theme', 'SP_Heartbeat' );
+add_action( 'after_setup_theme', 'SP_Heartbeat', 20 );

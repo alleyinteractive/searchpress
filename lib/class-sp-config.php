@@ -202,7 +202,7 @@ class SP_Config extends SP_Singleton {
 			),
 		);
 		$mapping = apply_filters( 'sp_config_mapping', $mapping );
-		return SP_API()->put( '', json_encode( $mapping ) );
+		return SP_API()->put( '', wp_json_encode( $mapping ) );
 	}
 
 
@@ -240,8 +240,22 @@ class SP_Config extends SP_Singleton {
 		if ( ! $this->settings ) {
 			$this->get_settings();
 		}
+		$old_settings = $this->settings;
 		$this->settings = wp_parse_args( $new_settings, $this->settings );
 		update_option( 'sp_settings', $this->settings );
+
+		if ( ! empty( $new_settings['host'] ) ) {
+			SP_API()->host = $this->get_setting( 'host' );
+		}
+
+		/**
+		 * Fires after the settings have been updated.
+		 *
+		 * @param array $settings The final settings.
+		 * @param array $new_settings The settings being updated.
+		 * @param array $old_settings The old settings.
+		 */
+		do_action( 'sp_config_update_settings', $this->settings, $new_settings, $old_settings );
 	}
 }
 

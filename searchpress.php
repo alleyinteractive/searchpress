@@ -4,7 +4,7 @@
 	Plugin Name: SearchPress
 	Plugin URI: http://searchpress.org/
 	Description: Elasticsearch for WordPress.
-	Version: 0.2
+	Version: 0.3
 	Author: Matthew Boynes, Alley Interactive
 	Author URI: http://www.alleyinteractive.com/
 */
@@ -34,6 +34,9 @@ if ( ! defined( 'SP_PLUGIN_DIR' ) ) {
 
 // Base Singleton class
 require_once SP_PLUGIN_DIR . '/lib/class-sp-singleton.php';
+
+// Base indexable class
+require_once SP_PLUGIN_DIR . '/lib/class-sp-indexable.php';
 
 // Constants, etc.
 require_once SP_PLUGIN_DIR . '/lib/globals.php';

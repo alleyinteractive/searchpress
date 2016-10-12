@@ -3,8 +3,6 @@
 /**
  * Pluck a certain field out of an ES response.
  *
- * @since 3.1.0
- *
  * @param array $results Elasticsearch results.
  * @param int|string $field A field from the retuls to place instead of the entire object.
  * @param bool $as_single Return as single (true) or an array (false). Defaults to true.

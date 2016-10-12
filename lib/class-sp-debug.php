@@ -14,7 +14,7 @@ class SP_Debug {
 
 	public static function debug( $action, $value = null ) {
 		if ( is_array( $value ) || is_object( $value ) ) {
-			$value = json_encode( $value );
+			$value = wp_json_encode( $value );
 		} elseif ( is_bool( $value ) ) {
 			$value = true === $value ? '(bool) true' : '(bool) false';
 		} elseif ( is_null( $value ) ) {
@@ -36,7 +36,7 @@ class SP_Debug {
 	}
 
 	public static function debug_sp_post_pre_index( $data ) {
-		do_action( 'sp_debug', '[SP_Post] Post JSON', json_encode( $data ) );
+		do_action( 'sp_debug', '[SP_Post] Post JSON', wp_json_encode( $data ) );
 		return $data;
 	}
 }

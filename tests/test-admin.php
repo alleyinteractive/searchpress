@@ -319,6 +319,68 @@ class Tests_Admin extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @expectedException WPDieException
+	 * @expectedExceptionMessage You do not have sufficient permissions to access this page.
+	 */
+	public function test_trigger_active_toggle_no_access() {
+		SP_Admin()->active_toggle();
+	}
+
+	/**
+	 * @expectedException WPDieException
+	 * @expectedExceptionMessage You are not authorized to perform that action
+	 */
+	public function test_trigger_active_toggle_invalid_nonce() {
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
+		SP_Admin()->active_toggle();
+	}
+
+	public function test_trigger_active_toggle_activate() {
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
+		$_POST = array(
+			'sp_active_nonce' => wp_create_nonce( 'sp_active' ),
+			'currently' => 'inactive',
+		);
+
+		SP_Config()->update_settings( array( 'active' => false ) );
+		$this->assertSame( false, SP_Config()->get_setting( 'active' ) );
+
+		/**
+		 * @see Tests_Admin::prevent_redirect() For how wp_die() is leveraged here.
+		 */
+		try {
+			SP_Admin()->active_toggle();
+			$this->fail( 'Failed to toggle active state' );
+		} catch ( WPDieException $e ) {
+			// Verify the redirect url
+			$this->assertSame( admin_url( 'tools.php?page=searchpress' ), $e->getMessage() );
+			$this->assertSame( true, SP_Config()->get_setting( 'active' ) );
+		}
+	}
+
+	public function test_trigger_active_toggle_deactivate() {
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
+		$_POST = array(
+			'sp_active_nonce' => wp_create_nonce( 'sp_active' ),
+			'currently' => 'active',
+		);
+
+		$this->assertSame( true, SP_Config()->get_setting( 'active' ) );
+
+		/**
+		 * @see Tests_Admin::prevent_redirect() For how wp_die() is leveraged here.
+		 */
+		try {
+			SP_Admin()->active_toggle();
+			$this->fail( 'Failed to toggle active state' );
+		} catch ( WPDieException $e ) {
+			// Verify the redirect url
+			$this->assertSame( admin_url( 'tools.php?page=searchpress' ), $e->getMessage() );
+			$this->assertSame( false, SP_Config()->get_setting( 'active' ) );
+		}
+	}
+
 	public function test_admin_notices_no_access() {
 		$this->expectOutputString( '' );
 		SP_Admin()->admin_notices();

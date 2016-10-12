@@ -21,14 +21,15 @@ class SP_Admin extends SP_Singleton {
 		$this->capability = apply_filters( 'sp_admin_settings_capability', 'manage_options' );
 
 		if ( current_user_can( $this->capability ) ) {
-			add_action( 'admin_menu',                array( $this, 'admin_menu' ) );
-			add_action( 'admin_post_sp_full_sync',   array( $this, 'full_sync' ) );
-			add_action( 'admin_post_sp_cancel_sync', array( $this, 'cancel_sync' ) );
-			add_action( 'admin_post_sp_settings',    array( $this, 'save_settings' ) );
-			add_action( 'admin_post_sp_clear_log',   array( $this, 'clear_log' ) );
-			add_action( 'wp_ajax_sp_sync_status',    array( $this, 'sp_sync_status' ) );
-			add_action( 'admin_notices',             array( $this, 'admin_notices' ) );
-			add_action( 'admin_enqueue_scripts',     array( $this, 'assets' ) );
+			add_action( 'admin_menu',                  array( $this, 'admin_menu' ) );
+			add_action( 'admin_post_sp_full_sync',     array( $this, 'full_sync' ) );
+			add_action( 'admin_post_sp_cancel_sync',   array( $this, 'cancel_sync' ) );
+			add_action( 'admin_post_sp_settings',      array( $this, 'save_settings' ) );
+			add_action( 'admin_post_sp_clear_log',     array( $this, 'clear_log' ) );
+			add_action( 'admin_post_sp_active_toggle', array( $this, 'active_toggle' ) );
+			add_action( 'wp_ajax_sp_sync_status',      array( $this, 'sp_sync_status' ) );
+			add_action( 'admin_notices',               array( $this, 'admin_notices' ) );
+			add_action( 'admin_enqueue_scripts',       array( $this, 'assets' ) );
 		}
 	}
 
@@ -53,8 +54,11 @@ class SP_Admin extends SP_Singleton {
 		} elseif ( ! empty( $sync->messages ) ) {
 			$active_tab = 'log';
 		} else {
-			$active_tab = 'settings';
+			$active_tab = 'status';
 		}
+		$active_status = intval( SP_Config()->get_setting( 'active' ) ) ? 'active' : 'inactive';
+		$heartbeat_status = SP_Heartbeat()->get_status();
+		$overall_status = $this->current_status( $active_status, $heartbeat_status );
 		?>
 		<div class="wrap">
 			<h2><?php esc_html_e( 'SearchPress', 'searchpress' ); ?></h2>
@@ -68,6 +72,7 @@ class SP_Admin extends SP_Singleton {
 			<?php endif ?>
 
 			<h3 class="nav-tab-wrapper">
+				<a class="nav-tab<?php $this->tab_active( 'status', $active_tab ) ?>" href="#sp-status"><?php esc_html_e( 'Status', 'searchpress' ); ?></a>
 				<a class="nav-tab<?php $this->tab_active( 'settings', $active_tab ) ?>" href="#sp-settings"><?php esc_html_e( 'Settings', 'searchpress' ); ?></a>
 				<a class="nav-tab<?php $this->tab_active( 'sync', $active_tab ) ?>" href="#sp-sync"><?php esc_html_e( 'Sync', 'searchpress' ); ?></a>
 				<?php if ( ! empty( $sync->messages ) ) : ?>
@@ -75,6 +80,49 @@ class SP_Admin extends SP_Singleton {
 				<?php endif ?>
 			</h3>
 
+			<div id="sp-status" class="tab-content">
+
+				<table id="searchpress-stats">
+					<tbody>
+						<tr>
+							<td class="status-<?php echo esc_attr( $active_status ) ?> status-<?php echo esc_attr( $heartbeat_status ) ?>"><abbr title="<?php echo esc_attr( $overall_status[1] ) ?>"><?php echo esc_html( $overall_status[0] ) ?></abbr></td>
+							<td><?php echo esc_html( number_format( intval( SP_Sync_Manager()->count_posts() ) ) ) ?></td>
+							<td><?php echo esc_html( number_format( intval( SP_Sync_Manager()->count_posts_indexed() ) ) ) ?></td>
+						</tr>
+					</tbody>
+					<tfoot>
+						<tr>
+							<th><?php esc_html_e( 'Current Status', 'searchpress' ); ?></th>
+							<th><?php esc_html_e( 'Searchable posts in WordPress', 'searchpress' ); ?></th>
+							<th><?php esc_html_e( 'Posts currently indexed', 'searchpress' ); ?></th>
+						</tr>
+					</tfoot>
+				</table>
+
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ) ?>">
+					<input type="hidden" name="action" value="sp_active_toggle" />
+					<input type="hidden" name="currently" value="<?php echo esc_attr( $active_status ) ?>" />
+					<?php wp_nonce_field( 'sp_active', 'sp_active_nonce' ); ?>
+					<h3 class="<?php echo esc_attr( $active_status ) ?>">
+						<?php printf( esc_html__( 'SearchPress is currently %1$s%2$s%3$s', 'searchpress' ), '<strong>', esc_attr( $active_status ), '</strong>' ) ?>
+						<?php
+						if ( 'active' === $active_status ) {
+							submit_button( __( 'Deactivate', 'searchpress' ), 'delete', 'submit', false );
+						} else {
+							submit_button( __( 'Activate SearchPress', 'searchpress' ), 'primary', 'submit', false );
+						}
+						?>
+					</h3>
+				</form>
+
+				<?php if ( ! empty( $sync->started ) ) : ?>
+					<h3><?php esc_html_e( 'Last full sync', 'searchpress' ); ?></h3>
+					<p><?php echo esc_html( sprintf( __( 'Started at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->started ) ) ) ?></p>
+					<?php if ( ! empty( $sync->finished ) ) : ?>
+						<p><?php echo esc_html( sprintf( __( 'Completed at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->finished ) ) ) ?></p>
+					<?php endif ?>
+				<?php endif ?>
+			</div>
 			<div id="sp-settings" class="tab-content">
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ) ?>">
 					<input type="hidden" name="action" value="sp_settings" />
@@ -107,25 +155,20 @@ class SP_Admin extends SP_Singleton {
 				<?php else : ?>
 
 					<h3><?php esc_html_e( 'Full Sync', 'searchpress' ); ?></h3>
-					<p><?php esc_html_e( 'Running a full sync will wipe the current index if there is one and rebuild it from scratch.', 'searchpress' ); ?></p>
+					<h4><?php esc_html_e( 'Running a full sync will wipe the current index if there is one and rebuild it from scratch.', 'searchpress' ); ?></h4>
 					<p>
-						<?php echo esc_html( sprintf( _n( 'Your site has %s post to index.', 'Your site has %s posts to index.', intval( SP_Sync_Manager()->count_posts() ), 'searchpress' ), number_format( intval( SP_Sync_Manager()->count_posts() ) ) ) ) ?>
 						<?php if ( SP_Sync_Manager()->count_posts() > 25000 ) : ?>
-							<?php esc_html_e( 'As a result of there being so many posts, this may take a long time to index.', 'searchpress' ); ?>
+							<strong><?php esc_html_e( 'Because this site has a large number of posts, this may take a long time to index.', 'searchpress' ); ?></strong>
 						<?php endif ?>
-						<?php esc_html_e( "Exactly how long this will take will vary on a number of factors, like your server's CPU and memory, connection speed, current traffic, average post length, and associated terms and post meta.", 'searchpress' ); ?>
+						<?php esc_html_e( "Exactly how long indexing will take will vary on a number of factors, like the server's CPU and memory, connection speed, current traffic, average post size, and associated terms and post meta.", 'searchpress' ); ?>
+						<?php esc_html_e( 'SearchPress will be inactive during indexing.', 'searchpress' ); ?>
 					</p>
-					<p><?php esc_html_e( 'Your site will not use SearchPress until the indexing is complete.', 'searchpress' ); ?></p>
 
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ) ?>">
 						<input type="hidden" name="action" value="sp_full_sync" />
 						<?php wp_nonce_field( 'sp_sync', 'sp_sync_nonce' ); ?>
 						<?php submit_button( __( 'Run Full Sync', 'searchpress' ), 'delete' ) ?>
 					</form>
-
-					<h3><?php esc_html_e( 'Last full sync', 'searchpress' ); ?></h3>
-					<p><?php echo esc_html( sprintf( __( 'Started at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->started ) ) ) ?></p>
-					<p><?php echo esc_html( sprintf( __( 'Completed at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->finished ) ) ) ?></p>
 
 				<?php endif ?>
 			</div>
@@ -168,6 +211,46 @@ class SP_Admin extends SP_Singleton {
 			case 'line' : return __( 'Messages', 'searchpress' );
 			case 'success' : return __( 'Success', 'searchpress' );
 		}
+	}
+
+	/**
+	 * Get the current status for SearchPress.
+	 *
+	 * @param  string $active "active" status. Either "active" or "inactive".
+	 * @param  string $heartbeat_status Heartbeat status. One of "ok", "alert",
+	 *                                  "shutdown", or "never".
+	 * @return array [ short status, long status ]
+	 */
+	protected function current_status( $active, $heartbeat_status ) {
+		if ( 'active' === $active ) {
+			switch ( $heartbeat_status ) {
+				case 'ok' :
+					return array(
+						__( 'OK', 'searchpress' ),
+						sprintf( __( 'SearchPress is active and the Elasticsearch server was last seen %s ago.', 'searchpress' ), human_time_diff( SP_Heartbeat()->get_last_beat(), time() ) ),
+					);
+				case 'alert' :
+					return array(
+						__( 'Warning', 'searchpress' ),
+						__( 'SearchPress is having trouble connecting to the Elasticsearch server.', 'searchpress' ),
+					);
+				case 'shutdown' :
+					return array(
+						__( 'Error', 'searchpress' ),
+						__( 'SearchPress lost connection to Elasticsearch or Elasticsearch is having server issues. SearchPress shutdown to prevent errors.', 'searchpress' ),
+					);
+				case 'never' :
+					return array(
+						__( 'Unknown', 'searchpress' ),
+						__( 'SearchPress has no recorded activity with this Elasticsearch server.', 'searchpress' ),
+					);
+			}
+		}
+
+		return array(
+			__( 'Inactive', 'searchpress' ),
+			__( 'SearchPress is not currently active.', 'searchpress' ),
+		);
 	}
 
 	public function save_settings() {
@@ -246,6 +329,26 @@ class SP_Admin extends SP_Singleton {
 		return $this->redirect( admin_url( 'tools.php?page=searchpress&clear_log=1' ) );
 	}
 
+	/**
+	 * Toggle SearchPress' active state.
+	 */
+	public function active_toggle() {
+		if ( ! current_user_can( $this->capability ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
+		}
+
+		if ( ! isset( $_POST['sp_active_nonce'], $_POST['currently'] ) || ! wp_verify_nonce( sanitize_text_field( $_POST['sp_active_nonce'] ), 'sp_active' ) ) {
+			wp_die( esc_html__( 'You are not authorized to perform that action', 'searchpress' ) );
+		}
+
+		$new_status = ( 'inactive' === $_POST['currently'] );
+		if ( SP_Config()->get_setting( 'active' ) !== $new_status ) {
+			SP_Config()->update_settings( array( 'active' => $new_status ) );
+		}
+
+		return $this->redirect( admin_url( 'tools.php?page=searchpress' ) );
+	}
+
 	public function sp_sync_status() {
 		if ( ! current_user_can( $this->capability ) ) {
 			wp_send_json_error();
@@ -269,8 +372,8 @@ class SP_Admin extends SP_Singleton {
 
 	public function assets() {
 		if ( current_user_can( $this->capability ) && $this->is_settings_page() ) {
-			wp_enqueue_style( 'searchpress-admin-css', SP_PLUGIN_URL . '/assets/admin.css', array(), '0.2' );
-			wp_enqueue_script( 'searchpress-admin-js', SP_PLUGIN_URL . '/assets/admin.js', array( 'jquery' ), '0.2', true );
+			wp_enqueue_style( 'searchpress-admin-css', SP_PLUGIN_URL . '/assets/admin.css', array(), '0.3' );
+			wp_enqueue_script( 'searchpress-admin-js', SP_PLUGIN_URL . '/assets/admin.js', array( 'jquery' ), '0.3', true );
 			wp_localize_script( 'searchpress-admin-js', 'searchpress', array(
 				'admin_url' => esc_url_raw( admin_url( 'tools.php?page=searchpress' ) ),
 			) );
