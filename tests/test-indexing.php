@@ -70,16 +70,18 @@ class Tests_Indexing extends WP_UnitTestCase {
 		SP_API()->post( '_refresh' );
 
 		// Test the indexability of this status
+		$results = $this->search_and_get_field( array( 'query' => 'test post', 'post_status' => $status ) );
 		$this->assertSame(
 			$index,
-			! empty( $this->search_and_get_field( array( 'query' => 'test post', 'post_status' => $status ) ) ),
+			! empty( $results ),
 			'Post status should' . ( $index ? ' ' : ' not ' ) . 'be indexed'
 		);
 
 		// Test the searchability of this status
+		$results = $this->search_and_get_field( array( 'query' => 'test post' ) );
 		$this->assertSame(
 			$search,
-			! empty( $this->search_and_get_field( array( 'query' => 'test post' ) ) ),
+			! empty( $results ),
 			'Post status should' . ( $search ? ' ' : ' not ' ) . 'be searchable'
 		);
 	}
