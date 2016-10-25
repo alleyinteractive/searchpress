@@ -48,8 +48,10 @@ class SP_WP_Search extends SP_Search {
 	 *                                  'terms.category.name',
 	 *                                  'terms.post_tag.name'
 	 *                              ).
-	 *     @type string|array $post_type Which post type(s) to search.
-	 *                                   Default null.
+	 *     @type string|array $post_type Which post type(s) to search. Default
+	 *                                   null.
+	 *     @type string|array $post_status Which post status(es) to search.
+	 *                                     Default null.
 	 *     @type array $terms Taxonomy terms to search within. Default array().
 	 *                        The format is array( 'taxonomy' => 'slug' ), e.g.
 	 *                        array( 'post_tag' => 'wordpress' ). The "slug"
@@ -151,12 +153,24 @@ class SP_WP_Search extends SP_Search {
 		}
 
 		// Post status
-		if ( ! empty( $args['post_status'] ) ) {
-			if ( 'any' === $args['post_status'] ) {
-				$args['post_status'] = sp_searchable_post_statuses();
-			}
-			$filters[] = array( 'terms' => array( 'post_status' => (array) $args['post_status'] ) );
+		if ( empty( $args['post_status'] ) || 'any' === $args['post_status'] ) {
+			$args['post_status'] = sp_searchable_post_statuses();
 		}
+		$filters[] = array(
+			'bool' => array(
+				'should' => array(
+					array( 'terms' => array( 'post_status' => (array) $args['post_status'] ) ),
+					array(
+						'bool' => array(
+							'must' => array(
+								array( 'terms' => array( 'post_status' => array( 'inherit' ) ) ),
+								array( 'terms' => array( 'parent_status' => (array) $args['post_status'] ) ),
+							),
+						),
+					),
+				),
+			),
+		);
 
 		// Author
 		// @todo Add support for comma-delim terms like wp_query
@@ -201,14 +215,22 @@ class SP_WP_Search extends SP_Search {
 					}
 
 					if ( 'or' === $comp ) {
-						$filters[] = array( 'or' => $or );
+						$filters[] = array(
+							'bool' => array(
+								'should' => $or,
+							),
+						);
 					}
 				}
 			}
 		}
 
 		if ( ! empty( $filters ) ) {
-			$es_query_args['filter'] = array( 'and' => $filters );
+			$es_query_args['filter'] = array(
+				'bool' => array(
+					'must' => $filters,
+				),
+			);
 		}
 
 		// Fill in the query

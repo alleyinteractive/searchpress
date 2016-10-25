@@ -385,12 +385,14 @@ class Tests_Searching extends WP_UnitTestCase {
 		foreach ( array_keys( $wp_post_types ) as $slug ) {
 			$wp_post_types[ $slug ]->exclude_from_search = true;
 		}
+		sp_searchable_post_types( true );
 
 		$this->assertEmpty( $this->search_and_get_field( array( 'post_type' => 'any' ) ) );
 
 		foreach ( array_keys( $wp_post_types ) as $slug ) {
 			$wp_post_types[ $slug ]->exclude_from_search = false;
 		}
+		sp_searchable_post_types( true );
 
 		$this->assertNotEmpty( $this->search_and_get_field( array( 'post_type' => 'any' ) ) );
 	}
@@ -489,14 +491,14 @@ class Tests_Searching extends WP_UnitTestCase {
 	function test_raw_es() {
 		$posts = sp_search( array(
 			'query' => array(
-				'match_all' => new stdClass
+				'match_all' => new stdClass,
 			),
 			'fields' => array( 'post_id' ),
 			'size' => 1,
 			'from' => 1,
 			'sort' => array(
-				'post_name.raw' => 'asc'
-			)
+				'post_name.raw' => 'asc',
+			),
 		) );
 		$this->assertEquals( 'cat-b', $posts[0]->post_name );
 

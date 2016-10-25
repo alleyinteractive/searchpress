@@ -271,6 +271,8 @@ function SP_Sync_Manager() {
  */
 if ( SP_Config()->active() ) {
 	add_action( 'save_post',                  array( SP_Sync_Manager(), 'sync_post' ) );
+	add_action( 'edit_attachment',            array( SP_Sync_Manager(), 'sync_post' ) );
+	add_action( 'add_attachment',             array( SP_Sync_Manager(), 'sync_post' ) );
 	// add_action( 'added_term_relationship',    array( SP_Sync_Manager(), 'sync_post' ) );
 	// add_action( 'deleted_term_relationships', array( SP_Sync_Manager(), 'sync_post' ) );
 	add_action( 'deleted_post',               array( SP_Sync_Manager(), 'delete_post' ) );

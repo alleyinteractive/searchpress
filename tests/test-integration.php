@@ -28,6 +28,7 @@ class Tests_Integration extends WP_UnitTestCase {
 		$this->factory->post->create( array( 'post_title' => 'raw-html-code', 'post_date' => '2010-03-01 00:00:00', 'tags_input' => array( $tag ) ) );
 
 		register_post_type( 'cpt', array( 'public' => true ) );
+		sp_searchable_post_types( true );
 		$this->factory->post->create( array( 'post_title' => 'cpt', 'post_date' => '2010-01-01 00:00:00', 'post_type' => 'cpt' ) );
 		$this->factory->post->create( array( 'post_title' => 'lorem-cpt', 'post_date' => '2010-01-01 00:00:00', 'post_type' => 'cpt' ) );
 

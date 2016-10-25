@@ -52,12 +52,12 @@ function sp_searchable_post_types( $reload = false ) {
 /**
  * Get a list of all searchable post statuses.
  *
- * @return array Array of post statuses with 'exclude_from_search' => false.
+ * @return array Array of post statuses. Defaults to 'public' => true.
  */
 function sp_searchable_post_statuses( $reload = false ) {
 	static $post_statuses;
 	if ( empty( $post_statuses ) || $reload ) {
-		$post_statuses = array_values( get_post_stati( array( 'exclude_from_search' => false ) ) );
+		$post_statuses = array_values( get_post_stati( array( 'public' => true ) ) );
 
 		/**
 		 * Filter the *searchable* post statuses. Also {@see SP_Config::sync_statuses()}

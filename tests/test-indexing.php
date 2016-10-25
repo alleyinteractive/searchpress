@@ -41,6 +41,67 @@ class Tests_Indexing extends WP_UnitTestCase {
 		);
 	}
 
+	public function post_statuses_data() {
+		return array(
+			//      status       index  search
+			array( 'publish',    true,  true ),
+			array( 'future',     true,  false ),
+			array( 'draft',      true,  false ),
+			array( 'pending',    true,  false ),
+			array( 'private',    true,  false ),
+			array( 'trash',      false, false ),
+			array( 'auto-draft', false, false ),
+			array( 'inherit',    false, false ), // 'inherit' without a parent
+		);
+	}
+
+	/**
+	 * @dataProvider post_statuses_data
+	 * @param  string $status Post status.
+	 * @param  bool $index  Should this be indexed?
+	 * @param  bool $search Should this be searchable by default?
+	 */
+	public function test_post_statuses( $status, $index, $search ) {
+		$args = array( 'post_title' => 'test post', 'post_status' => $status );
+		if ( 'future' === $status ) {
+			$args['post_date'] = date( 'Y-m-d H:i:s', time() + YEAR_IN_SECONDS );
+		}
+		$post_id = $this->factory->post->create( $args );
+		SP_API()->post( '_refresh' );
+
+		// Test the indexability of this status
+		$this->assertSame(
+			$index,
+			! empty( $this->search_and_get_field( array( 'query' => 'test post', 'post_status' => $status ) ) ),
+			'Post status should' . ( $index ? ' ' : ' not ' ) . 'be indexed'
+		);
+
+		// Test the searchability of this status
+		$this->assertSame(
+			$search,
+			! empty( $this->search_and_get_field( array( 'query' => 'test post' ) ) ),
+			'Post status should' . ( $search ? ' ' : ' not ' ) . 'be searchable'
+		);
+	}
+
+	public function test_post_status_inherit() {
+		$post_id = $this->factory->post->create();
+		$attachment_id = $this->factory->attachment->create_object( 'image.jpg', $post_id, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_type'      => 'attachment',
+			'post_title'     => 'test attachment',
+			'post_name'      => 'test-attachment',
+		) );
+		SP_API()->post( '_refresh' );
+
+		// Test the searchability (and inherent indexability) of this status
+		$this->assertSame(
+			array( 'test-attachment' ),
+			$this->search_and_get_field( array( 'query' => 'test attachment' ) ),
+			'Inherit status should be searchable'
+		);
+	}
+
 	function test_updated_post() {
 		$post_id = $this->factory->post->create( array( 'post_title' => 'test post' ) );
 		$post = array(
@@ -100,12 +161,19 @@ class Tests_Indexing extends WP_UnitTestCase {
 		$this->assertEmpty(
 			$this->search_and_get_field( array( 'query' => 'test post' ) )
 		);
+		$this->assertSame(
+			array( 'draft' ),
+			$this->search_and_get_field( array( 'query' => 'test post', 'post_status' => array_values( get_post_stati() ) ), 'post_status' )
+		);
 
 		wp_publish_post( $post_id );
 		SP_API()->post( '_refresh' );
-		$this->assertEquals(
-			array( 'test-post' ),
+		$this->assertNotEmpty(
 			$this->search_and_get_field( array( 'query' => 'test post' ) )
+		);
+		$this->assertSame(
+			array( 'publish' ),
+			$this->search_and_get_field( array( 'query' => 'test post' ), 'post_status' )
 		);
 
 		$post = array(
@@ -116,6 +184,10 @@ class Tests_Indexing extends WP_UnitTestCase {
 		SP_API()->post( '_refresh' );
 		$this->assertEmpty(
 			$this->search_and_get_field( array( 'query' => 'test post' ) )
+		);
+		$this->assertSame(
+			array( 'draft' ),
+			$this->search_and_get_field( array( 'query' => 'test post', 'post_status' => array_values( get_post_stati() ) ), 'post_status' )
 		);
 	}
 

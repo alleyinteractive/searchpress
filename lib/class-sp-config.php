@@ -17,12 +17,14 @@ class SP_Config extends SP_Singleton {
 
 
 	public function sync_statuses() {
-		return apply_filters( 'sp_config_sync_statuses', sp_searchable_post_statuses() );
+		$post_statuses = array_values( get_post_stati( array( 'internal' => false ) ) );
+		return apply_filters( 'sp_config_sync_statuses', $post_statuses );
 	}
 
 
 	public function sync_post_types() {
-		return apply_filters( 'sp_config_sync_post_types', sp_searchable_post_types() );
+		$post_types = array_values( get_post_types( array( 'show_ui' => true ) ) );
+		return apply_filters( 'sp_config_sync_post_types', $post_types );
 	}
 
 
