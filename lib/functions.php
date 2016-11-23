@@ -30,6 +30,8 @@ function sp_results_pluck( $results, $field, $as_single = true ) {
 /**
  * Get a list of all searchable post types.
  *
+ * @param  bool $reload Optional. Force reload the post types from the cached
+ *                      static variable. This is helpful for automated tests.
  * @return array Array of post types with 'exclude_from_search' => false.
  */
 function sp_searchable_post_types( $reload = false ) {
@@ -52,12 +54,28 @@ function sp_searchable_post_types( $reload = false ) {
 /**
  * Get a list of all searchable post statuses.
  *
+ * @param  bool $reload Optional. Force reload the post statuses from the cached
+ *                      static variable. This is helpful for automated tests.
  * @return array Array of post statuses. Defaults to 'public' => true.
  */
 function sp_searchable_post_statuses( $reload = false ) {
 	static $post_statuses;
 	if ( empty( $post_statuses ) || $reload ) {
-		$post_statuses = array_values( get_post_stati( array( 'public' => true ) ) );
+		// Start with the statuses that SearchPress syncs, since we can't search
+		// on anything that isn't in there.
+		$post_statuses = SP_Config()->sync_statuses();
+
+		// Collect post statuses we don't want to search and exclude them.
+		$exclude = array_values( get_post_stati(
+			array(
+				'exclude_from_search' => true,
+				'private'             => true,
+				'protected'           => true,
+			),
+			'names',
+			'or'
+		) );
+		$post_statuses = array_values( array_diff( $post_statuses, $exclude ) );
 
 		/**
 		 * Filter the *searchable* post statuses. Also {@see SP_Config::sync_statuses()}

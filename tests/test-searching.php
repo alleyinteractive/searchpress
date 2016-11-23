@@ -53,6 +53,13 @@ class Tests_Searching extends WP_UnitTestCase {
 		SP_API()->post( '_refresh' );
 	}
 
+	public function tearDown() {
+		SP_Config()->post_types = null;
+		sp_searchable_post_types( true );
+
+		parent::tearDown();
+	}
+
 	function search_and_get_field( $args, $field = 'post_name' ) {
 		$args = wp_parse_args( $args, array(
 			'fields' => $field
@@ -385,6 +392,7 @@ class Tests_Searching extends WP_UnitTestCase {
 		foreach ( array_keys( $wp_post_types ) as $slug ) {
 			$wp_post_types[ $slug ]->exclude_from_search = true;
 		}
+		SP_Config()->post_types = null;
 		sp_searchable_post_types( true );
 
 		$this->assertEmpty( $this->search_and_get_field( array( 'post_type' => 'any' ) ) );
@@ -392,6 +400,7 @@ class Tests_Searching extends WP_UnitTestCase {
 		foreach ( array_keys( $wp_post_types ) as $slug ) {
 			$wp_post_types[ $slug ]->exclude_from_search = false;
 		}
+		SP_Config()->post_types = null;
 		sp_searchable_post_types( true );
 
 		$this->assertNotEmpty( $this->search_and_get_field( array( 'post_type' => 'any' ) ) );
