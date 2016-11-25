@@ -61,6 +61,13 @@ class Tests_Faceting extends WP_UnitTestCase {
 		SP_API()->post( '_refresh' );
 	}
 
+	public function tearDown() {
+		SP_Config()->post_types = null;
+		sp_searchable_post_types( true );
+
+		parent::tearDown();
+	}
+
 	function test_faceting() {
 		$s = new SP_WP_Search( array(
 			'post_type' => array( 'post', 'page' ),
@@ -123,6 +130,9 @@ class Tests_Faceting extends WP_UnitTestCase {
 				'singular_name' => $label,
 			),
 		) );
+		SP_Config()->post_types = null;
+		sp_searchable_post_types( true );
+
 		$this->factory->post->create( array( 'post_title' => 'first lorem', 'post_date' => '2010-01-01 00:00:00', 'post_type' => 'custom-post-type' ) );
 		$this->factory->post->create( array( 'post_title' => 'second lorem', 'post_date' => '2010-02-01 00:00:00', 'post_type' => 'custom-post-type' ) );
 		// Force refresh the index so the data is available immediately

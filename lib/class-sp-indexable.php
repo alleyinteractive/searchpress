@@ -1,7 +1,7 @@
 <?php
 
 /**
-* An abstract object objects which will be indexed in ES.
+* An abstract class for objects which will be indexed in ES.
 */
 abstract class SP_Indexable {
 	/**

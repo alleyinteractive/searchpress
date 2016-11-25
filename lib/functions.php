@@ -28,13 +28,65 @@ function sp_results_pluck( $results, $field, $as_single = true ) {
 }
 
 /**
- * Get a list of all searchable post types. This is a simple wrapper for core
- * functionality because we end up calling this a lot in this plugin.
+ * Get a list of all searchable post types.
  *
+ * @param  bool $reload Optional. Force reload the post types from the cached
+ *                      static variable. This is helpful for automated tests.
  * @return array Array of post types with 'exclude_from_search' => false.
  */
-function sp_searchable_post_types() {
-	return array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
+function sp_searchable_post_types( $reload = false ) {
+	static $post_types;
+	if ( empty( $post_types ) || $reload ) {
+		$post_types = array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
+
+		/**
+		 * Filter the *searchable* post types. Also {@see SP_Config::sync_post_types()}
+		 * and the `sp_config_sync_post_types` filter to filter the post types that
+		 * SearchPress indexes in Elasticsearch.
+		 *
+		 * @param array $post_types Post type slugs.
+		 */
+		$post_types = apply_filters( 'sp_searchable_post_types', $post_types );
+	}
+	return $post_types;
+}
+
+/**
+ * Get a list of all searchable post statuses.
+ *
+ * @param  bool $reload Optional. Force reload the post statuses from the cached
+ *                      static variable. This is helpful for automated tests.
+ * @return array Array of post statuses. Defaults to 'public' => true.
+ */
+function sp_searchable_post_statuses( $reload = false ) {
+	static $post_statuses;
+	if ( empty( $post_statuses ) || $reload ) {
+		// Start with the statuses that SearchPress syncs, since we can't search
+		// on anything that isn't in there.
+		$post_statuses = SP_Config()->sync_statuses();
+
+		// Collect post statuses we don't want to search and exclude them.
+		$exclude = array_values( get_post_stati(
+			array(
+				'exclude_from_search' => true,
+				'private'             => true,
+				'protected'           => true,
+			),
+			'names',
+			'or'
+		) );
+		$post_statuses = array_values( array_diff( $post_statuses, $exclude ) );
+
+		/**
+		 * Filter the *searchable* post statuses. Also {@see SP_Config::sync_statuses()}
+		 * and the `sp_config_sync_post_statuses` filter to filter the post statuses that
+		 * SearchPress indexes in Elasticsearch.
+		 *
+		 * @param array $post_statuses Post statuses.
+		 */
+		$post_statuses = apply_filters( 'sp_searchable_post_statuses', $post_statuses );
+	}
+	return $post_statuses;
 }
 
 /**

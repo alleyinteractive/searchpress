@@ -4,7 +4,6 @@
  * @group indexing
  */
 class Tests_Indexing extends WP_UnitTestCase {
-
 	function setUp() {
 		parent::setUp();
 
@@ -19,6 +18,9 @@ class Tests_Indexing extends WP_UnitTestCase {
 		SP_Sync_Manager()->published_posts = false;
 		sp_index_flush_data();
 		wp_clear_scheduled_hook( 'sp_reindex' );
+		$this->reset_post_statuses();
+		SP_Config()->post_statuses = null;
+		sp_searchable_post_statuses( true );
 
 		parent::tearDown();
 	}
@@ -38,6 +40,104 @@ class Tests_Indexing extends WP_UnitTestCase {
 		$this->assertEquals(
 			array( 'test-post' ),
 			$this->search_and_get_field( array( 'query' => 'test post' ) )
+		);
+	}
+
+	public function post_statuses_data() {
+		return array(
+			//      status       index  search  ...register_post_status args
+			// -----------------+------+-------+-------
+			// Core post statuses
+			array( 'publish',    true,  true ),
+			array( 'future',     true,  false ),
+			array( 'draft',      true,  false ),
+			array( 'pending',    true,  false ),
+			array( 'private',    true,  false ),
+			array( 'trash',      false, false ),
+			array( 'auto-draft', false, false ),
+			array( 'inherit',    false, false ), // 'inherit' without a parent
+
+			// custom post statuses
+			array( 'cps-1',      false, false, array() ), // Assumed to be internal
+			array( 'cps-2',      true,  true,  array( 'internal' => false ) ),
+			array( 'cps-3',      false, false, array( 'internal' => true ) ),
+			array( 'cps-4',      true,  true,  array( 'public' => false ) ),
+			array( 'cps-5',      true,  true,  array( 'public' => true ) ),
+			array( 'cps-6',      true,  true,  array( 'public' => true, 'exclude_from_search' => false ) ),
+			array( 'cps-7',      true,  false, array( 'public' => true, 'exclude_from_search' => true ) ),
+			array( 'cps-8',      true,  false, array( 'public' => true, 'private' => true ) ),
+			array( 'cps-9',      true,  false, array( 'public' => true, 'protected' => true ) ),
+			array( 'cps-10',     false, false, array( 'public' => true, 'internal' => true ) ),
+			array( 'cps-11',     true,  false, array( 'private' => true ) ),
+			array( 'cps-12',     true,  false, array( 'protected' => true ) ),
+			array( 'cps-13',     false, false, array( 'exclude_from_search' => false ) ), // Assumed to be internal
+			array( 'cps-14',     false, false, array( 'exclude_from_search' => true ) ), // Assumed to be internal
+			array( 'cps-15',     true,  true,  array( 'internal' => false, 'exclude_from_search' => false ) ),
+			array( 'cps-16',     true,  false, array( 'internal' => false, 'exclude_from_search' => true ) ),
+			array( 'cps-17',     true,  false, array( 'private' => true, 'exclude_from_search' => false ) ),
+			array( 'cps-18',     true,  false, array( 'private' => true, 'exclude_from_search' => true ) ),
+			array( 'cps-19',     true,  false, array( 'protected' => true, 'exclude_from_search' => false ) ),
+			array( 'cps-20',     true,  false, array( 'protected' => true, 'exclude_from_search' => true ) ),
+		);
+	}
+
+	/**
+	 * @dataProvider post_statuses_data
+	 * @param  string $status Post status.
+	 * @param  bool $index  Should this be indexed?
+	 * @param  bool $search Should this be searchable by default?
+	 * @param  array $cs_args Optional. If present, $status is assumed to be a
+	 *                        custom post status and will be registered.
+	 */
+	public function test_post_statuses( $status, $index, $search, $cs_args = false ) {
+		if ( $cs_args ) {
+			register_post_status( $status, $cs_args );
+
+			// Reload the searchable post status list.
+			SP_Config()->post_statuses = null;
+			sp_searchable_post_statuses( true );
+		}
+
+		// Build the post.
+		$args = array( 'post_title' => 'test post', 'post_status' => $status );
+		if ( 'future' === $status ) {
+			$args['post_date'] = date( 'Y-m-d H:i:s', time() + YEAR_IN_SECONDS );
+		}
+		$post_id = $this->factory->post->create( $args );
+		SP_API()->post( '_refresh' );
+
+		// Test the indexability of this status
+		$results = $this->search_and_get_field( array( 'query' => 'test post', 'post_status' => $status ) );
+		$this->assertSame(
+			$index,
+			! empty( $results ),
+			'Post status should' . ( $index ? ' ' : ' not ' ) . 'be indexed'
+		);
+
+		// Test the searchability of this status
+		$results = $this->search_and_get_field( array( 'query' => 'test post' ) );
+		$this->assertSame(
+			$search,
+			! empty( $results ),
+			'Post status should' . ( $search ? ' ' : ' not ' ) . 'be searchable'
+		);
+	}
+
+	public function test_post_status_inherit() {
+		$post_id = $this->factory->post->create();
+		$attachment_id = $this->factory->attachment->create_object( 'image.jpg', $post_id, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_type'      => 'attachment',
+			'post_title'     => 'test attachment',
+			'post_name'      => 'test-attachment',
+		) );
+		SP_API()->post( '_refresh' );
+
+		// Test the searchability (and inherent indexability) of this status
+		$this->assertSame(
+			array( 'test-attachment' ),
+			$this->search_and_get_field( array( 'query' => 'test attachment' ) ),
+			'Inherit status should be searchable'
 		);
 	}
 
@@ -100,12 +200,19 @@ class Tests_Indexing extends WP_UnitTestCase {
 		$this->assertEmpty(
 			$this->search_and_get_field( array( 'query' => 'test post' ) )
 		);
+		$this->assertSame(
+			array( 'draft' ),
+			$this->search_and_get_field( array( 'query' => 'test post', 'post_status' => array_values( get_post_stati() ) ), 'post_status' )
+		);
 
 		wp_publish_post( $post_id );
 		SP_API()->post( '_refresh' );
-		$this->assertEquals(
-			array( 'test-post' ),
+		$this->assertNotEmpty(
 			$this->search_and_get_field( array( 'query' => 'test post' ) )
+		);
+		$this->assertSame(
+			array( 'publish' ),
+			$this->search_and_get_field( array( 'query' => 'test post' ), 'post_status' )
 		);
 
 		$post = array(
@@ -116,6 +223,10 @@ class Tests_Indexing extends WP_UnitTestCase {
 		SP_API()->post( '_refresh' );
 		$this->assertEmpty(
 			$this->search_and_get_field( array( 'query' => 'test post' ) )
+		);
+		$this->assertSame(
+			array( 'draft' ),
+			$this->search_and_get_field( array( 'query' => 'test post', 'post_status' => array_values( get_post_stati() ) ), 'post_status' )
 		);
 	}
 
