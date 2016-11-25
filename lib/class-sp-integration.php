@@ -306,7 +306,7 @@ class SP_Integration extends SP_Singleton {
 		}
 
 		// Post type filters
-		$searchable_post_types = sp_searchable_post_types();
+		$indexed_post_types = SP_Config()->sync_post_types();
 
 		if ( $query->get( 'post_type' ) && 'any' != $query->get( 'post_type' ) ) {
 			$post_types = (array) $query->get( 'post_type' );
@@ -318,17 +318,17 @@ class SP_Integration extends SP_Singleton {
 
 		$vars['post_type'] = array();
 
-		// Validate post types, making sure they exist and are not excluded from search
+		// Validate post types, making sure they exist and are indexed.
 		if ( $post_types ) {
 			foreach ( (array) $post_types as $post_type ) {
-				if ( in_array( $post_type, $searchable_post_types ) ) {
+				if ( in_array( $post_type, $indexed_post_types ) ) {
 					$vars['post_type'][] = $post_type;
 				}
 			}
 		}
 
 		if ( empty( $vars['post_type'] ) ) {
-			$vars['post_type'] = $searchable_post_types;
+			$vars['post_type'] = sp_searchable_post_types();
 		}
 
 		return $vars;

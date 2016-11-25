@@ -145,12 +145,10 @@ class SP_WP_Search extends SP_Search {
 		}
 
 		// Post type
-		if ( ! empty( $args['post_type'] ) ) {
-			if ( 'any' === $args['post_type'] ) {
-				$args['post_type'] = sp_searchable_post_types();
-			}
-			$filters[] = array( 'terms' => array( 'post_type.raw' => (array) $args['post_type'] ) );
+		if ( empty( $args['post_type'] ) || 'any' === $args['post_type'] ) {
+			$args['post_type'] = sp_searchable_post_types();
 		}
+		$filters[] = array( 'terms' => array( 'post_type.raw' => (array) $args['post_type'] ) );
 
 		// Post status
 		if ( empty( $args['post_status'] ) || 'any' === $args['post_status'] ) {

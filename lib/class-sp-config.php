@@ -71,7 +71,7 @@ class SP_Config extends SP_Singleton {
 	 */
 	public function sync_post_types() {
 		if ( ! isset( $this->post_types ) ) {
-			$this->post_types = array_values( get_post_types( array( 'show_ui' => true ) ) );
+			$this->post_types = array_values( get_post_types( array( 'show_ui' => true, 'public' => true, 'exclude_from_search' => false ), 'names', 'or' ) );
 
 			/**
 			 * Filter the *indexed* (synced) post types. Also

@@ -21,6 +21,9 @@ class Tests_Indexing extends WP_UnitTestCase {
 		$this->reset_post_statuses();
 		SP_Config()->post_statuses = null;
 		sp_searchable_post_statuses( true );
+		$this->reset_post_types();
+		SP_Config()->post_types = null;
+		sp_searchable_post_types( true );
 
 		parent::tearDown();
 	}
@@ -46,7 +49,7 @@ class Tests_Indexing extends WP_UnitTestCase {
 	public function post_statuses_data() {
 		return array(
 			//      status       index  search  ...register_post_status args
-			// -----------------+------+-------+-------
+			// -----------------+------+-------+--------------------------------
 			// Core post statuses
 			array( 'publish',    true,  true ),
 			array( 'future',     true,  false ),
@@ -139,6 +142,81 @@ class Tests_Indexing extends WP_UnitTestCase {
 			$this->search_and_get_field( array( 'query' => 'test attachment' ) ),
 			'Inherit status should be searchable'
 		);
+	}
+
+	public function post_types_data() {
+		return array(
+			//      post type       index  search  ...register_post_type args
+			// --------------------+------+-------+-----------------------------
+			// Core post types
+			array( 'post',          true,  true ),
+			array( 'page',          true,  true ),
+			array( 'attachment',    true,  true ),
+			array( 'revision',      false, false ),
+			array( 'nav_menu_item', false, false ),
+
+			// Custom post types
+			array( 'cpt-1',         false, false, array() ),
+			array( 'cpt-2',         true,  true,  array( 'public' => true ) ),
+			array( 'cpt-3',         true,  false, array( 'show_ui' => true ) ),
+			array( 'cpt-4',         true,  true,  array( 'exclude_from_search' => false ) ),
+			array( 'cpt-5',         true,  true,  array( 'public' => true, 'exclude_from_search' => false ) ),
+			array( 'cpt-6',         true,  false, array( 'public' => true, 'exclude_from_search' => true ) ),
+			array( 'cpt-7',         true,  true,  array( 'show_ui' => true, 'exclude_from_search' => false ) ),
+			array( 'cpt-8',         true,  false, array( 'show_ui' => true, 'exclude_from_search' => true ) ),
+			array( 'cpt-9',         true,  true,  array( 'public' => true, 'show_ui' => false ) ),
+			array( 'cpt-10',        true,  true,  array( 'public' => true, 'show_ui' => true ) ),
+			array( 'cpt-11',        true,  true,  array( 'public' => true, 'show_ui' => false, 'exclude_from_search' => false ) ),
+			array( 'cpt-12',        true,  false, array( 'public' => true, 'show_ui' => true, 'exclude_from_search' => true ) ),
+		);
+	}
+
+	/**
+	 * @dataProvider post_types_data
+	 * @param  string $type Post type.
+	 * @param  bool $index  Should this be indexed?
+	 * @param  bool $search Should this be searchable by default?
+	 * @param  array $cpt_args Optional. If present, $type is assumed to be a
+	 *                         custom post type and will be registered.
+	 */
+	public function test_post_types( $type, $index, $search, $cpt_args = false ) {
+		if ( $cpt_args ) {
+			register_post_type( $type, $cpt_args );
+
+			// Reload the searchable post status list.
+			SP_Config()->post_types = null;
+			sp_searchable_post_types( true );
+		}
+
+		// Build the post.
+		if ( 'attachment' === $type ) {
+			$parent_id = $this->factory->post->create();
+			$post_id = $this->factory->attachment->create_object( 'image.jpg', $parent_id, array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+				'post_title'     => 'test post',
+			) );
+		} else {
+			$post_id = $this->factory->post->create( array( 'post_title' => 'test post', 'post_type' => $type ) );
+		}
+		SP_API()->post( '_refresh' );
+
+		// Test the indexability of this type
+		$results = $this->search_and_get_field( array( 'query' => 'test post', 'post_type' => $type ) );
+		$this->assertSame(
+			$index,
+			! empty( $results ),
+			'Post type should' . ( $index ? ' ' : ' not ' ) . 'be indexed'
+		);
+
+		// Test the searchability of this type
+		$results = $this->search_and_get_field( array( 'query' => 'test post' ) );
+		$this->assertSame(
+			$search,
+			! empty( $results ),
+			'Post type should' . ( $search ? ' ' : ' not ' ) . 'be searchable'
+		);
+
 	}
 
 	function test_updated_post() {
