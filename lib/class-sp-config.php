@@ -242,6 +242,7 @@ class SP_Config extends SP_Singleton {
 						'post_excerpt' => array( 'type' => 'string' ),
 						'post_content' => array( 'type' => 'string' ),
 						'post_status' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
+						'parent_status' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
 						'post_name' => array(
 							'type' => 'string',
 							'fields' => array(
