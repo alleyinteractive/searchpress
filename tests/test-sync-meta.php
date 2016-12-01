@@ -3,13 +3,7 @@
 /**
  * @group sync_meta
  */
-class Tests_Sync_Meta extends WP_UnitTestCase {
-
-	function setUp() {
-		parent::setUp();
-
-		delete_option( 'sp_sync_meta' );
-	}
+class Tests_Sync_Meta extends SearchPress_UnitTestCase {
 
 	function test_sync_meta_start() {
 		$this->assertFalse( SP_Sync_Meta()->running );

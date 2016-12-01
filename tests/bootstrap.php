@@ -19,7 +19,6 @@ function sp_manually_load_plugin() {
 		'host'      => $host,
 		'must_init' => false,
 		'active'    => true,
-		'last_beat' => false
 	) );
 	require dirname( __FILE__ ) . '/../searchpress.php';
 
@@ -115,3 +114,6 @@ function sp_phpunit_is_wp_at_least( $min_version ) {
 }
 
 require $_tests_dir . '/includes/bootstrap.php';
+
+// Load a reusable test case.
+require_once( dirname( __FILE__ ) . '/class-searchpress-unit-test-case.php' );

@@ -3,18 +3,7 @@
 /**
  * @group heartbeat
  */
-class Tests_Heartbeat extends WP_UnitTestCase {
-
-	function setUp() {
-		parent::setUp();
-		wp_clear_scheduled_hook( 'sp_heartbeat' );
-	}
-
-	function tearDown() {
-		SP_Heartbeat()->record_pulse();
-		wp_clear_scheduled_hook( 'sp_heartbeat' );
-		parent::tearDown();
-	}
+class Tests_Heartbeat extends SearchPress_UnitTestCase {
 
 	function test_heartbeat_runs_automatically() {
 		$beat_result = SP_Heartbeat()->check_beat( true );

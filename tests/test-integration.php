@@ -6,11 +6,10 @@
  *
  * @group integration
  */
-class Tests_Integration extends WP_UnitTestCase {
+class Tests_Integration extends SearchPress_UnitTestCase {
 
 	function setUp() {
 		parent::setUp();
-		sp_index_flush_data();
 
 		$cat = $this->factory->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-demo' ) );
 		$tag = $this->factory->term->create( array( 'taxonomy' => 'post_tag', 'name' => 'tag-demo' ) );
@@ -36,13 +35,6 @@ class Tests_Integration extends WP_UnitTestCase {
 
 		// Force refresh the index so the data is available immediately
 		SP_API()->post( '_refresh' );
-	}
-
-	public function tearDown() {
-		SP_Config()->post_types = null;
-		sp_searchable_post_types( true );
-
-		parent::tearDown();
 	}
 
 	function test_search_auto_integration() {

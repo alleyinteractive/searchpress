@@ -3,38 +3,7 @@
 /**
  * @group indexing
  */
-class Tests_Indexing extends WP_UnitTestCase {
-	function setUp() {
-		parent::setUp();
-
-		sp_index_flush_data();
-		wp_clear_scheduled_hook( 'sp_reindex' );
-		SP_Cron()->setup();
-	}
-
-	function tearDown() {
-		SP_Config()->update_settings( array( 'host' => 'http://localhost:9200', 'active' => true ) );
-		SP_Sync_Meta()->reset( 'save' );
-		SP_Sync_Manager()->published_posts = false;
-		sp_index_flush_data();
-		wp_clear_scheduled_hook( 'sp_reindex' );
-		$this->reset_post_statuses();
-		SP_Config()->post_statuses = null;
-		sp_searchable_post_statuses( true );
-		$this->reset_post_types();
-		SP_Config()->post_types = null;
-		sp_searchable_post_types( true );
-
-		parent::tearDown();
-	}
-
-	function search_and_get_field( $args, $field = 'post_name' ) {
-		$args = wp_parse_args( $args, array(
-			'fields' => $field
-		) );
-		$posts = sp_wp_search( $args, true );
-		return sp_results_pluck( $posts, $field );
-	}
+class Tests_Indexing extends SearchPress_UnitTestCase {
 
 	function test_new_post() {
 		$this->factory->post->create( array( 'post_title' => 'test post' ) );

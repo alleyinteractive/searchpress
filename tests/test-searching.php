@@ -3,12 +3,10 @@
 /**
  * @group search
  */
-class Tests_Searching extends WP_UnitTestCase {
+class Tests_Searching extends SearchPress_UnitTestCase {
 
 	function setUp() {
 		parent::setUp();
-
-		sp_index_flush_data();
 
 		$cat_a = $this->factory->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-a' ) );
 		$cat_b = $this->factory->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-b' ) );
@@ -51,21 +49,6 @@ class Tests_Searching extends WP_UnitTestCase {
 
 		// Force refresh the index so the data is available immediately
 		SP_API()->post( '_refresh' );
-	}
-
-	public function tearDown() {
-		SP_Config()->post_types = null;
-		sp_searchable_post_types( true );
-
-		parent::tearDown();
-	}
-
-	function search_and_get_field( $args, $field = 'post_name' ) {
-		$args = wp_parse_args( $args, array(
-			'fields' => $field
-		) );
-		$posts = sp_wp_search( $args, true );
-		return sp_results_pluck( $posts, $field );
 	}
 
 	function test_basic_query() {

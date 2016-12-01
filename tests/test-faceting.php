@@ -3,12 +3,10 @@
 /**
  * @group facets
  */
-class Tests_Faceting extends WP_UnitTestCase {
+class Tests_Faceting extends SearchPress_UnitTestCase {
 
 	function setUp() {
 		parent::setUp();
-
-		sp_index_flush_data();
 
 		$author_a = $this->factory->user->create( array( 'user_login' => 'author_a', 'user_pass' => rand_str(), 'role' => 'author' ) );
 		$post_author_a_1 = $this->factory->post->create( array( 'post_title' => rand_str(), 'post_author' => $author_a, 'post_date' => '2007-01-04 00:00:00' ) );
@@ -59,13 +57,6 @@ class Tests_Faceting extends WP_UnitTestCase {
 
 		// Force refresh the index so the data is available immediately
 		SP_API()->post( '_refresh' );
-	}
-
-	public function tearDown() {
-		SP_Config()->post_types = null;
-		sp_searchable_post_types( true );
-
-		parent::tearDown();
 	}
 
 	function test_faceting() {

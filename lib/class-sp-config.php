@@ -282,7 +282,6 @@ class SP_Config extends SP_Singleton {
 			'host'      => 'http://localhost:9200',
 			'must_init' => true,
 			'active'    => false,
-			'last_beat' => false,
 		) );
 		return $this->settings;
 	}
