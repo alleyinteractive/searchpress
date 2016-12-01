@@ -8,6 +8,7 @@ class SearchPress_UnitTestCase extends WP_UnitTestCase {
 
 		sp_index_flush_data();
 		SP_Cron()->setup();
+		wp_clear_scheduled_hook( 'sp_heartbeat' );
 		$this->sp_settings = SP_Config()->get_settings();
 	}
 
