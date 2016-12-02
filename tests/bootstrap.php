@@ -63,6 +63,7 @@ tests_add_filter( 'shutdown', 'sp_remove_index' );
 function sp_index_flush_data() {
 	SP_Config()->flush();
 	SP_Config()->create_mapping();
+	SP_API()->post( '_refresh' );
 }
 
 function sp_tests_verify_response_code( $response ) {
