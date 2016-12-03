@@ -29,12 +29,14 @@ install:
   - |
     if [[ "$ES_VERSION" == "5.0.2" ]]; then
       wget -O - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz | tar xz --directory=/tmp/elasticsearch --strip-components=1
+      /tmp/elasticsearch/bin/elasticsearch -d -E path.data=/tmp
     elif [[ "$ES_VERSION" == "2.4.2" ]]; then
       wget -O - https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/${ES_VERSION}/elasticsearch-${ES_VERSION}.tar.gz | tar xz --directory=/tmp/elasticsearch --strip-components=1
+      /tmp/elasticsearch/bin/elasticsearch -d --path.data /tmp
     elif [[ "$ES_VERSION" == "1.7.6" ]]; then
       wget -O - https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz | tar xz --directory=/tmp/elasticsearch --strip-components=1
+      /tmp/elasticsearch/bin/elasticsearch -d --path.data /tmp
     fi
-    /tmp/elasticsearch/bin/elasticsearch -d --path.data /tmp
 
 before_script:
   - |
