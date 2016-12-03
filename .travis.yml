@@ -26,7 +26,12 @@ matrix:
 
 install:
   - mkdir /tmp/elasticsearch
-  - wget -O - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz | tar xz --directory=/tmp/elasticsearch --strip-components=1
+  - |
+    if [[ "$WP_PHPCS" == "5.0.2" ]]; then
+      wget -O - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz | tar xz --directory=/tmp/elasticsearch --strip-components=1
+    else
+      wget -O - https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/${ES_VERSION}/elasticsearch-${ES_VERSION}.tar.gz | tar xz --directory=/tmp/elasticsearch --strip-components=1
+    fi
   - /tmp/elasticsearch/bin/elasticsearch --daemonize --path.data /tmp
 
 before_script:
