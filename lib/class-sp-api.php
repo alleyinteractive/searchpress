@@ -158,7 +158,7 @@ class SP_API extends SP_Singleton {
 	}
 
 	public function cluster_health() {
-		$health_uri = apply_filters( 'sp_cluster_health_uri', '/_cluster/health/' . $this->index );
+		$health_uri = apply_filters( 'sp_cluster_health_uri', '/_cluster/health/' . $this->index . '?wait_for_status=yellow&timeout=0.2s' );
 		return $this->get( $health_uri );
 	}
 }
