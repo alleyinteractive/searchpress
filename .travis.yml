@@ -34,7 +34,7 @@ install:
     elif [[ "$ES_VERSION" == "1.7.6" ]]; then
       wget -O - https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz | tar xz --directory=/tmp/elasticsearch --strip-components=1
     fi
-  - /tmp/elasticsearch/bin/elasticsearch --daemonize --path.data /tmp
+    /tmp/elasticsearch/bin/elasticsearch -d --path.data /tmp
 
 before_script:
   - |
