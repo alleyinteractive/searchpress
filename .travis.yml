@@ -10,6 +10,9 @@ branches:
   only:
     - master
 
+jdk:
+  - oraclejdk8
+
 matrix:
   include:
     - php: 5.3
@@ -25,18 +28,7 @@ matrix:
   fast_finish: true
 
 install:
-  - mkdir /tmp/elasticsearch
-  - |
-    if [[ "$ES_VERSION" == "5.0.2" ]]; then
-      wget -O - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz | tar xz --directory=/tmp/elasticsearch --strip-components=1
-      /tmp/elasticsearch/bin/elasticsearch -E path.data=/tmp
-    elif [[ "$ES_VERSION" == "2.4.2" ]]; then
-      wget -O - https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/${ES_VERSION}/elasticsearch-${ES_VERSION}.tar.gz | tar xz --directory=/tmp/elasticsearch --strip-components=1
-      /tmp/elasticsearch/bin/elasticsearch -d --path.data /tmp
-    elif [[ "$ES_VERSION" == "1.7.6" ]]; then
-      wget -O - https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz | tar xz --directory=/tmp/elasticsearch --strip-components=1
-      /tmp/elasticsearch/bin/elasticsearch -d --path.data /tmp
-    fi
+  - bash bin/install-es.sh $ES_VERSION
 
 before_script:
   - |
