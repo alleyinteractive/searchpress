@@ -10,6 +10,10 @@ addons:
 jdk:
   - oraclejdk8
 
+env:
+  global:
+    - JAVA_HOME="/usr/lib/jvm/java-8-oracle/jre"
+
 notifications:
   email:
     on_success: never
@@ -34,7 +38,6 @@ matrix:
   fast_finish: true
 
 install:
-  - jdk_switcher use oraclejdk8
   - bash bin/install-es.sh $ES_VERSION
 
 before_script:
