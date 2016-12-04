@@ -6,7 +6,26 @@
 
 class SP_Config extends SP_Singleton {
 
+	/**
+	 * Cached settings from wp_options.
+	 *
+	 * @var array
+	 */
 	public $settings;
+
+	/**
+	 * Cached post_statuses to index.
+	 *
+	 * @var array
+	 */
+	public $post_statuses;
+
+	/**
+	 * Cached post_types to index.
+	 *
+	 * @var array
+	 */
+	public $post_types;
 
 	/**
 	 * @codeCoverageIgnore
@@ -15,14 +34,59 @@ class SP_Config extends SP_Singleton {
 		// initialize anything for the singleton here
 	}
 
-
+	/**
+	 * Get an array of post_statuses which should be indexed. Only posts in
+	 * these statuses will be indexed with one exception: posts in the `inherit`
+	 * post status will use the parent's post status when making that decision
+	 * (that said, the indexed status will still be `inherit`).
+	 *
+	 * @return array Post statuses.
+	 */
 	public function sync_statuses() {
-		return apply_filters( 'sp_config_sync_statuses', array( 'publish' ) );
+		if ( ! isset( $this->post_statuses ) ) {
+			// Get all post statuses that aren't explicitly flagged as internal.
+			$this->post_statuses = array_values( get_post_stati( array( 'internal' => false ) ) );
+
+			/**
+			 * Filter the *indexed* (synced) post statuses. Also
+			 * {@see sp_searchable_post_statuses()} and the
+			 * `sp_searchable_post_statuses` filter to filter the post statuses
+			 * that SearchPress searches in Elasticsearch. If you add a post
+			 * status to this list and don't want it to be searchable, it either
+			 * needs `'exclude_from_search' => true` or it needs to be removed
+			 * from the searchable statuses using that filter.
+			 *
+			 * @param array $post_statuses Valid post statuses to index.
+			 */
+			$this->post_statuses = apply_filters( 'sp_config_sync_statuses', $this->post_statuses );
+		}
+		return $this->post_statuses;
 	}
 
-
+	/**
+	 * Get an array of post_types which should be indexed. Only posts in
+	 * these types will be indexed.
+	 *
+	 * @return array Post types.
+	 */
 	public function sync_post_types() {
-		return apply_filters( 'sp_config_sync_post_types', sp_searchable_post_types() );
+		if ( ! isset( $this->post_types ) ) {
+			$this->post_types = array_values( get_post_types( array( 'show_ui' => true, 'public' => true, 'exclude_from_search' => false ), 'names', 'or' ) );
+
+			/**
+			 * Filter the *indexed* (synced) post types. Also
+			 * {@see sp_searchable_post_types()} and the
+			 * `sp_searchable_post_types` filter to filter the post types
+			 * that SearchPress searches in Elasticsearch. If you add a post
+			 * type to this list and don't want it to be searchable, it either
+			 * needs `'exclude_from_search' => true` or it needs to be removed
+			 * from the searchable types using that filter.
+			 *
+			 * @param array $post_types Valid post types to index.
+			 */
+			return apply_filters( 'sp_config_sync_post_types', $this->post_types );
+		}
+		return $this->post_types;
 	}
 
 
@@ -178,6 +242,7 @@ class SP_Config extends SP_Singleton {
 						'post_excerpt' => array( 'type' => 'string' ),
 						'post_content' => array( 'type' => 'string' ),
 						'post_status' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
+						'parent_status' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
 						'post_name' => array(
 							'type' => 'string',
 							'fields' => array(
@@ -217,7 +282,6 @@ class SP_Config extends SP_Singleton {
 			'host'      => 'http://localhost:9200',
 			'must_init' => true,
 			'active'    => false,
-			'last_beat' => false,
 		) );
 		return $this->settings;
 	}

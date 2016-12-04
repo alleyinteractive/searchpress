@@ -19,7 +19,6 @@ function sp_manually_load_plugin() {
 		'host'      => $host,
 		'must_init' => false,
 		'active'    => true,
-		'last_beat' => false
 	) );
 	require dirname( __FILE__ ) . '/../searchpress.php';
 
@@ -64,6 +63,7 @@ tests_add_filter( 'shutdown', 'sp_remove_index' );
 function sp_index_flush_data() {
 	SP_Config()->flush();
 	SP_Config()->create_mapping();
+	SP_API()->post( '_refresh' );
 }
 
 function sp_tests_verify_response_code( $response ) {
@@ -115,3 +115,6 @@ function sp_phpunit_is_wp_at_least( $min_version ) {
 }
 
 require $_tests_dir . '/includes/bootstrap.php';
+
+// Load a reusable test case.
+require_once( dirname( __FILE__ ) . '/class-searchpress-unit-test-case.php' );

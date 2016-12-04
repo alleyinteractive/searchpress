@@ -3,9 +3,8 @@
 /**
  * @group admin
  */
-class Tests_Admin extends WP_UnitTestCase {
+class Tests_Admin extends SearchPress_UnitTestCase {
 	protected $current_user;
-	protected $sp_settings;
 	protected $old_wp_scripts, $old_wp_styles;
 	protected $old_screen;
 
@@ -14,7 +13,6 @@ class Tests_Admin extends WP_UnitTestCase {
 		// is_admin returns false, so this file doesn't get loaded with the rest of the plugin
 		require_once dirname( __FILE__ ) . '/../lib/class-sp-admin.php';
 		$this->current_user = get_current_user_id();
-		$this->sp_settings = get_option( 'sp_settings' );
 
 		$this->old_screen = get_current_screen();
 		set_current_screen( 'dashboard-user' );
@@ -37,12 +35,6 @@ class Tests_Admin extends WP_UnitTestCase {
 
 	public function tearDown() {
 		wp_set_current_user( $this->current_user );
-		SP_Config()->update_settings( $this->sp_settings );
-		SP_Sync_Manager()->published_posts = false;
-		SP_Sync_Meta()->reset( 'save' );
-		SP_Heartbeat()->record_pulse();
-		wp_clear_scheduled_hook( 'sp_reindex' );
-		wp_clear_scheduled_hook( 'sp_heartbeat' );
 
 		// Restore current_screen.
 		$GLOBALS['current_screen'] = $this->old_screen;
@@ -130,6 +122,7 @@ class Tests_Admin extends WP_UnitTestCase {
 	}
 
 	public function test_save_settings_no_changes() {
+		$sp_settings = get_option( 'sp_settings' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		$_POST = array(
 			'sp_settings_nonce' => wp_create_nonce( 'sp_settings' ),
@@ -143,13 +136,14 @@ class Tests_Admin extends WP_UnitTestCase {
 			$this->fail( 'Failed to save settings' );
 		} catch ( WPDieException $e ) {
 			// Make sure the settings didn't change
-			$this->assertSame( $this->sp_settings, get_option( 'sp_settings' ) );
+			$this->assertSame( $sp_settings, get_option( 'sp_settings' ) );
 			// Verify the redirect url
 			$this->assertSame( admin_url( 'tools.php?page=searchpress&save=1' ), $e->getMessage() );
 		}
 	}
 
 	public function test_save_settings_update_host() {
+		$sp_settings = get_option( 'sp_settings' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		$host = 'http://' . rand_str() . ':9200';
 		$_POST = array(
@@ -166,7 +160,7 @@ class Tests_Admin extends WP_UnitTestCase {
 		} catch ( WPDieException $e ) {
 			// Make sure the settings updated
 			$new_settings = get_option( 'sp_settings' );
-			$this->assertNotSame( $this->sp_settings, $new_settings );
+			$this->assertNotSame( $sp_settings, $new_settings );
 			$this->assertSame( $host, $new_settings['host'] );
 			// Verify the redirect url
 			$this->assertSame( admin_url( 'tools.php?page=searchpress&save=1' ), $e->getMessage() );
