@@ -5,6 +5,10 @@ if [ $# -lt 1 ]; then
 fi
 
 killall java 2>/dev/null
+which java
+java -version
+echo $JAVA_HOME
+
 ES_VERSION=$1
 
 setup_es() {
