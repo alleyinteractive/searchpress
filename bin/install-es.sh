@@ -4,6 +4,7 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 
+sudo sysctl -w vm.max_map_count=262144
 killall java 2>/dev/null
 which java
 java -version
