@@ -1,8 +1,6 @@
 sudo: false
 
-language:
-  - php
-  - java
+language: php
 
 jdk:
   - oraclejdk8
@@ -15,6 +13,9 @@ notifications:
 branches:
   only:
     - master
+
+env:
+  - JAVA_HOME="/usr/lib/jvm/java-8-oracle/jre"
 
 matrix:
   include:
