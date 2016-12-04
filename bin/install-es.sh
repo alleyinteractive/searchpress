@@ -4,6 +4,10 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 
+killall java 2>/dev/null
+
+which java
+java -version
 echo $JAVA_HOME
 
 ES_VERSION=$1
