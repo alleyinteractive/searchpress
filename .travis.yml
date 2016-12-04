@@ -1,5 +1,11 @@
-language: php
 sudo: false
+
+language:
+  - php
+  - java
+
+jdk:
+  - oraclejdk8
 
 notifications:
   email:
@@ -9,9 +15,6 @@ notifications:
 branches:
   only:
     - master
-
-jdk:
-  - oraclejdk8
 
 matrix:
   include:

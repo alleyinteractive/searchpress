@@ -15,13 +15,15 @@ setup_es() {
 start_es() {
   /tmp/elasticsearch/bin/elasticsearch $1 > /tmp/elasticsearch.log &
   sleep 10
-  curl http://localhost:9200 && echo "ES is up!" || cat /tmp/elasticsearch.log
+  curl http://localhost:9200 && echo "ES is up!" || cat /tmp/elasticsearch.log && exit 1
 }
 
 if [[ "$ES_VERSION" == 5.* ]]; then
-  setup_es https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$ES_VERSION.tar.gz
-else
-  setup_es https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/$ES_VERSION/elasticsearch-$ES_VERSION.tar.gz
+  setup_es https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz
+elif [[ "$ES_VERSION" == 2.* ]]; then
+  setup_es https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/${ES_VERSION}/elasticsearch-${ES_VERSION}.tar.gz
+elif [[ "$ES_VERSION" == 1.* ]]; then
+  setup_es https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz
 fi
 
 # java_home='/usr/lib/jvm/java-8-oracle'
