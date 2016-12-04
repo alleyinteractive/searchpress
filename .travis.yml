@@ -2,6 +2,11 @@ sudo: false
 
 language: php
 
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
+
 jdk:
   - oraclejdk8
 
@@ -13,10 +18,6 @@ notifications:
 branches:
   only:
     - master
-
-env:
-  global:
-    - JAVA_HOME="/usr/lib/jvm/java-8-oracle/jre"
 
 matrix:
   include:
@@ -33,6 +34,7 @@ matrix:
   fast_finish: true
 
 install:
+  - jdk_switcher use oraclejdk8
   - bash bin/install-es.sh $ES_VERSION
 
 before_script:
