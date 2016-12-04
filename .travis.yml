@@ -1,4 +1,4 @@
-sudo: false
+# sudo: false
 
 language: php
 
@@ -36,6 +36,9 @@ matrix:
     - php: 'hhvm'
       env: WP_VERSION=nightly PHP_LINT=1 ES_VERSION=2.4.2
   fast_finish: true
+
+before_install:
+  - sudo update-java-alternatives -s java-8-oracle
 
 install:
   - bash bin/install-es.sh $ES_VERSION
