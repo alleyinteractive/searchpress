@@ -273,7 +273,7 @@ class SP_Integration extends SP_Singleton {
 			$es_wp_query_args['facets'] = $this->facets;
 		}
 
-		$es_wp_query_args['_source'] = array( 'post_id' );
+		$es_wp_query_args['fields'] = array( 'post_id' );
 
 		return $es_wp_query_args;
 	}
