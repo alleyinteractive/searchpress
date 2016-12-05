@@ -370,7 +370,7 @@ class SP_WP_Search extends SP_Search {
 
 		// Fields
 		if ( ! empty( $args['fields'] ) ) {
-			$es_query_args['fields'] = (array) $args['fields'];
+			$es_query_args['_source'] = (array) $args['fields'];
 		}
 
 		return $es_query_args;

@@ -35,7 +35,7 @@ class SearchPress_UnitTestCase extends WP_UnitTestCase {
 
 	function search_and_get_field( $args, $field = 'post_name' ) {
 		$args = wp_parse_args( $args, array(
-			'fields' => $field
+			'_source' => $field
 		) );
 		$posts = sp_wp_search( $args, true );
 		return sp_results_pluck( $posts, $field );

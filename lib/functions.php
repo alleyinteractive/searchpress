@@ -16,8 +16,8 @@ function sp_results_pluck( $results, $field, $as_single = true ) {
 	}
 
 	foreach ( $results['hits']['hits'] as $key => $value ) {
-		if ( ! empty( $value['fields'][ $field ] ) ) {
-			$return[ $key ] = (array) $value['fields'][ $field ];
+		if ( ! empty( $value['_source'][ $field ] ) ) {
+			$return[ $key ] = (array) $value['_source'][ $field ];
 			if ( $as_single ) {
 				$return[ $key ] = reset( $return[ $key ] );
 			}
