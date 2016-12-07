@@ -62,4 +62,8 @@ class Tests_Api extends SearchPress_UnitTestCase {
 		$response = json_decode( SP_API()->request( 'http://asdf.jkl;/some/bad/url' ) );
 		$this->assertNotEmpty( $response->error );
 	}
+
+	public function test_version() {
+		$this->assertRegExp( '/^\d+\.\d+\.\d+$/', SP_API()->version() );
+	}
 }

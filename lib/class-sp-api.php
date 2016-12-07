@@ -161,6 +161,20 @@ class SP_API extends SP_Singleton {
 		$health_uri = apply_filters( 'sp_cluster_health_uri', '/_cluster/health/' . $this->index );
 		return $this->get( $health_uri );
 	}
+
+	/**
+	 * Get the version from Elasticsearch.
+	 *
+	 * @return string|bool Version string on success, false on failure.
+	 */
+	public function version() {
+		static $version;
+		if ( ! isset( $version ) ) {
+			$response = $this->get( '/' );
+			$version = ! empty( $response->version->number ) ? $response->version->number : false;
+		}
+		return $version;
+	}
 }
 
 function SP_API() {
