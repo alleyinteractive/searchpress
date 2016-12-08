@@ -10,14 +10,14 @@ SearchPress is currently in beta. The most significant impact of this is backwar
 
 Each stable release will be tagged and you'll be able to [download that release indefinitely](https://github.com/alleyinteractive/searchpress/releases).
 
-`master` should be considered alpha/pre-release and should not be used in production environments. `master` will only ever contain stable code (as illustrated by Travis CI), but it's likely that things in master will change.
+`master` should be considered a nightly build and should be tested carefully before deploying to production environments. `master` will never contain code known to not be stable, and SearchPress has a thorough battery of unit tests to help maintain that. Furthermore, SearchPress uses Travis CI to test against a range of versions of PHP, WordPress, and Elasticsearch to help maximize stability and minimize surprises.
 
 
 Prerequisites
 -------------
 
-* [elasticsearch](http://elasticsearch.org/)
-* PHP 5.3+
+* [elasticsearch](https://www.elastic.co/products/elasticsearch) 1.3+; 5.0 recommended.
+* PHP 5.3+; PHP 7 recommended.
 
 
 Setup
