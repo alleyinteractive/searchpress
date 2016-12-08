@@ -279,9 +279,10 @@ class SP_Config extends SP_Singleton {
 	public function get_settings() {
 		$settings = get_option( 'sp_settings' );
 		$this->settings = wp_parse_args( $settings, array(
-			'host'      => 'http://localhost:9200',
-			'must_init' => true,
-			'active'    => false,
+			'host'       => 'http://localhost:9200',
+			'must_init'  => true,
+			'active'     => false,
+			'es_version' => -1,
 		) );
 		return $this->settings;
 	}
@@ -320,6 +321,28 @@ class SP_Config extends SP_Singleton {
 		 * @param array $old_settings The old settings.
 		 */
 		do_action( 'sp_config_update_settings', $this->settings, $new_settings, $old_settings );
+	}
+
+	/**
+	 * Update the stored version of Elasticsearch if it's changed.
+	 */
+	public function update_version() {
+		$version = SP_API()->version();
+		if ( $version && $this->get_setting( 'es_version' ) !== $version ) {
+			$this->update_settings( array(
+				'es_version' => $version,
+			) );
+		}
+	}
+
+	/**
+	 * Get the ES version, either from cache or directly from ES.
+	 *
+	 * @return string|bool Version string on success, false on failure.
+	 */
+	public function get_es_version() {
+		$version = $this->get_setting( 'es_version' );
+		return -1 !== $version ? $version : SP_API()->version();
 	}
 }
 

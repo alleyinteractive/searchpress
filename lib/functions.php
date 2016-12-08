@@ -171,3 +171,20 @@ function sp_wp_search( $wp_args, $raw_result = false ) {
 function sp_global_cluster_health() {
 	return '/_cluster/health';
 }
+
+/**
+ * Compare an Elasticsearch version against the one in use. This is a convenient
+ * wrapper for `version_compare()`, setting the second argument to the current
+ * version of Elasticsearch.
+ *
+ * For example, to see if the current version of Elasticsearch is 5.x, you would
+ * call `sp_es_version_compare( '5.0' )`.
+ *
+ * @param  string $version Version number.
+ * @param  string $compare Optional. Test for a particular relationship. Default
+ *                         is `>=`.
+ * @return bool|null Null on failure, bool on success.
+ */
+function sp_es_version_compare( $version, $compare = '>=' ) {
+	return version_compare( $version, SP_Config()->get_es_version(), $compare );
+}

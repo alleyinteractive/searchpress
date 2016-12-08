@@ -40,11 +40,11 @@ class SP_Admin extends SP_Singleton {
 	 */
 	public function admin_menu() {
 		// Add new admin menu and save returned page hook
-		$hook_suffix = add_management_page( __( 'SearchPress', 'searchpress' ), __( 'SearchPress', 'searchpress' ), $this->capability, 'searchpress', array( $this, 'sync' ) );
+		$hook_suffix = add_management_page( __( 'SearchPress', 'searchpress' ), __( 'SearchPress', 'searchpress' ), $this->capability, 'searchpress', array( $this, 'settings_page' ) );
 	}
 
 
-	public function sync() {
+	public function settings_page() {
 		if ( ! current_user_can( $this->capability ) ) {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
 		}
@@ -59,6 +59,9 @@ class SP_Admin extends SP_Singleton {
 		$active_status = intval( SP_Config()->get_setting( 'active' ) ) ? 'active' : 'inactive';
 		$heartbeat_status = SP_Heartbeat()->get_status();
 		$overall_status = $this->current_status( $active_status, $heartbeat_status );
+		// When we hit the admin page, update the cached ES version.
+		SP_Config()->update_version();
+		$es_version = SP_Config()->get_es_version();
 		?>
 		<div class="wrap">
 			<h2><?php esc_html_e( 'SearchPress', 'searchpress' ); ?></h2>
@@ -88,6 +91,7 @@ class SP_Admin extends SP_Singleton {
 							<td class="status-<?php echo esc_attr( $active_status ) ?> status-<?php echo esc_attr( $heartbeat_status ) ?>"><abbr title="<?php echo esc_attr( $overall_status[1] ) ?>"><?php echo esc_html( $overall_status[0] ) ?></abbr></td>
 							<td><?php echo esc_html( number_format( intval( SP_Sync_Manager()->count_posts() ) ) ) ?></td>
 							<td><?php echo esc_html( number_format( intval( SP_Sync_Manager()->count_posts_indexed() ) ) ) ?></td>
+							<td><?php echo -1 !== $es_version ? esc_html( $es_version ) : esc_html__( 'Unknown', 'searchpress' ) ?></td>
 						</tr>
 					</tbody>
 					<tfoot>
@@ -95,6 +99,7 @@ class SP_Admin extends SP_Singleton {
 							<th><?php esc_html_e( 'Current Status', 'searchpress' ); ?></th>
 							<th><?php esc_html_e( 'Searchable posts in WordPress', 'searchpress' ); ?></th>
 							<th><?php esc_html_e( 'Posts currently indexed', 'searchpress' ); ?></th>
+							<th><?php esc_html_e( 'Elasticsearch Version', 'searchpress' ); ?></th>
 						</tr>
 					</tfoot>
 				</table>
