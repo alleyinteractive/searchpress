@@ -1,5 +1,20 @@
+# Can't use container-based builds due to error when booting ES:
+# "max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]"
+sudo: required
+
 language: php
-sudo: false
+
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
+
+jdk:
+  - oraclejdk8
+
+env:
+  global:
+    - JAVA_HOME="/usr/lib/jvm/java-8-oracle/jre"
 
 notifications:
   email:
@@ -11,27 +26,29 @@ branches:
     - master
 
 matrix:
+  fast_finish: true
   include:
     - php: 5.3
-      env: WP_VERSION=4.4.2 PHP_LINT=1
+      env: WP_VERSION=4.4.2 PHP_LINT=1 ES_VERSION=1.7.6
     - php: 5.6
-      env: WP_VERSION=latest PHP_LINT=1
+      env: WP_VERSION=latest PHP_LINT=1 ES_VERSION=1.7.6
     - php: 7.0
-      env: WP_VERSION=latest PHP_LINT=1
-    - php: 5.6
-      env: WP_VERSION=nightly WP_PHPCS=1
+      env: WP_VERSION=nightly WP_PHPCS=1 ES_VERSION=5.0.2
+    - php: 7.0
+      env: WP_VERSION=latest PHP_LINT=1 ES_VERSION=2.4.2
     - php: 'hhvm'
-      env: WP_VERSION=nightly PHP_LINT=1
-  fast_finish: true
+      env: WP_VERSION=nightly PHP_LINT=1 ES_VERSION=2.4.2
+  allow_failures:
+    - php: 7.0
+      env: WP_VERSION=nightly WP_PHPCS=1 ES_VERSION=5.0.2
 
-services:
-    - elasticsearch
+install:
+  - bash bin/install-es.sh $ES_VERSION
 
 before_script:
   - |
     if [[ ! -z "$WP_VERSION" ]] ; then
       bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
-      sleep 5 # ensure ES is running
     fi
   - |
     if [[ "$WP_PHPCS" == "1" ]]; then
@@ -46,4 +63,3 @@ script:
   - if [[ "$WP_PHPCS" == "1" ]]; then phpcs -p -s -v -n --standard=./codesniffer.ruleset.xml --extensions=php .; fi
   - phpunit
   - phpunit -c multisite.xml
-
