@@ -157,8 +157,26 @@ class SP_API extends SP_Singleton {
 		return $this->post( 'post/_search', $query, $args['output'] );
 	}
 
+	/**
+	 * Get the cluster health.
+	 *
+	 * @return object|null Response from the cluster health API on success or
+	 *                     null on error. The most important part of the
+	 *                     successful response is $health->status, which is the
+	 *                     "red", "yellow", or "green" status indicator.
+	 */
 	public function cluster_health() {
-		$health_uri = apply_filters( 'sp_cluster_health_uri', '/_cluster/health/' . $this->index );
+		/**
+		 * Filter the cluster health URI (or URL). Defaults to
+		 * `"/_cluster/health/{$this->index}?wait_for_status=yellow&timeout=0.2s"`.
+		 *
+		 * By default, this will wait up to 0.2 seconds and it will wait for a
+		 * yellow status. To change either value, filter the URI and
+		 * manipulate the string.
+		 *
+		 * @param string  $url  URI or URL to hit to query the cluster health.
+		 */
+		$health_uri = apply_filters( 'sp_cluster_health_uri', "/_cluster/health/{$this->index}?wait_for_status=yellow&timeout=0.2s" );
 		return $this->get( $health_uri );
 	}
 
