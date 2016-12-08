@@ -309,13 +309,13 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
-		sp_tests_fake_cron();
+		$this->fake_cron();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
-		sp_tests_fake_cron();
+		$this->fake_cron();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
-		sp_tests_fake_cron();
+		$this->fake_cron();
 		$this->assertEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
 		SP_API()->post( '_refresh' );
@@ -347,7 +347,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		SP_Sync_Meta()->save();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 		$this->assertTrue( empty( SP_Sync_Meta()->messages['error'] ) );
-		sp_tests_fake_cron();
+		$this->fake_cron();
 
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
 	}
@@ -374,7 +374,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		SP_Sync_Meta()->bulk = 3;
 		SP_Sync_Meta()->save();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
-		sp_tests_fake_cron();
+		$this->fake_cron();
 
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
 	}

@@ -54,7 +54,7 @@ class Tests_Mapping_Postmeta extends SearchPress_UnitTestCase {
 		SP_API()->post( '_refresh' );
 
 		if ( null === $value ) {
-			if ( sp_phpunit_is_wp_at_least( 4.4 ) ) {
+			if ( $this->is_wp_at_least( 4.4 ) ) {
 				$string = array( null );
 			} else {
 				$string = array( '' );
