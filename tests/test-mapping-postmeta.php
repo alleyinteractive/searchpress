@@ -5,19 +5,11 @@
  *
  * @group mapping
  */
-class Tests_Mapping_Postmeta extends WP_UnitTestCase {
+class Tests_Mapping_Postmeta extends SearchPress_UnitTestCase {
 
 	function setUp() {
 		parent::setUp();
 		sp_index_flush_data();
-	}
-
-	function _search_and_get_field( $args, $field = 'post_name' ) {
-		$args = wp_parse_args( $args, array(
-			'fields' => $field
-		) );
-		$posts = sp_wp_search( $args, true );
-		return sp_results_pluck( $posts, $field );
 	}
 
 	function meta_sample_data() {
@@ -75,31 +67,31 @@ class Tests_Mapping_Postmeta extends WP_UnitTestCase {
 
 		// Test the various meta mappings. Ideally, these each would be their
 		// own test, but this is considerably faster.
-		$this->assertSame( $string, $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.value' ), 'Checking meta.value' );
-		$this->assertSame( $string, $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.raw' ), 'Checking meta.raw' );
-		$this->assertSame( array( $boolean ), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.boolean' ), 'Checking meta.boolean' );
+		$this->assertSame( $string, $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.value' ), 'Checking meta.value' );
+		$this->assertSame( $string, $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.raw' ), 'Checking meta.raw' );
+		$this->assertSame( array( $boolean ), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.boolean' ), 'Checking meta.boolean' );
 
 		if ( isset( $long ) ) {
-			$this->assertSame( array( $long ), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.long' ), 'Checking meta.long' );
+			$this->assertSame( array( $long ), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.long' ), 'Checking meta.long' );
 		} else {
-			$this->assertSame( array(), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.long' ), 'Checking that meta.long is missing' );
+			$this->assertSame( array(), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.long' ), 'Checking that meta.long is missing' );
 		}
 
 		if ( isset( $double ) ) {
-			$this->assertSame( array( $double ), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.double' ), 'Checking meta.double' );
+			$this->assertSame( array( $double ), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.double' ), 'Checking meta.double' );
 		} else {
-			$this->assertSame( array(), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.double' ), 'Checking that meta.double is missing' );
+			$this->assertSame( array(), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.double' ), 'Checking that meta.double is missing' );
 		}
 
 		if ( isset( $datetime ) ) {
 			list( $date, $time ) = explode( ' ', $datetime );
-			$this->assertSame( array( $datetime ), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.datetime' ), 'Checking meta.datetime' );
-			$this->assertSame( array( $date ), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.date' ), 'Checking meta.date' );
-			$this->assertSame( array( $time ), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.time' ), 'Checking meta.time' );
+			$this->assertSame( array( $datetime ), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.datetime' ), 'Checking meta.datetime' );
+			$this->assertSame( array( $date ), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.date' ), 'Checking meta.date' );
+			$this->assertSame( array( $time ), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.time' ), 'Checking meta.time' );
 		} else {
-			$this->assertSame( array(), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.datetime' ), 'Checking that meta.datetime is missing' );
-			$this->assertSame( array(), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.date' ), 'Checking that meta.date is missing' );
-			$this->assertSame( array(), $this->_search_and_get_field( array(), 'post_meta.mapping_postmeta_test.time' ), 'Checking that meta.time is missing' );
+			$this->assertSame( array(), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.datetime' ), 'Checking that meta.datetime is missing' );
+			$this->assertSame( array(), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.date' ), 'Checking that meta.date is missing' );
+			$this->assertSame( array(), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.time' ), 'Checking that meta.time is missing' );
 		}
 	}
 
@@ -125,20 +117,20 @@ class Tests_Mapping_Postmeta extends WP_UnitTestCase {
 
 		// These fields are not analyzed
 		if ( $should_truncate_raw ) {
-			$meta_raw = $this->_search_and_get_field( array(), 'post_meta.long_string_test.raw' );
+			$meta_raw = $this->search_and_get_field( array(), 'post_meta.long_string_test.raw' );
 			$this->assertNotSame( array( $string ), $meta_raw, 'Checking meta.raw' );
 			$this->assertContains( $meta_raw[0], $string );
 		} else {
-			$this->assertSame( array( $string ), $this->_search_and_get_field( array(), 'post_meta.long_string_test.raw' ), 'Checking meta.raw' );
+			$this->assertSame( array( $string ), $this->search_and_get_field( array(), 'post_meta.long_string_test.raw' ), 'Checking meta.raw' );
 		}
 
 		// These fields are analyzed
 		if ( $should_truncate_indexed ) {
-			$this->assertNotSame( array( $string ), $this->_search_and_get_field( array(), 'post_content' ), 'Checking post_content' );
-			$this->assertNotSame( array( $string ), $this->_search_and_get_field( array(), 'post_meta.long_string_test.value' ), 'Checking meta.value' );
+			$this->assertNotSame( array( $string ), $this->search_and_get_field( array(), 'post_content' ), 'Checking post_content' );
+			$this->assertNotSame( array( $string ), $this->search_and_get_field( array(), 'post_meta.long_string_test.value' ), 'Checking meta.value' );
 		} else {
-			$this->assertSame( array( $string ), $this->_search_and_get_field( array(), 'post_content' ), 'Checking post_content' );
-			$this->assertSame( array( $string ), $this->_search_and_get_field( array(), 'post_meta.long_string_test.value' ), 'Checking meta.value' );
+			$this->assertSame( array( $string ), $this->search_and_get_field( array(), 'post_content' ), 'Checking post_content' );
+			$this->assertSame( array( $string ), $this->search_and_get_field( array(), 'post_meta.long_string_test.value' ), 'Checking meta.value' );
 		}
 	}
 }

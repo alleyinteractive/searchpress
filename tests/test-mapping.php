@@ -3,7 +3,7 @@
 /**
  * @group mapping
  */
-class Tests_Mapping extends WP_UnitTestCase {
+class Tests_Mapping extends SearchPress_UnitTestCase {
 	var $demo_user;
 	var $demo_user_id;
 	var $demo_term;
@@ -14,7 +14,6 @@ class Tests_Mapping extends WP_UnitTestCase {
 
 	function setUp() {
 		parent::setUp();
-		sp_index_flush_data();
 
 		$this->demo_user = array(
 			'user_login' => 'author1',
@@ -86,80 +85,72 @@ class Tests_Mapping extends WP_UnitTestCase {
 		SP_API()->post( '_refresh' );
 	}
 
-	function _search_and_get_field( $args, $field = 'post_name' ) {
-		$args = wp_parse_args( $args, array(
-			'fields' => $field
-		) );
-		$posts = sp_wp_search( $args, true );
-		return sp_results_pluck( $posts, $field );
-	}
-
 	function _field_mapping_test( $field ) {
 		$this->assertSame(
 			array( $this->demo_post[ $field ] ),
-			$this->_search_and_get_field( array(), $field )
+			$this->search_and_get_field( array(), $field )
 		);
 	}
 
 	function _date_field_mapping_test( $field ) {
 		$this->assertSame(
 			array( $this->demo_dates[ $field ]['date'] ),
-			$this->_search_and_get_field( array(), $field . '.date' )
+			$this->search_and_get_field( array(), $field . '.date' )
 		);
 
 		$this->assertSame(
 			array( $this->demo_dates[ $field ]['year'] ),
-			$this->_search_and_get_field( array(), $field . '.year' )
+			$this->search_and_get_field( array(), $field . '.year' )
 		);
 
 		$this->assertSame(
 			array( $this->demo_dates[ $field ]['month'] ),
-			$this->_search_and_get_field( array(), $field . '.month' )
+			$this->search_and_get_field( array(), $field . '.month' )
 		);
 
 		$this->assertSame(
 			array( $this->demo_dates[ $field ]['day'] ),
-			$this->_search_and_get_field( array(), $field . '.day' )
+			$this->search_and_get_field( array(), $field . '.day' )
 		);
 
 		$this->assertSame(
 			array( $this->demo_dates[ $field ]['hour'] ),
-			$this->_search_and_get_field( array(), $field . '.hour' )
+			$this->search_and_get_field( array(), $field . '.hour' )
 		);
 
 		$this->assertSame(
 			array( $this->demo_dates[ $field ]['minute'] ),
-			$this->_search_and_get_field( array(), $field . '.minute' )
+			$this->search_and_get_field( array(), $field . '.minute' )
 		);
 
 		$this->assertSame(
 			array( $this->demo_dates[ $field ]['second'] ),
-			$this->_search_and_get_field( array(), $field . '.second' )
+			$this->search_and_get_field( array(), $field . '.second' )
 		);
 
 		$this->assertSame(
 			array( $this->demo_dates[ $field ]['week'] ),
-			$this->_search_and_get_field( array(), $field . '.week' )
+			$this->search_and_get_field( array(), $field . '.week' )
 		);
 
 		$this->assertSame(
 			array( $this->demo_dates[ $field ]['day_of_week'] ),
-			$this->_search_and_get_field( array(), $field . '.day_of_week' )
+			$this->search_and_get_field( array(), $field . '.day_of_week' )
 		);
 
 		$this->assertSame(
 			array( $this->demo_dates[ $field ]['day_of_year'] ),
-			$this->_search_and_get_field( array(), $field . '.day_of_year' )
+			$this->search_and_get_field( array(), $field . '.day_of_year' )
 		);
 
 		$this->assertSame(
 			array( $this->demo_dates[ $field ]['seconds_from_day'] ),
-			$this->_search_and_get_field( array(), $field . '.seconds_from_day' )
+			$this->search_and_get_field( array(), $field . '.seconds_from_day' )
 		);
 
 		$this->assertSame(
 			array( $this->demo_dates[ $field ]['seconds_from_hour'] ),
-			$this->_search_and_get_field( array(), $field . '.seconds_from_hour' )
+			$this->search_and_get_field( array(), $field . '.seconds_from_hour' )
 		);
 	}
 
@@ -225,36 +216,36 @@ class Tests_Mapping extends WP_UnitTestCase {
 	function test_mapped_field_permalink() {
 		$this->assertSame(
 			array( get_permalink( $this->demo_post_id ) ),
-			$this->_search_and_get_field( array(), 'permalink' )
+			$this->search_and_get_field( array(), 'permalink' )
 		);
 	}
 
 	function test_mapped_field_post_id() {
 		$this->assertSame(
 			array( $this->demo_post_id ),
-			$this->_search_and_get_field( array(), 'post_id' )
+			$this->search_and_get_field( array(), 'post_id' )
 		);
 	}
 
 	function test_mapping_field_post_author() {
 		$this->assertSame(
 			array( $this->demo_user_id ),
-			$this->_search_and_get_field( array(), 'post_author.user_id' )
+			$this->search_and_get_field( array(), 'post_author.user_id' )
 		);
 
 		$this->assertSame(
 			array( $this->demo_user['user_login'] ),
-			$this->_search_and_get_field( array(), 'post_author.login' )
+			$this->search_and_get_field( array(), 'post_author.login' )
 		);
 
 		$this->assertSame(
 			array( $this->demo_user['display_name'] ),
-			$this->_search_and_get_field( array(), 'post_author.display_name' )
+			$this->search_and_get_field( array(), 'post_author.display_name' )
 		);
 
 		$this->assertSame(
 			array( $this->demo_user['user_nicename'] ),
-			$this->_search_and_get_field( array(), 'post_author.user_nicename' )
+			$this->search_and_get_field( array(), 'post_author.user_nicename' )
 		);
 	}
 
@@ -262,64 +253,64 @@ class Tests_Mapping extends WP_UnitTestCase {
 	function test_mapping_field_post_meta() {
 		$this->assertSame(
 			array( 'foo' ),
-			$this->_search_and_get_field( array(), 'post_meta.test_string.raw' )
+			$this->search_and_get_field( array(), 'post_meta.test_string.raw' )
 		);
 
 		$this->assertSame(
 			array( 123 ),
-			$this->_search_and_get_field( array(), 'post_meta.test_long.long' )
+			$this->search_and_get_field( array(), 'post_meta.test_long.long' )
 		);
 
 		$this->assertSame(
 			array( 123.456 ),
-			$this->_search_and_get_field( array(), 'post_meta.test_double.double' )
+			$this->search_and_get_field( array(), 'post_meta.test_double.double' )
 		);
 
 		$this->assertSame(
 			array( true ),
-			$this->_search_and_get_field( array(), 'post_meta.test_boolean_true.boolean' )
+			$this->search_and_get_field( array(), 'post_meta.test_boolean_true.boolean' )
 		);
 
 		$this->assertSame(
 			array( false ),
-			$this->_search_and_get_field( array(), 'post_meta.test_boolean_false.boolean' )
+			$this->search_and_get_field( array(), 'post_meta.test_boolean_false.boolean' )
 		);
 
 		$this->assertSame(
 			array( '2012-03-14' ),
-			$this->_search_and_get_field( array(), 'post_meta.test_date.date' )
+			$this->search_and_get_field( array(), 'post_meta.test_date.date' )
 		);
 
 		$this->assertSame(
 			array( '2012-03-14 03:14:15' ),
-			$this->_search_and_get_field( array(), 'post_meta.test_date.datetime' )
+			$this->search_and_get_field( array(), 'post_meta.test_date.datetime' )
 		);
 
 		$this->assertSame(
 			array( '03:14:15' ),
-			$this->_search_and_get_field( array(), 'post_meta.test_date.time' )
+			$this->search_and_get_field( array(), 'post_meta.test_date.time' )
 		);
 	}
 
 	function test_mapping_field_terms() {
 		$this->assertSame(
 			array( $this->demo_term['name'] ),
-			$this->_search_and_get_field( array(), 'terms.category.name' )
+			$this->search_and_get_field( array(), 'terms.category.name' )
 		);
 
 		$this->assertSame(
 			array( $this->demo_term['slug'] ),
-			$this->_search_and_get_field( array(), 'terms.category.slug' )
+			$this->search_and_get_field( array(), 'terms.category.slug' )
 		);
 
 		$this->assertSame(
 			array( 0 ),
-			$this->_search_and_get_field( array(), 'terms.category.parent' )
+			$this->search_and_get_field( array(), 'terms.category.parent' )
 		);
 
 		$this->assertSame(
 			array( $this->demo_term_id ),
-			$this->_search_and_get_field( array(), 'terms.category.term_id' )
+			$this->search_and_get_field( array(), 'terms.category.term_id' )
 		);
 	}
 
