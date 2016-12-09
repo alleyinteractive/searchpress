@@ -28,7 +28,7 @@ setup_es() {
 }
 
 start_es() {
-  /tmp/elasticsearch/bin/elasticsearch $1 > /tmp/elasticsearch.log &
+  sudo /tmp/elasticsearch/bin/elasticsearch $1 > /tmp/elasticsearch.log &
   sleep 10
 
   curl http://localhost:9200 && echo "ES is up" || (cat /tmp/elasticsearch.log && exit 1)
