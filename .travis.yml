@@ -60,3 +60,6 @@ script:
   - if [[ "$WP_PHPCS" == "1" ]]; then phpcs -p -s -v -n --standard=./codesniffer.ruleset.xml --extensions=php .; fi
   - phpunit
   - phpunit -c multisite.xml
+
+after_script:
+  - cat /tmp/elasticsearch.log
