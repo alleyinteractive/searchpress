@@ -4,6 +4,7 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 
+export MAX_OPEN_FILES=65536
 sudo sysctl -w vm.max_map_count=262144
 sudo sysctl -w fs.file-max=65536
 sudo sysctl -p
