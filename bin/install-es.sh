@@ -11,6 +11,8 @@ sudo sysctl -p
 sudo sysctl fs.file-max
 echo "ulimit:"
 ulimit -n
+echo "limits:"
+cat /etc/security/limits.conf
 
 killall java 2>/dev/null
 which java
