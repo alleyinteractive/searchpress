@@ -59,34 +59,6 @@ class Tests_Functions extends PHPUnit_Framework_TestCase {
 				array( 'parent', 'child' ),
 				array( 7, 8, 9 ),
 			),
-			// Commenting this test out for now until we know it's not
-			// array(
-			// 	array(
-			// 		array(
-			// 			'parent' => array(
-			// 				array( 'child' => 9 ),
-			// 				array( 'child' => 8 ),
-			// 				array( 'child' => 7 ),
-			// 			),
-			// 		),
-			// 		array(
-			// 			'parent' => array(
-			// 				array( 'child' => 6 ),
-			// 				array( 'child' => 5 ),
-			// 				array( 'child' => 4 ),
-			// 			),
-			// 		),
-			// 		array(
-			// 			'parent' => array(
-			// 				array( 'child' => 3 ),
-			// 				array( 'child' => 2 ),
-			// 				array( 'child' => 1 ),
-			// 			),
-			// 		),
-			// 	),
-			// 	array( 'parent', 'child' ),
-			// 	array( 9, 8, 7, 6, 5, 4, 3, 2, 1 ),
-			// ),
 		);
 	}
 
