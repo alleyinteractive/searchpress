@@ -129,7 +129,7 @@ class SP_Integration extends SP_Singleton {
 	}
 
 
-	public function filter__posts_request( $sql, &$query ) {
+	public function filter__posts_request( $sql, $query ) {
 		global $wpdb;
 
 		if ( ! $query->is_main_query() || ! $query->is_search() ) {
