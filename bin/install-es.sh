@@ -6,6 +6,9 @@ fi
 
 sudo sysctl -w vm.max_map_count=262144
 sudo sysctl -w fs.file-max=65536
+sudo sysctl -p
+sudo sysctl fs.file-max
+
 killall java 2>/dev/null
 which java
 java -version
