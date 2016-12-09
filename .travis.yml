@@ -19,6 +19,10 @@ branches:
   only:
     - master
 
+env:
+  global:
+    - JAVA_HOME=/usr/lib/jvm/java-8-oracle
+
 matrix:
   include:
     - php: 5.3

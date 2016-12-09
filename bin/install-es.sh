@@ -5,11 +5,8 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 
-killall java 2>/dev/null
-which java
-java -version
-
 ES_VERSION=$1
+echo $JAVA_HOME
 
 setup_es() {
   download_url=$1
@@ -18,6 +15,7 @@ setup_es() {
 }
 
 start_es() {
+  echo "Starting Elasticsearch $ES_VERSION..."
   /tmp/elasticsearch/bin/elasticsearch $1 > /tmp/elasticsearch.log &
 }
 
