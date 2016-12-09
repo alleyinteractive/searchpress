@@ -1,24 +1,13 @@
 #!/usr/bin/env bash
+
 if [ $# -lt 1 ]; then
   echo "usage: $0 <es-version>"
   exit 1
 fi
 
-sudo sed -i 's/64000/65536/g' /etc/security/limits.conf
-export MAX_OPEN_FILES=65536
-sudo sysctl -w vm.max_map_count=262144
-sudo sysctl -w fs.file-max=65536
-sudo sysctl -p
-sudo sysctl fs.file-max
-echo "ulimit:"
-ulimit -n
-echo "limits:"
-cat /etc/security/limits.conf
-
 killall java 2>/dev/null
 which java
 java -version
-echo $JAVA_HOME
 
 ES_VERSION=$1
 
@@ -30,9 +19,6 @@ setup_es() {
 
 start_es() {
   /tmp/elasticsearch/bin/elasticsearch $1 > /tmp/elasticsearch.log &
-  sleep 10
-
-  curl http://localhost:9200 && echo "ES is up" || (cat /tmp/elasticsearch.log && exit 1)
 }
 
 if [[ "$ES_VERSION" == 5.* ]]; then
