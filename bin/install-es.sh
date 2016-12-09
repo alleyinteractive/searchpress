@@ -4,6 +4,7 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 
+sudo sed -i 's/64000/65536/g' /etc/security/limits.conf
 export MAX_OPEN_FILES=65536
 sudo sysctl -w vm.max_map_count=262144
 sudo sysctl -w fs.file-max=65536
@@ -28,7 +29,7 @@ setup_es() {
 }
 
 start_es() {
-  sudo /tmp/elasticsearch/bin/elasticsearch $1 > /tmp/elasticsearch.log &
+  /tmp/elasticsearch/bin/elasticsearch $1 > /tmp/elasticsearch.log &
   sleep 10
 
   curl http://localhost:9200 && echo "ES is up" || (cat /tmp/elasticsearch.log && exit 1)
