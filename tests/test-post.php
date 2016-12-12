@@ -3,7 +3,7 @@
 /**
  * @group post
  */
-class Tests_Post extends WP_UnitTestCase {
+class Tests_Post extends SearchPress_UnitTestCase {
 
 	function setUp() {
 		parent::setUp();

@@ -3,12 +3,11 @@
 /**
  * @group api
  */
-class Tests_Api extends WP_UnitTestCase {
+class Tests_Api extends SearchPress_UnitTestCase {
 	var $post_id;
 
 	function setUp() {
 		parent::setUp();
-		sp_index_flush_data();
 
 		$this->post_id = $this->factory->post->create( array( 'post_title' => 'lorem-ipsum', 'post_date' => '2009-07-01 00:00:00' ) );
 

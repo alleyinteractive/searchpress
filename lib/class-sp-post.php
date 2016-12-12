@@ -86,6 +86,7 @@ class SP_Post extends SP_Indexable {
 		$this->data['post_status']       = self::limit_string( strval( $post->post_status ) );
 		$this->data['post_name']         = self::limit_string( strval( $post->post_name ) );
 		$this->data['post_parent']       = intval( $post->post_parent );
+		$this->data['parent_status']     = $post->post_parent ? get_post_status( $post->post_parent ) : '';
 		$this->data['post_type']         = self::limit_string( strval( $post->post_type ) );
 		$this->data['post_mime_type']    = self::limit_string( strval( $post->post_mime_type ) );
 		$this->data['post_password']     = self::limit_string( strval( $post->post_password ) );
@@ -287,7 +288,12 @@ class SP_Post extends SP_Indexable {
 		}
 
 		// Check post status
-		if ( $should_be_indexed && ! in_array( $this->data['post_status'], SP_Config()->sync_statuses() ) ) {
+		if ( 'inherit' === $this->data['post_status'] ) {
+			$post_status = $this->data['parent_status'];
+		} else {
+			$post_status = $this->data['post_status'];
+		}
+		if ( $should_be_indexed && ! in_array( $post_status, SP_Config()->sync_statuses() ) ) {
 			$should_be_indexed = false;
 		}
 

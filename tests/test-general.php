@@ -3,11 +3,10 @@
 /**
  * @group general
  */
-class Tests_General extends WP_UnitTestCase {
+class Tests_General extends SearchPress_UnitTestCase {
 
 	function setUp() {
 		parent::setUp();
-		sp_index_flush_data();
 
 		$this->factory->post->create( array( 'post_title' => 'lorem-ipsum', 'post_date' => '2009-07-01 00:00:00' ) );
 		$this->factory->post->create( array( 'post_title' => 'comment-test', 'post_date' => '2009-08-01 00:00:00' ) );
@@ -50,7 +49,6 @@ class Tests_General extends WP_UnitTestCase {
 		$this->assertEquals( 'http://localhost:9200', SP_Config()->host() );
 		$this->assertTrue( SP_Config()->must_init() );
 		$this->assertFalse( SP_Config()->active() );
-		$this->assertFalse( SP_Config()->last_beat() );
 
 		SP_Config()->update_settings( array( 'active' => true, 'must_init' => false, 'host' => $host ) );
 		$this->assertEquals( $host, SP_Config()->host() );

@@ -21,20 +21,19 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * Setup the singleton.
 	 */
 	public function setup() {
-		/**
-		 * SP_Sync_Manager only gets instantiated when necessary, so we register these hooks outside of the class
-		 */
 		if ( SP_Config()->active() ) {
-			// When posts get_updated, queue up syncs
-			add_action( 'save_post',    array( $this, 'sync_post' ) );
-			add_action( 'deleted_post', array( $this, 'delete_post' ) );
-			add_action( 'trashed_post', array( $this, 'delete_post' ) );
+			// When posts & attachments get_updated, queue up syncs.
+			add_action( 'save_post',       array( $this, 'sync_post' ) );
+			add_action( 'edit_attachment', array( $this, 'sync_post' ) );
+			add_action( 'add_attachment',  array( $this, 'sync_post' ) );
+			add_action( 'deleted_post',    array( $this, 'delete_post' ) );
+			add_action( 'trashed_post',    array( $this, 'delete_post' ) );
 
-			// When terms or term relationships get updated, queue up syncs
+			// When terms or term relationships get updated, queue up syncs.
 			// add_action( 'added_term_relationship',    array( $this, 'sync_post' ) );
 			// add_action( 'deleted_term_relationships', array( $this, 'sync_post' ) );
 
-			// When users get updated, queue up syncs for their posts
+			// When users get updated, queue up syncs for their posts.
 			// @TODO
 		}
 	}
@@ -119,7 +118,7 @@ class SP_Sync_Manager extends SP_Singleton {
 	 */
 	public function get_posts( $args = array() ) {
 		$args = wp_parse_args( $args, array(
-			'post_status'         => 'publish',
+			'post_status'         => null,
 			'post_type'           => null,
 			'orderby'             => 'ID',
 			'order'               => 'ASC',
@@ -128,7 +127,11 @@ class SP_Sync_Manager extends SP_Singleton {
 		) );
 
 		if ( empty( $args['post_type'] ) ) {
-			$args['post_type'] = sp_searchable_post_types();
+			$args['post_type'] = SP_Config()->sync_post_types();
+		}
+
+		if ( empty( $args['post_status'] ) ) {
+			$args['post_status'] = SP_Config()->sync_statuses();
 		}
 
 		$args = apply_filters( 'searchpress_index_loop_args', $args );
@@ -241,11 +244,14 @@ class SP_Sync_Manager extends SP_Singleton {
 		if ( false === $this->published_posts ) {
 			$args = wp_parse_args( $args, array(
 				'post_type' => null,
-				'post_status' => 'publish',
+				'post_status' => null,
 				'posts_per_page' => 1,
 			) );
 			if ( empty( $args['post_type'] ) ) {
-				$args['post_type'] = sp_searchable_post_types();
+				$args['post_type'] = SP_Config()->sync_post_types();
+			}
+			if ( empty( $args['post_status'] ) ) {
+				$args['post_status'] = SP_Config()->sync_statuses();
 			}
 
 			$args = apply_filters( 'searchpress_index_count_args', $args );

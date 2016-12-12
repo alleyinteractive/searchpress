@@ -6,11 +6,10 @@
  *
  * @group integration
  */
-class Tests_Integration extends WP_UnitTestCase {
+class Tests_Integration extends SearchPress_UnitTestCase {
 
 	function setUp() {
 		parent::setUp();
-		sp_index_flush_data();
 
 		$cat = $this->factory->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-demo' ) );
 		$tag = $this->factory->term->create( array( 'taxonomy' => 'post_tag', 'name' => 'tag-demo' ) );
@@ -28,6 +27,9 @@ class Tests_Integration extends WP_UnitTestCase {
 		$this->factory->post->create( array( 'post_title' => 'raw-html-code', 'post_date' => '2010-03-01 00:00:00', 'tags_input' => array( $tag ) ) );
 
 		register_post_type( 'cpt', array( 'public' => true ) );
+		SP_Config()->post_types = null;
+		sp_searchable_post_types( true );
+
 		$this->factory->post->create( array( 'post_title' => 'cpt', 'post_date' => '2010-01-01 00:00:00', 'post_type' => 'cpt' ) );
 		$this->factory->post->create( array( 'post_title' => 'lorem-cpt', 'post_date' => '2010-01-01 00:00:00', 'post_type' => 'cpt' ) );
 
