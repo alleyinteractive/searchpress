@@ -89,7 +89,15 @@ class SP_Config extends SP_Singleton {
 		return $this->post_types;
 	}
 
-
+	/**
+	 * Set the mappings.
+	 *
+	 * The map version is stored in sp_settings. When the map is updated, the
+	 * version is bumped. When updates are made to the map, the site should be
+	 * reindexed.
+	 *
+	 * @return mixed {@see SP_API::put()}.
+	 */
 	public function create_mapping() {
 		$mapping = array(
 			'settings' => array(
@@ -266,7 +274,29 @@ class SP_Config extends SP_Singleton {
 				),
 			),
 		);
+
+		/**
+		 * Filter the mappings. Plugins and themes can customize the mappings
+		 * however they need by manipulating this array.
+		 *
+		 * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html
+		 * @param array $mapping SearchPress' mapping array.
+		 */
 		$mapping = apply_filters( 'sp_config_mapping', $mapping );
+
+		/**
+		 * Filter the map version. Plugins and themes can tweak this value if
+		 * they update the mapping, and SearchPress will flag that the site
+		 * needs to be reindexed.
+		 *
+		 * @param  int $map_version Map version. Should be of the format
+		 *                          `{year}{month}{day}{version}` where version
+		 *                          is a two-digit sequential number.
+		 */
+		$this->update_settings( array(
+			'map_version' => apply_filters( 'sp_map_version', SP_MAP_VERSION ),
+		) );
+
 		return SP_API()->put( '', wp_json_encode( $mapping ) );
 	}
 
@@ -279,9 +309,10 @@ class SP_Config extends SP_Singleton {
 	public function get_settings() {
 		$settings = get_option( 'sp_settings' );
 		$this->settings = wp_parse_args( $settings, array(
-			'host'      => 'http://localhost:9200',
-			'must_init' => true,
-			'active'    => false,
+			'host'        => 'http://localhost:9200',
+			'must_init'   => true,
+			'active'      => false,
+			'map_version' => 0,
 		) );
 		return $this->settings;
 	}
