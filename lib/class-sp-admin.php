@@ -447,6 +447,31 @@ class SP_Admin extends SP_Singleton {
 				);
 			}
 			echo '<div class="updated error">' . wpautop( $message_escaped ) . '</div>'; // WPCS: XSS ok.
+		} else {
+			$this->check_mapping_version();
+		}
+	}
+
+	/**
+	 * If the mapping needs to be updated, alert the user about it.
+	 */
+	protected function check_mapping_version() {
+		if ( SP_Config()->get_setting( 'map_version' ) < apply_filters( 'sp_map_version', SP_MAP_VERSION ) ) {
+			if ( ! $this->is_settings_page() ) {
+				$link_escaped = sprintf(
+					' <a href="%s">%s</a>',
+					esc_url( admin_url( 'tools.php?page=searchpress#sp-sync' ) ),
+					esc_html__( 'Go to SearchPress Settings', 'searchpress' )
+				);
+			} else {
+				$link_escaped = '';
+			}
+
+			printf(
+				'<div class="updated error"><p>%1$s%2$s</p></div>', // WPCS: XSS ok.
+				esc_html__( 'SearchPress was updated and you need to reindex your content.', 'searchpress' ),
+				$link_escaped
+			);
 		}
 	}
 
