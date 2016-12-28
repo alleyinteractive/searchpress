@@ -467,8 +467,8 @@ class SP_Admin extends SP_Singleton {
 				$link_escaped = '';
 			}
 
-			printf(
-				'<div class="updated error"><p>%1$s%2$s</p></div>', // WPCS: XSS ok.
+			printf( // WPCS: XSS ok.
+				'<div class="updated error"><p>%1$s%2$s</p></div>',
 				esc_html__( 'SearchPress was updated and you need to reindex your content.', 'searchpress' ),
 				$link_escaped
 			);
