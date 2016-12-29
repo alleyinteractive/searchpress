@@ -223,12 +223,11 @@ class SP_WP_Search extends SP_Search {
 			}
 		}
 
+		// Prime query.bool.must so we can array_merge with it.
+		$es_query_args['query']['bool']['must'] = array();
+
 		if ( ! empty( $filters ) ) {
-			$es_query_args['filter'] = array(
-				'bool' => array(
-					'must' => $filters,
-				),
-			);
+			$es_query_args['query']['bool']['must'] = array_merge( $es_query_args['query']['bool']['must'], $filters );
 		}
 
 		// Fill in the query
@@ -247,7 +246,7 @@ class SP_WP_Search extends SP_Search {
 				),
 			);
 
-			$es_query_args['query']['bool']['must'] = $multi_match;
+			$es_query_args['query']['bool']['must'] = array_merge( $es_query_args['query']['bool']['must'], $multi_match );
 
 			if ( ! $args['orderby'] ) {
 				$args['orderby'] = 'relevance';
@@ -347,30 +346,11 @@ class SP_WP_Search extends SP_Search {
 
 				}
 			}
-
-			// If we have facets, we need to move our filters to a filtered
-			// query, or else they won't have an effect on the facets.
-			if ( ! empty( $es_query_args['aggregations'] ) ) {
-				if ( ! empty( $es_query_args['filter'] ) ) {
-					if ( ! empty( $es_query_args['query'] ) ) {
-						$es_query = $es_query_args['query'];
-					}
-					$es_query_args['query'] = array(
-						'filtered' => array(
-							'filter' => $es_query_args['filter'],
-						),
-					);
-					unset( $es_query_args['filter'] );
-					if ( ! empty( $es_query ) ) {
-						$es_query_args['query']['filtered']['query'] = $es_query;
-					}
-				}
-			}
 		}
 
 		// Fields
 		if ( ! empty( $args['fields'] ) ) {
-			$es_query_args['fields'] = (array) $args['fields'];
+			$es_query_args['_source'] = (array) $args['fields'];
 		}
 
 		return $es_query_args;

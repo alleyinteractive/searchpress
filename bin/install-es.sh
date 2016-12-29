@@ -1,17 +1,12 @@
 #!/usr/bin/env bash
+
 if [ $# -lt 1 ]; then
   echo "usage: $0 <es-version>"
   exit 1
 fi
 
-sudo sysctl -w vm.max_map_count=262144
-sudo sysctl -w fs.file-max=65536
-killall java 2>/dev/null
-which java
-java -version
-echo $JAVA_HOME
-
 ES_VERSION=$1
+echo $JAVA_HOME
 
 setup_es() {
   download_url=$1
@@ -20,10 +15,8 @@ setup_es() {
 }
 
 start_es() {
+  echo "Starting Elasticsearch $ES_VERSION..."
   /tmp/elasticsearch/bin/elasticsearch $1 > /tmp/elasticsearch.log &
-  sleep 10
-
-  curl http://localhost:9200 && echo "ES is up" || (cat /tmp/elasticsearch.log && exit 1)
 }
 
 if [[ "$ES_VERSION" == 5.* ]]; then
