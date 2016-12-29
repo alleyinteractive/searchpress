@@ -3,9 +3,11 @@
 /**
  * Pluck a certain field out of an ES response.
  *
- * @param array $results Elasticsearch results.
- * @param int|string $field A field from the retuls to place instead of the entire object.
- * @param bool $as_single Return as single (true) or an array (false). Defaults to true.
+ * @param array      $results Elasticsearch results.
+ * @param int|string $field A field from the results to place instead of the
+ *                          entire object.
+ * @param bool       $as_single Optional. Return as single (true) or an array
+ *                              (false). Defaults to true.
  * @return array
  */
 function sp_results_pluck( $results, $field, $as_single = true ) {
