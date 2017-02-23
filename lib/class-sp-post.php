@@ -285,7 +285,12 @@ class SP_Post extends SP_Indexable {
 
 		// Check post status
 		if ( 'inherit' === $this->data['post_status'] ) {
-			$post_status = $this->data['parent_status'];
+			if ( ! empty( $this->data['parent_status'] ) ) {
+				$post_status = $this->data['parent_status'];
+			} else {
+				// If the attachment doesn't have a post_parent, default to 'public'.
+				$post_status = 'publish';
+			}
 		} else {
 			$post_status = $this->data['post_status'];
 		}
