@@ -95,21 +95,56 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		);
 	}
 
-	public function test_post_status_inherit() {
+	public function test_post_status_inherit_publish() {
 		$post_id = $this->factory->post->create();
 		$attachment_id = $this->factory->attachment->create_object( 'image.jpg', $post_id, array(
 			'post_mime_type' => 'image/jpeg',
 			'post_type'      => 'attachment',
 			'post_title'     => 'test attachment',
-			'post_name'      => 'test-attachment',
+			'post_name'      => 'test-attachment-1',
 		) );
 		SP_API()->post( '_refresh' );
 
 		// Test the searchability (and inherent indexability) of this status
 		$this->assertSame(
-			array( 'test-attachment' ),
+			array( 'test-attachment-1' ),
 			$this->search_and_get_field( array( 'query' => 'test attachment' ) ),
-			'Inherit status should be searchable'
+			'Inherit publish status should be searchable'
+		);
+	}
+
+	public function test_post_status_inherit_draft() {
+		$post_id = $this->factory->post->create( array( 'post_status' => 'draft' ) );
+		$attachment_id = $this->factory->attachment->create_object( 'image.jpg', $post_id, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_type'      => 'attachment',
+			'post_title'     => 'test attachment',
+			'post_name'      => 'test-attachment-2',
+		) );
+		SP_API()->post( '_refresh' );
+
+		// Test the searchability (and inherent indexability) of this status
+		$this->assertSame(
+			array(),
+			$this->search_and_get_field( array( 'query' => 'test attachment' ) ),
+			'Inherit draft status should not be searchable'
+		);
+	}
+
+	public function test_orphan_post_status_inherit() {
+		$attachment_id = $this->factory->attachment->create_object( 'image.jpg', 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_type'      => 'attachment',
+			'post_title'     => 'test attachment',
+			'post_name'      => 'test-attachment-3',
+		) );
+		SP_API()->post( '_refresh' );
+
+		// Test the searchability (and inherent indexability) of this status
+		$this->assertSame(
+			array( 'test-attachment-3' ),
+			$this->search_and_get_field( array( 'query' => 'test attachment' ) ),
+			'Inherit status without parent should be searchable'
 		);
 	}
 
