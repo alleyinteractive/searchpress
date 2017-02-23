@@ -27,7 +27,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 			array( 'private',    true,  false ),
 			array( 'trash',      false, false ),
 			array( 'auto-draft', false, false ),
-			array( 'inherit',    false, false ), // 'inherit' without a parent
+			array( 'inherit',    true,  true ), // 'inherit' without a parent
 
 			// custom post statuses
 			array( 'cps-1',      false, false, array() ), // Assumed to be internal
