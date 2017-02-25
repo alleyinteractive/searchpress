@@ -484,4 +484,26 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		$this->assertSame( 3, SP_Sync_Manager()->count_posts_indexed() );
 	}
 
+	public function test_counts_mixed_types_and_statuses() {
+		SP_Sync_Manager()->published_posts = false;
+		$this->assertSame( 0, SP_Sync_Manager()->count_posts() );
+		$this->assertSame( 0, SP_Sync_Manager()->count_posts_indexed() );
+
+		// These should be indexed:
+		$this->factory->post->create( array( 'post_title' => 'test count 1', 'post_type' => 'attachment',    'post_status' => 'inherit' ) );
+		$this->factory->post->create( array( 'post_title' => 'test count 2', 'post_type' => 'page',          'post_status' => 'publish' ) );
+		$this->factory->post->create( array( 'post_title' => 'test count 3', 'post_type' => 'post',          'post_status' => 'draft' ) );
+		$this->factory->post->create( array( 'post_title' => 'test count 4', 'post_type' => 'post',          'post_status' => 'future' ) );
+		$this->factory->post->create( array( 'post_title' => 'test count 5', 'post_type' => 'post',          'post_status' => 'publish' ) );
+
+		// These should not be indexed:
+		$this->factory->post->create( array( 'post_title' => 'test count 6', 'post_type' => 'nav_menu_item', 'post_status' => 'publish' ) );
+		$this->factory->post->create( array( 'post_title' => 'test count 7', 'post_type' => 'post',          'post_status' => 'auto-draft' ) );
+		$this->factory->post->create( array( 'post_title' => 'test count 8', 'post_type' => 'revision',      'post_status' => 'inherit' ) );
+		SP_API()->post( '_refresh' );
+		SP_Sync_Manager()->published_posts = false;
+
+		$this->assertSame( 5, SP_Sync_Manager()->count_posts() );
+		$this->assertSame( 5, SP_Sync_Manager()->count_posts_indexed() );
+	}
 }
