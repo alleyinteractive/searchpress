@@ -116,6 +116,7 @@ function sp_searchable_post_statuses( $reload = false ) {
 		// Collect post statuses we don't want to search and exclude them.
 		$exclude = array_values( get_post_stati(
 			array(
+				'internal'            => true,
 				'exclude_from_search' => true,
 				'private'             => true,
 				'protected'           => true,
