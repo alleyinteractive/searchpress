@@ -47,6 +47,9 @@ class SP_Config extends SP_Singleton {
 			// Get all post statuses that aren't explicitly flagged as internal.
 			$this->post_statuses = array_values( get_post_stati( array( 'internal' => false ) ) );
 
+			// Add 'inherit', which gets special treatment due to attachments.
+			$this->post_statuses[] = 'inherit';
+
 			/**
 			 * Filter the *indexed* (synced) post statuses. Also
 			 * {@see sp_searchable_post_statuses()} and the
