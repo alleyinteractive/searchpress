@@ -32,9 +32,9 @@ matrix:
     - php: 7.0
       env: WP_VERSION=nightly WP_PHPCS=1 ES_VERSION=5.1.1
     - php: 7.1
-      env: WP_VERSION=latest PHP_LINT=1 ES_VERSION=2.4.2
+      env: WP_VERSION=latest PHP_LINT=1 ES_VERSION=2.4.4
     - php: 'hhvm'
-      env: WP_VERSION=nightly PHP_LINT=1 ES_VERSION=2.4.2
+      env: WP_VERSION=nightly PHP_LINT=1 ES_VERSION=2.4.4
 
 install:
   - bash bin/install-es.sh $ES_VERSION
