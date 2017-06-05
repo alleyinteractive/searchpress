@@ -93,8 +93,8 @@ abstract class SP_Indexable {
 	 * @param  string $date  A date, expected to be in mysql format.
 	 * @return array The parsed date.
 	 */
-	public function get_date( $date ) {
-		if ( empty( $date ) || '0000-00-00 00:00:00' == $date ) {
+	public static function get_date( $date ) {
+		if ( empty( $date ) || '0000-00-00 00:00:00' === $date ) {
 			return null;
 		}
 
