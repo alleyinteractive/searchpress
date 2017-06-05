@@ -280,7 +280,14 @@ class SP_Post extends SP_Indexable {
 	 * @return string
 	 */
 	public function to_json() {
-		return wp_json_encode( apply_filters( 'sp_post_pre_index', $this->data ) );
+		/**
+		 * Filter the data prior to indexing. If you need to modify the data sent
+		 * to Elasticsearch, this is likely the best filter to use.
+		 *
+		 * @param array    $data Data to be sent to Elasticsearch.
+		 * @param \SP_Post $this This object.
+		 */
+		return wp_json_encode( apply_filters( 'sp_post_pre_index', $this->data, $this ) );
 	}
 
 	public function should_be_indexed() {
