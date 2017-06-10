@@ -279,6 +279,23 @@ class SP_Config extends SP_Singleton {
 		);
 
 		/**
+		 * Checks if search suggestions are enabled. If true, adds the config to
+		 * the mapping. If you'd like to edit it, use the `sp_config_mapping`
+		 * filter.
+		 *
+		 * @param  boolean $enabled Enabled if true, disabled if false. Defaults
+		 *                          to false.
+		 */
+		if ( apply_filters( 'sp_enable_search_suggest', false ) ) {
+			$mapping['mappings']['post']['properties']['search_suggest'] = [
+				'type' => 'completion',
+				'analyzer' => 'simple',
+				'search_analyzer' => 'simple',
+				'payloads' => true,
+			];
+		}
+
+		/**
 		 * Filter the mappings. Plugins and themes can customize the mappings
 		 * however they need by manipulating this array.
 		 *

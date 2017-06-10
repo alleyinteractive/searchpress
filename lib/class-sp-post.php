@@ -96,6 +96,11 @@ class SP_Post extends SP_Indexable {
 		$this->data['terms']             = $this->get_terms( $post );
 		$this->data['post_meta']         = $this->get_meta( $post->ID );
 
+		/** This filter is documented in class-sp-config.php */
+		if ( apply_filters( 'sp_enable_search_suggest', false ) ) {
+			$this->data['search_suggest'] = $this->build_search_suggest();
+		}
+
 		// If a date field is empty, kill it to avoid indexing errors
 		foreach ( array( 'post_date', 'post_date_gmt', 'post_modified', 'post_modified_gmt' ) as $field ) {
 			if ( empty( $this->data[ $field ] ) ) {
@@ -307,5 +312,36 @@ class SP_Post extends SP_Indexable {
 		}
 
 		return apply_filters( 'sp_post_should_be_indexed', true, $this );
+	}
+
+	/**
+	 * Builds the post data for search suggest.
+	 *
+	 * @return array Search suggest data.
+	 */
+	public function build_search_suggest() {
+		/**
+		 * Filters the search suggest data.
+		 *
+		 * @see https://www.elastic.co/guide/en/elasticsearch/reference/2.4/search-suggesters-completion.html
+		 *
+		 * @param array    $search_suggest_data Array of data for search suggesters
+		 *                                      completion.
+		 * @param \SP_Post $this                This object.
+		 */
+		return apply_filters(
+			'sp_search_suggest_data',
+			array(
+				'input' => array(
+					$this->data['post_title'],
+				),
+				'output' => $this->data['post_title'],
+				'payload' => array(
+					'id' => $post_data['post_id'],
+					'permalink' => $post_data['permalink'],
+				),
+			),
+			$this
+		);
 	}
 }
