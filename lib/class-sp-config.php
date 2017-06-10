@@ -283,6 +283,8 @@ class SP_Config extends SP_Singleton {
 		 * the mapping. If you'd like to edit it, use the `sp_config_mapping`
 		 * filter.
 		 *
+		 * @see https://www.elastic.co/guide/en/elasticsearch/reference/2.4/search-suggesters-completion.html
+		 *
 		 * @param  boolean $enabled Enabled if true, disabled if false. Defaults
 		 *                          to false.
 		 */

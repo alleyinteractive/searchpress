@@ -321,27 +321,27 @@ class SP_Post extends SP_Indexable {
 	 */
 	public function build_search_suggest() {
 		/**
-		 * Filters the search suggest data.
+		 * Filters the search suggest data (fields/content).
+		 *
+		 * To filter any other characteristics of search suggest, use the
+		 * `sp_post_pre_index` filter.
 		 *
 		 * @see https://www.elastic.co/guide/en/elasticsearch/reference/2.4/search-suggesters-completion.html
 		 *
 		 * @param array    $search_suggest_data Array of data for search suggesters
-		 *                                      completion.
+		 *                                      completion. By default, this just
+		 *                                      includes the post_title.
 		 * @param \SP_Post $this                This object.
 		 */
-		return apply_filters(
-			'sp_search_suggest_data',
-			array(
-				'input' => array(
-					$this->data['post_title'],
-				),
-				'output' => $this->data['post_title'],
-				'payload' => array(
-					'id' => $post_data['post_id'],
-					'permalink' => $post_data['permalink'],
-				),
+		return array(
+			'input' => apply_filters( 'sp_search_suggest_data', array(
+				$this->data['post_title'],
+			), $this ),
+			'output' => $this->data['post_title'],
+			'payload' => array(
+				'id' => $post_data['post_id'],
+				'permalink' => $post_data['permalink'],
 			),
-			$this
 		);
 	}
 }
