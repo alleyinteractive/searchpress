@@ -289,12 +289,12 @@ class SP_Config extends SP_Singleton {
 		 *                          to false.
 		 */
 		if ( apply_filters( 'sp_enable_search_suggest', false ) ) {
-			$mapping['mappings']['post']['properties']['search_suggest'] = [
+			$mapping['mappings']['post']['properties']['search_suggest'] = array(
 				'type' => 'completion',
 				'analyzer' => 'simple',
 				'search_analyzer' => 'simple',
 				'payloads' => true,
-			];
+			);
 		}
 
 		/**
