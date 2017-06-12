@@ -5,7 +5,7 @@
  */
 
 // The map version. Represents the last time the mappings were changed.
-define( 'SP_MAP_VERSION', 2016112401 );
+define( 'SP_MAP_VERSION', 2017061001 );
 
 /**
  * Error Codes

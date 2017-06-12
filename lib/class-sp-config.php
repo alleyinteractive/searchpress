@@ -28,6 +28,13 @@ class SP_Config extends SP_Singleton {
 	public $post_types;
 
 	/**
+	 * REST API namespace.
+	 *
+	 * @var string
+	 */
+	public $namespace = 'searchpress/v1';
+
+	/**
 	 * @codeCoverageIgnore
 	 */
 	public function setup() {
