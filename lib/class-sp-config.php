@@ -28,6 +28,13 @@ class SP_Config extends SP_Singleton {
 	public $post_types;
 
 	/**
+	 * REST API namespace.
+	 *
+	 * @var string
+	 */
+	public $namespace = 'searchpress/v1';
+
+	/**
 	 * @codeCoverageIgnore
 	 */
 	public function setup() {
@@ -277,25 +284,6 @@ class SP_Config extends SP_Singleton {
 				),
 			),
 		);
-
-		/**
-		 * Checks if search suggestions are enabled. If true, adds the config to
-		 * the mapping. If you'd like to edit it, use the `sp_config_mapping`
-		 * filter.
-		 *
-		 * @see https://www.elastic.co/guide/en/elasticsearch/reference/2.4/search-suggesters-completion.html
-		 *
-		 * @param  boolean $enabled Enabled if true, disabled if false. Defaults
-		 *                          to false.
-		 */
-		if ( apply_filters( 'sp_enable_search_suggest', false ) ) {
-			$mapping['mappings']['post']['properties']['search_suggest'] = array(
-				'type' => 'completion',
-				'analyzer' => 'simple',
-				'search_analyzer' => 'simple',
-				'payloads' => true,
-			);
-		}
 
 		/**
 		 * Filter the mappings. Plugins and themes can customize the mappings

@@ -74,6 +74,9 @@ require_once SP_PLUGIN_DIR . '/lib/class-sp-wp-search.php';
 // Replaces core search with SearchPress
 require_once SP_PLUGIN_DIR . '/lib/class-sp-integration.php';
 
+// Autocomplete search suggestions.
+require_once SP_PLUGIN_DIR . '/lib/class-sp-search-suggest.php';
+
 if ( is_admin() ) {
 	require_once SP_PLUGIN_DIR . '/lib/class-sp-admin.php';
 }
