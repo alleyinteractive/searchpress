@@ -160,17 +160,23 @@ class SP_Admin extends SP_Singleton {
 				<?php else : ?>
 
 					<h3><?php esc_html_e( 'Full Sync', 'searchpress' ); ?></h3>
-					<h4><?php esc_html_e( 'Running a full sync will wipe the current index if there is one and rebuild it from scratch.', 'searchpress' ); ?></h4>
 					<p>
 						<?php if ( SP_Sync_Manager()->count_posts() > 25000 ) : ?>
 							<strong><?php esc_html_e( 'Because this site has a large number of posts, this may take a long time to index.', 'searchpress' ); ?></strong>
 						<?php endif ?>
 						<?php esc_html_e( "Exactly how long indexing will take will vary on a number of factors, like the server's CPU and memory, connection speed, current traffic, average post size, and associated terms and post meta.", 'searchpress' ); ?>
-						<?php esc_html_e( 'SearchPress will be inactive during indexing.', 'searchpress' ); ?>
+						<?php esc_html_e( 'SearchPress will be inactive during indexing if you choose to "Flush the data and update the mapping".', 'searchpress' ); ?>
 					</p>
 
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ) ?>">
 						<input type="hidden" name="action" value="sp_full_sync" />
+						<p>
+							<label for="sp_flush_data">
+								<input type="checkbox" name="sp_flush_data" id="sp_flush_data" value="1" <?php checked( 0 === SP_Sync_Manager()->count_posts_indexed() ) ?> />
+								<?php esc_html_e( 'Flush the data and update the mapping', 'searchpress' ); ?>
+							</label>
+							<span class="explanation"><?php esc_html_e( 'This will wipe the data currently in the Elasticsearch index and rebuild it from scratch. This is necessary in order to udpate the mapping.', 'searchpress' ); ?></span>
+						</p>
 						<?php wp_nonce_field( 'sp_sync', 'sp_sync_nonce' ); ?>
 						<?php submit_button( __( 'Run Full Sync', 'searchpress' ), 'delete' ) ?>
 					</form>
@@ -290,21 +296,27 @@ class SP_Admin extends SP_Singleton {
 			wp_die( 'You are not authorized to perform that action' );
 		}
 
-		SP_Config()->update_settings( array( 'must_init' => false, 'active' => false, 'last_beat' => false ) );
+		$sp_flush_data = ! empty( $_POST['sp_flush_data'] );
+		SP_Config()->update_settings( array(
+			'must_init' => false,
+			'active' => ! $sp_flush_data, // leave SP active if not flushing data
+			'last_beat' => false,
+		) );
 
 		// The index may not exist yet, so use the global cluster health to check the heartbeat
 		add_filter( 'sp_cluster_health_uri', 'sp_global_cluster_health' );
 		if ( ! SP_Heartbeat()->check_beat() ) {
 			return $this->redirect( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_NO_BEAT ) );
 		} else {
-			$result = SP_Config()->flush();
-			if ( ! isset( SP_API()->last_request['response_code'] ) || ! in_array( SP_API()->last_request['response_code'], array( 200, 404 ) ) ) {
-				return $this->redirect( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_FLUSH_FAIL ) );
-			} else {
+			if ( $sp_flush_data ) {
+				$result = SP_Config()->flush();
+				if ( ! isset( SP_API()->last_request['response_code'] ) || ! in_array( SP_API()->last_request['response_code'], array( 200, 404 ) ) ) {
+					return $this->redirect( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_FLUSH_FAIL ) );
+				}
 				SP_Config()->create_mapping();
-				SP_Sync_Manager()->do_cron_reindex();
-				return $this->redirect( admin_url( 'tools.php?page=searchpress' ) );
 			}
+			SP_Sync_Manager()->do_cron_reindex();
+			return $this->redirect( admin_url( 'tools.php?page=searchpress' ) );
 		}
 	}
 
@@ -377,7 +389,7 @@ class SP_Admin extends SP_Singleton {
 
 	public function assets() {
 		if ( current_user_can( $this->capability ) && $this->is_settings_page() ) {
-			wp_enqueue_style( 'searchpress-admin-css', SP_PLUGIN_URL . '/assets/admin.css', array(), '0.3' );
+			wp_enqueue_style( 'searchpress-admin-css', SP_PLUGIN_URL . '/assets/admin.css', array(), '0.4' );
 			wp_enqueue_script( 'searchpress-admin-js', SP_PLUGIN_URL . '/assets/admin.js', array( 'jquery' ), '0.3', true );
 			wp_localize_script( 'searchpress-admin-js', 'searchpress', array(
 				'admin_url' => esc_url_raw( admin_url( 'tools.php?page=searchpress' ) ),

@@ -33,6 +33,12 @@
 	width: 500px;
 	max-width: 100%;
 }
+.tools_page_searchpress span.explanation {
+	display:block;
+	font-size: 90%;
+	padding-left: 24px;
+	font-style: italic;
+}
 #searchpress-stats {
 	margin: 20px 0;
 }
