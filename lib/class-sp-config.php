@@ -94,7 +94,7 @@ class SP_Config extends SP_Singleton {
 			 *
 			 * @param array $post_types Valid post types to index.
 			 */
-			return apply_filters( 'sp_config_sync_post_types', $this->post_types );
+			$this->post_types = apply_filters( 'sp_config_sync_post_types', $this->post_types );
 		}
 		return $this->post_types;
 	}
