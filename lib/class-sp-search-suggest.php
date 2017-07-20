@@ -111,6 +111,11 @@ class SP_Search_Suggest extends SP_Singleton {
 	 * @return array
 	 */
 	public function get_suggestions( $fragment ) {
+		/**
+		 * Filter the raw search suggest query.
+		 *
+		 * @param array Search suggest query.
+		 */
 		$request = apply_filters( 'sp_search_suggest_query', array(
 			'search_suggestions' => array(
 				'text' => $fragment,
@@ -121,10 +126,23 @@ class SP_Search_Suggest extends SP_Singleton {
 		) );
 		$results = SP_API()->post( '_suggest', wp_json_encode( $request ), ARRAY_A );
 
-		if ( ! empty( $results['search_suggestions'][0]['options'] ) ) {
-			return $results['search_suggestions'][0]['options'];
-		}
-		return array();
+		$options = ! empty( $results['search_suggestions'][0]['options'] )
+			? $results['search_suggestions'][0]['options']
+			: array();
+
+		/**
+		 * Filter the raw search suggest options.
+		 *
+		 * @param array  $options  Search suggest options.
+		 * @param array  $results  Search suggest raw results.
+		 * @param string $fragment Search fragment producing the results.
+		 */
+		return apply_filters(
+			'sp_search_suggest_results',
+			$options,
+			$results,
+			$fragment
+		);
 	}
 }
 
