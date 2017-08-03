@@ -308,4 +308,18 @@ class SP_Post extends SP_Indexable {
 
 		return apply_filters( 'sp_post_should_be_indexed', true, $this );
 	}
+
+	/**
+	 * Helper to determine if this post is "searchable". That is, is its
+	 * `post_type` in `sp_searchable_post_types()` and is its `post_status` in
+	 * `sp_searchable_post_statuses()`.
+	 *
+	 * @return boolean true if yes, false if no.
+	 */
+	public function is_searchable() {
+		return (
+			in_array( $this->data['post_type'], sp_searchable_post_types(), true )
+			&& in_array( $this->data['post_status'], sp_searchable_post_statuses(), true )
+		);
+	}
 }
