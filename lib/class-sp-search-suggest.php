@@ -51,29 +51,51 @@ class SP_Search_Suggest extends SP_Singleton {
 	 */
 	public function sp_post_pre_index( $data, $sp_post ) {
 		/**
-		 * Filters the search suggest data (fields/content).
+		 * Filter if the post should be searchable using search suggest.
 		 *
-		 * To filter any other characteristics of search suggest, use the
-		 * `sp_post_pre_index` filter.
+		 * By default, this assumes that search suggest would be used on the
+		 * frontend, so a post must meet the criteria to be considered "public".
+		 * That is, its post type and post status must exist within the
+		 * `sp_searchable_post_types()` and `sp_searchable_post_statuses()`
+		 * arrays, respectively.
 		 *
-		 * @see https://www.elastic.co/guide/en/elasticsearch/reference/2.4/search-suggesters-completion.html
+		 * If you're using search suggest in the admin, you should either
+		 * always return true for this filter so that private post types and
+		 * statuses show in the suggestion results, or add a second search
+		 * suggest index with permissions-based access.
 		 *
-		 * @param array    $search_suggest_data Array of data for search suggesters
-		 *                                      completion. By default, this just
-		 *                                      includes the post_title.
-		 * @param array    $data                sp_post_pre_index data.
-		 * @param \SP_Post $sp_post             The \SP_Post object.
+		 * @param  bool    $is_searchable Is this post searchable and thus
+		 *                                should be added to the search suggest
+		 *                                data?
+		 * @param array    $data          sp_post_pre_index data.
+		 * @param \SP_Post $sp_post       The \SP_Post object.
 		 */
-		$data['search_suggest'] = array(
-			'input' => apply_filters( 'sp_search_suggest_data', array(
-				$data['post_title'],
-			), $data, $sp_post ),
-			'output' => $data['post_title'],
-			'payload' => array(
-				'id' => $data['post_id'],
-				'permalink' => $data['permalink'],
-			),
-		);
+		if ( apply_filters( 'sp_search_suggest_post_is_searchable', $sp_post->is_searchable(), $data, $sp_post ) ) {
+			/**
+			 * Filters the search suggest data (fields/content).
+			 *
+			 * To filter any other characteristics of search suggest, use the
+			 * `sp_post_pre_index` filter.
+			 *
+			 * @see https://www.elastic.co/guide/en/elasticsearch/reference/2.4/search-suggesters-completion.html
+			 *
+			 * @param array    $search_suggest_data Array of data for search suggesters
+			 *                                      completion. By default, this just
+			 *                                      includes the post_title.
+			 * @param array    $data                sp_post_pre_index data.
+			 * @param \SP_Post $sp_post             The \SP_Post object.
+			 */
+			$data['search_suggest'] = array(
+				'input' => apply_filters( 'sp_search_suggest_data', array(
+					$data['post_title'],
+				), $data, $sp_post ),
+				'output' => $data['post_title'],
+				'payload' => array(
+					'id' => $data['post_id'],
+					'permalink' => $data['permalink'],
+				),
+			);
+		}
 
 		return $data;
 	}
