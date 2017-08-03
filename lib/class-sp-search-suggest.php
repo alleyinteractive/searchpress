@@ -25,8 +25,8 @@ class SP_Search_Suggest extends SP_Singleton {
 	public function sp_config_mapping( $mapping ) {
 		$mapping['mappings']['post']['properties']['search_suggest'] = array(
 			'type' => 'completion',
-			'analyzer' => 'simple',
-			'search_analyzer' => 'simple',
+			'analyzer' => 'standard',
+			'search_analyzer' => 'standard',
 			'payloads' => true,
 		);
 
