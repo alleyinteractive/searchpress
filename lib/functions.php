@@ -84,7 +84,7 @@ function sp_get_array_value_by_path( $array, $path = array() ) {
  */
 function sp_searchable_post_types( $reload = false ) {
 	static $post_types;
-	if ( empty( $post_types ) || $reload ) {
+	if ( empty( $post_types ) || $reload || ! did_action( 'wp_loaded' ) ) {
 		$post_types = array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
 
 		/**
@@ -108,7 +108,7 @@ function sp_searchable_post_types( $reload = false ) {
  */
 function sp_searchable_post_statuses( $reload = false ) {
 	static $post_statuses;
-	if ( empty( $post_statuses ) || $reload ) {
+	if ( empty( $post_statuses ) || $reload || ! did_action( 'wp_loaded' ) ) {
 		// Start with the statuses that SearchPress syncs, since we can't search
 		// on anything that isn't in there.
 		$post_statuses = SP_Config()->sync_statuses();
