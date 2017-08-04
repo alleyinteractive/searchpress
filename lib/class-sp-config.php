@@ -69,6 +69,15 @@ class SP_Config extends SP_Singleton {
 			 * @param array $post_statuses Valid post statuses to index.
 			 */
 			$this->post_statuses = apply_filters( 'sp_config_sync_statuses', $this->post_statuses );
+
+			// If we haven't hit `wp_loaded` yet, we don't want to cache the post
+			// statuses in the property, since not all post statuses may have been
+			// registered yet.
+			if ( ! did_action( 'wp_loaded' ) ) {
+				$uncached_post_statuses = $this->post_statuses;
+				$this->post_statuses = null;
+				return $uncached_post_statuses;
+			}
 		}
 		return $this->post_statuses;
 	}
@@ -95,6 +104,15 @@ class SP_Config extends SP_Singleton {
 			 * @param array $post_types Valid post types to index.
 			 */
 			$this->post_types = apply_filters( 'sp_config_sync_post_types', $this->post_types );
+
+			// If we haven't hit `wp_loaded` yet, we don't want to cache the post
+			// types in the property, since not all post types may have been
+			// registered yet.
+			if ( ! did_action( 'wp_loaded' ) ) {
+				$uncached_post_types = $this->post_types;
+				$this->post_types = null;
+				return $uncached_post_types;
+			}
 		}
 		return $this->post_types;
 	}

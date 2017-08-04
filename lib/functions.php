@@ -145,8 +145,8 @@ function sp_searchable_post_statuses( $reload = false ) {
 		$post_statuses = apply_filters( 'sp_searchable_post_statuses', $post_statuses );
 
 		// If we haven't hit `wp_loaded` yet, we don't want to cache the post
-		// statuses in the static variable, since not all post statuses may have been
-		// registered yet.
+		// statuses in the static variable, since not all post statuses may have
+		// been registered yet.
 		if ( ! did_action( 'wp_loaded' ) ) {
 			$uncached_post_statuses = $post_statuses;
 			$post_statuses = null;
