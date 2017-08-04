@@ -84,7 +84,7 @@ function sp_get_array_value_by_path( $array, $path = array() ) {
  */
 function sp_searchable_post_types( $reload = false ) {
 	static $post_types;
-	if ( empty( $post_types ) || $reload || ! did_action( 'wp_loaded' ) ) {
+	if ( empty( $post_types ) || $reload ) {
 		$post_types = array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
 
 		/**
@@ -95,6 +95,15 @@ function sp_searchable_post_types( $reload = false ) {
 		 * @param array $post_types Post type slugs.
 		 */
 		$post_types = apply_filters( 'sp_searchable_post_types', $post_types );
+
+		// If we haven't hit `wp_loaded` yet, we don't want to cache the post
+		// types in the static variable, since not all post types may have been
+		// registered yet.
+		if ( ! did_action( 'wp_loaded' ) ) {
+			$uncached_post_types = $post_types;
+			$post_types = null;
+			return $uncached_post_types;
+		}
 	}
 	return $post_types;
 }
@@ -108,7 +117,7 @@ function sp_searchable_post_types( $reload = false ) {
  */
 function sp_searchable_post_statuses( $reload = false ) {
 	static $post_statuses;
-	if ( empty( $post_statuses ) || $reload || ! did_action( 'wp_loaded' ) ) {
+	if ( empty( $post_statuses ) || $reload ) {
 		// Start with the statuses that SearchPress syncs, since we can't search
 		// on anything that isn't in there.
 		$post_statuses = SP_Config()->sync_statuses();
@@ -134,6 +143,15 @@ function sp_searchable_post_statuses( $reload = false ) {
 		 * @param array $post_statuses Post statuses.
 		 */
 		$post_statuses = apply_filters( 'sp_searchable_post_statuses', $post_statuses );
+
+		// If we haven't hit `wp_loaded` yet, we don't want to cache the post
+		// statuses in the static variable, since not all post statuses may have been
+		// registered yet.
+		if ( ! did_action( 'wp_loaded' ) ) {
+			$uncached_post_statuses = $post_statuses;
+			$post_statuses = null;
+			return $uncached_post_statuses;
+		}
 	}
 	return $post_statuses;
 }
