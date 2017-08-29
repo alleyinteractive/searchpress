@@ -194,7 +194,7 @@ class SP_Sync_Manager extends SP_Singleton {
 		$total_pages = ceil( $this->published_posts / $sync_meta->bulk );
 		$sync_meta->page++;
 
-		if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
+		if ( wp_doing_cron() ) {
 			if ( $sync_meta->processed >= $sync_meta->total || $sync_meta->page > $total_pages ) {
 				SP_Config()->update_settings( array( 'active' => true ) );
 				$this->cancel_reindex();

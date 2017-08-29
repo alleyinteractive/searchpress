@@ -29,7 +29,7 @@ class SP_API extends SP_Singleton {
 		);
 
 		// Increase the timeout for bulk indexing
-		if ( ( defined( 'DOING_CRON' ) && DOING_CRON ) || defined( 'WP_CLI' ) && WP_CLI ) {
+		if ( wp_doing_cron() || defined( 'WP_CLI' ) && WP_CLI ) {
 			$this->request_defaults['timeout'] = 60;
 		}
 	}
