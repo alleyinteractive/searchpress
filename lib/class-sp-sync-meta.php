@@ -148,7 +148,7 @@ class SP_Sync_Meta extends SP_Singleton {
 	 *                         this uses WP_Error to keep organized.
 	 */
 	public function log( WP_Error $error ) {
-		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		if ( ! wp_doing_cron() && defined( 'WP_CLI' ) && WP_CLI ) {
 			$method = $error->get_error_code();
 			if ( ! in_array( $method, array( 'success', 'warning', 'error' ) ) ) {
 				$method = 'line';
@@ -217,7 +217,7 @@ class SP_Sync_Meta extends SP_Singleton {
 	 * @return bool
 	 */
 	protected function is_cli() {
-		return ( defined( 'WP_CLI' ) && WP_CLI );
+		return ( defined( 'WP_CLI' ) && WP_CLI && ! wp_doing_cron() );
 	}
 
 	/**

@@ -26,7 +26,7 @@ class SP_Debug {
 
 	public static function is_cli() {
 		if ( null === self::$is_cli ) {
-			self::$is_cli = ( defined( 'WP_CLI' ) && WP_CLI );
+			self::$is_cli = ( defined( 'WP_CLI' ) && WP_CLI && ! wp_doing_cron() );
 		}
 		return self::$is_cli;
 	}
