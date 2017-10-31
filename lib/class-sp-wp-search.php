@@ -414,7 +414,14 @@ class SP_WP_Search extends SP_Search {
 					continue;
 				}
 
-				$existing_term_slugs = ( get_query_var( $tax_query_var ) ) ? explode( ',', get_query_var( $tax_query_var ) ) : array();
+				$existing_term_slugs = get_query_var( $tax_query_var );
+				if ( ! empty( $existing_term_slugs ) ) {
+					if ( ! is_array( $existing_term_slugs ) ) {
+						$existing_term_slugs = explode( ',', $existing_term_slugs );
+					}
+				} else {
+					$existing_term_slugs = array();
+				}
 			}
 
 			$items = array();
