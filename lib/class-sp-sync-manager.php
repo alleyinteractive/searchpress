@@ -18,7 +18,7 @@ class SP_Sync_Manager extends SP_Singleton {
 	public $published_posts = false;
 
 	/**
-	 * Sync a single post (on creation or update)
+	 * Flags the post to be indexed later asynchronously.
 	 *
 	 * @todo if post should not be added, it's deleted (to account for unpublishing, etc). Make that more elegant.
 	 *
@@ -26,17 +26,61 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @return void
 	 */
 	public function sync_post( $post_id ) {
-		$post = new SP_Post( get_post( $post_id ) );
-		if ( $post->should_be_indexed() ) {
-			$response = SP_API()->index_post( $post );
-			if ( ! $this->parse_error( $response, array( 200, 201 ) ) ) {
-				do_action( 'sp_debug', '[SP_Sync_Manager] Indexed Post', $response );
-			} else {
-				do_action( 'sp_debug', '[SP_Sync_Manager] Error Indexing Post', $response );
+		// Flag this post as needing to be indexed.
+		update_post_meta( $post_id, 'sp_index_needed', true );
+
+		// Schedule a single event to handle the update.
+		wp_schedule_single_event( time(), 'sp_sync_posts' );
+	}
+
+	/**
+	 * Sync all posts that need to be indexed.
+	 */
+	public function sync_posts_cron() {
+		$posts = $this->get_posts( array(
+			'posts_per_page' => 50,
+			'meta_query' => array(
+				array(
+					'key' => 'sp_index_needed',
+					'value' => true,
+				),
+			),
+		) );
+
+		if ( ! empty( $posts ) ) {
+			foreach ( $posts as $post_id => $sp_post ) {
+				if ( $sp_post->should_be_indexed() ) {
+					$response = SP_API()->index_post( $sp_post );
+					if ( ! $this->parse_error( $response, array( 200, 201 ) ) ) {
+						do_action( 'sp_debug', '[SP_Sync_Manager] Indexed Post', $response );
+					} else {
+						do_action( 'sp_debug', '[SP_Sync_Manager] Error Indexing Post', $response );
+					}
+				} else {
+					// This is excessive, figure out a better way around it
+					$this->delete_post( $post_id );
+				}
+
+				// Remove the flag.
+				delete_post_meta( $post_id, 'sp_index_needed' );
 			}
-		} else {
-			// This is excessive, figure out a better way around it
-			$this->delete_post( $post_id );
+
+			// Attempt to get more posts.
+			$posts = $this->get_posts( array(
+				'posts_per_page' => 25,
+				'meta_query' => array(
+					array(
+						'key' => 'sp_index_needed',
+						'value' => true,
+					),
+				),
+			) );
+
+			// More posts to index.
+			if ( ! empty( $posts ) ) {
+				// Schedule a single event to handle the update.
+				wp_schedule_single_event( time(), 'sp_sync_posts' );
+			}
 		}
 	}
 
@@ -277,4 +321,7 @@ if ( SP_Config()->active() ) {
 	// add_action( 'deleted_term_relationships', array( SP_Sync_Manager(), 'sync_post' ) );
 	add_action( 'deleted_post',               array( SP_Sync_Manager(), 'delete_post' ) );
 	add_action( 'trashed_post',               array( SP_Sync_Manager(), 'delete_post' ) );
+
+	// Ensure posts are index asynchronously.
+	add_action( 'sp_sync_posts',              array( SP_Sync_Manager(), 'sync_posts_cron' ) );
 }

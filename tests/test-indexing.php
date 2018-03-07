@@ -7,6 +7,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 
 	function test_new_post() {
 		$this->factory->post->create( array( 'post_title' => 'test post' ) );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 
 		$this->assertEquals(
@@ -76,6 +80,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 			$args['post_date'] = date( 'Y-m-d H:i:s', time() + YEAR_IN_SECONDS );
 		}
 		$post_id = $this->factory->post->create( $args );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 
 		// Test the indexability of this status
@@ -103,6 +111,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 			'post_title'     => 'test attachment',
 			'post_name'      => 'test-attachment-1',
 		) );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 
 		// Test the searchability (and inherent indexability) of this status
@@ -121,6 +133,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 			'post_title'     => 'test attachment',
 			'post_name'      => 'test-attachment-2',
 		) );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 
 		// Test the searchability (and inherent indexability) of this status
@@ -138,6 +154,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 			'post_title'     => 'test attachment',
 			'post_name'      => 'test-attachment-3',
 		) );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 
 		// Test the searchability (and inherent indexability) of this status
@@ -203,6 +223,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		} else {
 			$post_id = $this->factory->post->create( array( 'post_title' => 'test post', 'post_type' => $type ) );
 		}
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 
 		// Test the indexability of this type
@@ -230,6 +254,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 			'post_title' => 'lorem ipsum'
 		);
 		wp_update_post( $post );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 
 		$this->assertEmpty(
@@ -244,6 +272,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 
 	function test_trashed_post() {
 		$post_id = $this->factory->post->create( array( 'post_title' => 'test post' ) );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 
 		$this->assertEquals(
@@ -252,6 +284,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		);
 
 		wp_trash_post( $post_id );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 
 		$this->assertEmpty(
@@ -261,6 +297,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 
 	function test_deleted_post() {
 		$post_id = $this->factory->post->create( array( 'post_title' => 'test post' ) );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 
 		$this->assertEquals(
@@ -269,6 +309,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		);
 
 		wp_delete_post( $post_id, true );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 
 		$this->assertEmpty(
@@ -278,6 +322,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 
 	function test_publishing_and_unpublishing_posts() {
 		$post_id = $this->factory->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'draft' ) );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 		$this->assertEmpty(
 			$this->search_and_get_field( array( 'query' => 'test post' ) )
@@ -288,6 +336,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		);
 
 		wp_publish_post( $post_id );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 		$this->assertNotEmpty(
 			$this->search_and_get_field( array( 'query' => 'test post' ) )
@@ -302,6 +354,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 			'post_status' => 'draft'
 		);
 		wp_update_post( $post );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 		$this->assertEmpty(
 			$this->search_and_get_field( array( 'query' => 'test post' ) )
@@ -325,6 +381,9 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 			$this->factory->post->create( array( 'post_title' => 'searchpress' ) ),
 		);
 
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 		$this->assertEquals(
 			array( 'searchpress' ),
@@ -332,6 +391,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		);
 
 		sp_index_flush_data();
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 		$this->assertEmpty(
 			$this->search_and_get_field( array( 'query' => 'searchpress' ) )
@@ -352,6 +415,9 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 
 		$this->fake_cron();
 		$this->assertEmpty( wp_next_scheduled( 'sp_reindex' ) );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
 
 		SP_API()->post( '_refresh' );
 		$this->assertEquals(
@@ -421,6 +487,9 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 			$this->factory->post->create( array( 'post_title' => 'searchpress' ) ),
 		);
 
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
 		$this->assertTrue( SP_Sync_Meta()->has_errors() );
 	}
@@ -432,6 +501,9 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		$posts = array(
 			$this->factory->post->create( array( 'post_title' => 'searchpress' ) ),
 		);
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
 
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
 		$this->assertTrue( SP_Sync_Meta()->has_errors() );
@@ -446,6 +518,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		} );
 		$this->assertFalse( SP_Sync_Meta()->has_errors() );
 		$post_id = $this->factory->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'publish' ) );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		$this->assertTrue( SP_Sync_Meta()->has_errors() );
 	}
 
@@ -454,6 +530,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		add_filter( 'sp_post_pre_index', '__return_empty_array' );
 		$this->assertFalse( SP_Sync_Meta()->has_errors() );
 		$post_id = $this->factory->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'publish' ) );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		$this->assertTrue( SP_Sync_Meta()->has_errors() );
 	}
 
@@ -461,6 +541,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		$post_id = $this->factory->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'publish' ) );
 		add_post_meta( $post_id, '_oembed_test', rand_str() );
 		SP_Sync_Manager()->sync_post( $post_id );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 
 		$posts = sp_wp_search( array( 'fields' => array( 'post_meta._oembed_test.raw' ) ), true );
@@ -477,6 +561,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		$this->factory->post->create( array( 'post_title' => 'test post 1', 'post_name' => 'test-post-1', 'post_status' => 'publish' ) );
 		$this->factory->post->create( array( 'post_title' => 'test post 2', 'post_name' => 'test-post-2', 'post_status' => 'publish' ) );
 		$this->factory->post->create( array( 'post_title' => 'test post 3', 'post_name' => 'test-post-3', 'post_status' => 'publish' ) );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 
 		SP_Sync_Manager()->published_posts = false;
@@ -500,6 +588,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		$this->factory->post->create( array( 'post_title' => 'test count 6', 'post_type' => 'nav_menu_item', 'post_status' => 'publish' ) );
 		$this->factory->post->create( array( 'post_title' => 'test count 7', 'post_type' => 'post',          'post_status' => 'auto-draft' ) );
 		$this->factory->post->create( array( 'post_title' => 'test count 8', 'post_type' => 'revision',      'post_status' => 'inherit' ) );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 		SP_Sync_Manager()->published_posts = false;
 
