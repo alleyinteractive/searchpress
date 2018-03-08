@@ -81,6 +81,9 @@ class Tests_Mapping extends SearchPress_UnitTestCase {
 		add_post_meta( $this->demo_post_id, 'test_date', '2012-03-14 03:14:15' );
 		SP_Sync_Manager()->sync_post( $this->demo_post_id );
 
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		// Force refresh the index so the data is available immediately
 		SP_API()->post( '_refresh' );
 	}

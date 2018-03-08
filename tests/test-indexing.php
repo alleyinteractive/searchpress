@@ -392,9 +392,6 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 
 		sp_index_flush_data();
 
-		// Force sync posts.
-		SP_Sync_Manager()->sync_posts_cron();
-
 		SP_API()->post( '_refresh' );
 		$this->assertEmpty(
 			$this->search_and_get_field( array( 'query' => 'searchpress' ) )
@@ -415,9 +412,6 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 
 		$this->fake_cron();
 		$this->assertEmpty( wp_next_scheduled( 'sp_reindex' ) );
-
-		// Force sync posts.
-		SP_Sync_Manager()->sync_posts_cron();
 
 		SP_API()->post( '_refresh' );
 		$this->assertEquals(

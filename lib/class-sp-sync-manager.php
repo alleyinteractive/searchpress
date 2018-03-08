@@ -77,7 +77,7 @@ class SP_Sync_Manager extends SP_Singleton {
 			) );
 
 			// More posts to index.
-			if ( ! empty( $posts ) ) {
+			if ( ! empty( $posts ) && ! wp_next_scheduled( 'sp_sync_posts' ) ) {
 				// Schedule a single event to handle the update.
 				wp_schedule_single_event( time(), 'sp_sync_posts' );
 			}

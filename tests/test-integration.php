@@ -33,6 +33,9 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 		$this->factory->post->create( array( 'post_title' => 'cpt', 'post_date' => '2010-01-01 00:00:00', 'post_type' => 'cpt' ) );
 		$this->factory->post->create( array( 'post_title' => 'lorem-cpt', 'post_date' => '2010-01-01 00:00:00', 'post_type' => 'cpt' ) );
 
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		// Force refresh the index so the data is available immediately
 		SP_API()->post( '_refresh' );
 	}

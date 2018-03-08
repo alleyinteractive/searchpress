@@ -51,6 +51,10 @@ class Tests_Mapping_Postmeta extends SearchPress_UnitTestCase {
 
 		add_post_meta( $demo_post_id, 'mapping_postmeta_test', $value );
 		SP_Sync_Manager()->sync_post( $demo_post_id );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 
 		if ( null === $value ) {
@@ -113,6 +117,10 @@ class Tests_Mapping_Postmeta extends SearchPress_UnitTestCase {
 
 		add_post_meta( $demo_post_id, 'long_string_test', $string );
 		SP_Sync_Manager()->sync_post( $demo_post_id );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
+
 		SP_API()->post( '_refresh' );
 
 		// These fields are not analyzed

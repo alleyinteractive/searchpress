@@ -25,6 +25,9 @@ class Tests_Post extends SearchPress_UnitTestCase {
 
 		$post = get_post( $post_id );
 		$this->sp_post = new SP_Post( $post );
+
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
 	}
 
 	function test_getting_attributes() {
