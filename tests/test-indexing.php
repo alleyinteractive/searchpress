@@ -405,13 +405,14 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
 		$this->fake_cron();
-		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
+		$this->assertFalse( wp_next_scheduled( 'sp_reindex' ) );
 
-		$this->fake_cron();
-		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
+		foreach ( $posts as $post_id ) {
+			update_post_meta( $post_id, 'sp_index_needed', true );
+		}
 
-		$this->fake_cron();
-		$this->assertEmpty( wp_next_scheduled( 'sp_reindex' ) );
+		// Force sync posts.
+		SP_Sync_Manager()->sync_posts_cron();
 
 		SP_API()->post( '_refresh' );
 		$this->assertEquals(
