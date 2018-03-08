@@ -132,6 +132,7 @@ class SP_Post extends SP_Indexable {
 			'_wpas_done_all',
 			'_encloseme',
 			'_pingme',
+			'_sp_index_needed',
 		) );
 		foreach ( $ignored_meta as $key ) {
 			unset( $meta[ $key ] );

@@ -27,7 +27,7 @@ class SP_Sync_Manager extends SP_Singleton {
 	 */
 	public function sync_post( $post_id ) {
 		// Flag this post as needing to be indexed.
-		update_post_meta( $post_id, 'sp_index_needed', true );
+		update_post_meta( $post_id, '_sp_index_needed', true );
 
 		// Schedule a single event to handle the update.
 		wp_schedule_single_event( time(), 'sp_sync_posts' );
@@ -41,7 +41,7 @@ class SP_Sync_Manager extends SP_Singleton {
 			'posts_per_page' => 50,
 			'meta_query' => array(
 				array(
-					'key' => 'sp_index_needed',
+					'key' => '_sp_index_needed',
 					'value' => true,
 				),
 			),
@@ -62,7 +62,7 @@ class SP_Sync_Manager extends SP_Singleton {
 				}
 
 				// Remove the flag.
-				delete_post_meta( $post_id, 'sp_index_needed' );
+				delete_post_meta( $post_id, '_sp_index_needed' );
 			}
 
 			// Attempt to get more posts.
@@ -70,7 +70,7 @@ class SP_Sync_Manager extends SP_Singleton {
 				'posts_per_page' => 25,
 				'meta_query' => array(
 					array(
-						'key' => 'sp_index_needed',
+						'key' => '_sp_index_needed',
 						'value' => true,
 					),
 				),

@@ -408,7 +408,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		$this->assertFalse( wp_next_scheduled( 'sp_reindex' ) );
 
 		foreach ( $posts as $post_id ) {
-			update_post_meta( $post_id, 'sp_index_needed', true );
+			update_post_meta( $post_id, '_sp_index_needed', true );
 		}
 
 		// Force sync posts.
