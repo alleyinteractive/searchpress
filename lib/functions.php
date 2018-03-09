@@ -3,9 +3,11 @@
 /**
  * Pluck a certain field out of an ES response.
  *
- * @param array $results Elasticsearch results.
- * @param int|string $field A field from the retuls to place instead of the entire object.
- * @param bool $as_single Return as single (true) or an array (false). Defaults to true.
+ * @param array      $results Elasticsearch results.
+ * @param int|string $field A field from the results to place instead of the
+ *                          entire object.
+ * @param bool       $as_single Optional. Return as single (true) or an array
+ *                              (false). Defaults to true.
  * @return array
  */
 function sp_results_pluck( $results, $field, $as_single = true ) {
@@ -15,16 +17,62 @@ function sp_results_pluck( $results, $field, $as_single = true ) {
 		return array();
 	}
 
+	$parts = explode( '.', $field );
 	foreach ( $results['hits']['hits'] as $key => $value ) {
-		if ( ! empty( $value['fields'][ $field ] ) ) {
-			$return[ $key ] = (array) $value['fields'][ $field ];
-			if ( $as_single ) {
-				$return[ $key ] = reset( $return[ $key ] );
+		if ( empty( $value['_source'] ) ) {
+			$return[ $key ] = array();
+		} elseif ( 1 === count( $parts ) ) {
+			if ( array_key_exists( $field, $value['_source'] ) ) {
+				$return[ $key ] = (array) $value['_source'][ $field ];
 			}
+		} else {
+			$return[ $key ] = (array) sp_get_array_value_by_path( $value['_source'], $parts );
+		}
+
+		// If the result was empty, remove it.
+		if ( array() === $return[ $key ] ) {
+			unset( $return[ $key ] );
+		} elseif ( $as_single ) {
+			$return[ $key ] = reset( $return[ $key ] );
 		}
 	}
 
 	return $return;
+}
+
+/**
+ * Recursively get an deep array value by a "path" (array of keys). This helper
+ * function helps to collect values from an ES _source response.
+ *
+ * This function is easier to illustrate than explain. Given an array
+ * `[ 'grand' => [ 'parent' => [ 'child' => 1 ] ] ]`, passing the `$path`...
+ *
+ * `[ 'grand' ]`                    yields `[ 'parent' => [ 'child' => 1 ] ]`
+ * `[ 'grand', 'parent' ]`          yields `[ 'child' => 1 ]`
+ * `[ 'grand', 'parent', 'child' ]` yields `1`
+ *
+ * If one of the depths is a numeric array, it will be mapped for the remaining
+ * path components. In other words, given the an array
+ * `[ 'parent' => [ [ 'child' => 1 ], [ 'child' => 2 ] ] ]`, passing the `$path`
+ * `[ 'parent', 'child' ]` yields `[ 1, 2 ]`. This feature does not work with
+ * multiple depths of numeric arrays.
+ *
+ * @param  array $array Multi-dimensional array.
+ * @param  array $path Single-dimensional array of array keys.
+ * @return mixed
+ */
+function sp_get_array_value_by_path( $array, $path = array() ) {
+	if ( isset( $array[0] ) ) {
+		return array_map( 'sp_get_array_value_by_path', $array, array_fill( 0, count( $array ), $path ) );
+	} elseif ( ! empty( $path ) ) {
+		$part = array_shift( $path );
+		if ( array_key_exists( $part, $array ) ) {
+			$array = $array[ $part ];
+		} else {
+			return array();
+		}
+	}
+	return empty( $path ) ? $array : sp_get_array_value_by_path( $array, $path );
 }
 
 /**
@@ -68,6 +116,7 @@ function sp_searchable_post_statuses( $reload = false ) {
 		// Collect post statuses we don't want to search and exclude them.
 		$exclude = array_values( get_post_stati(
 			array(
+				'internal'            => true,
 				'exclude_from_search' => true,
 				'private'             => true,
 				'protected'           => true,
@@ -124,4 +173,21 @@ function sp_wp_search( $wp_args, $raw_result = false ) {
  */
 function sp_global_cluster_health() {
 	return '/_cluster/health';
+}
+
+/**
+ * Compare an Elasticsearch version against the one in use. This is a convenient
+ * wrapper for `version_compare()`, setting the second argument to the current
+ * version of Elasticsearch.
+ *
+ * For example, to see if the current version of Elasticsearch is 5.x, you would
+ * call `sp_es_version_compare( '5.0' )`.
+ *
+ * @param  string $version Version number.
+ * @param  string $compare Optional. Test for a particular relationship. Default
+ *                         is `>=`.
+ * @return bool|null Null on failure, bool on success.
+ */
+function sp_es_version_compare( $version, $compare = '>=' ) {
+	return version_compare( $version, SP_Config()->get_es_version(), $compare );
 }

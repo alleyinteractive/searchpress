@@ -40,4 +40,41 @@ class SearchPress_UnitTestCase extends WP_UnitTestCase {
 		$posts = sp_wp_search( $args, true );
 		return sp_results_pluck( $posts, $field );
 	}
+
+	/**
+	 * Fakes a cron job
+	 */
+	protected function fake_cron() {
+		$crons = _get_cron_array();
+		foreach ( $crons as $timestamp => $cronhooks ) {
+			foreach ( $cronhooks as $hook => $keys ) {
+				if ( substr( $hook, 0, 3 ) !== 'sp_' ) {
+					continue; // only run our own jobs.
+				}
+
+				foreach ( $keys as $k => $v ) {
+					$schedule = $v['schedule'];
+
+					if ( $schedule != false ) {
+						$new_args = array( $timestamp, $schedule, $hook, $v['args'] );
+						call_user_func_array( 'wp_reschedule_event', $new_args );
+					}
+
+					wp_unschedule_event( $timestamp, $hook, $v['args'] );
+					do_action_ref_array( $hook, $v['args'] );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Is the current version of WordPress at least ... ?
+	 *
+	 * @param  float $min_version Minimum version required, e.g. 3.9.
+	 * @return bool True if it is, false if it isn't.
+	 */
+	protected function is_wp_at_least( $min_version ) {
+		global $wp_version;
+		return floatval( $wp_version ) >= $min_version;
+	}
 }

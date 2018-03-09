@@ -78,7 +78,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		add_filter( 'sp_admin_settings_capability', function() { return 'edit_posts'; } );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'editor' ) ) );
 		SP_Admin()->setup();
-		SP_Admin()->sync();
+		SP_Admin()->settings_page();
 	}
 
 	/**
@@ -91,7 +91,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		// Ensure that editors don't have access to the settings
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'editor' ) ) );
 		SP_Admin()->setup();
-		SP_Admin()->sync();
+		SP_Admin()->settings_page();
 	}
 
 	/**
@@ -101,7 +101,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		$this->expectOutputRegex( '/<h2>SearchPress<\/h2>/' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		SP_Admin()->setup();
-		SP_Admin()->sync();
+		SP_Admin()->settings_page();
 	}
 
 	/**
@@ -439,6 +439,13 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		SP_Admin()->admin_notices();
 	}
 
+	public function test_admin_notices_map_version() {
+		$this->expectOutputRegex( '/SearchPress was updated and you need to reindex your content/' );
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
+		SP_Config()->update_settings( array( 'map_version' => 0 ) );
+		SP_Admin()->admin_notices();
+	}
+
 	public function test_errors() {
 		$this->assertSame( 'SearchPress could not flush the old data', SP_Admin()->get_error( SP_ERROR_FLUSH_FAIL ) );
 		$this->assertSame( 'SearchPress cannot reach the Elasticsearch server', SP_Admin()->get_error( SP_ERROR_NO_BEAT ) );
@@ -450,7 +457,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		SP_Sync_Meta()->running = true;
 		SP_Admin()->setup();
-		SP_Admin()->sync();
+		SP_Admin()->settings_page();
 	}
 
 	public function test_active_tab_log() {
@@ -458,7 +465,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		SP_Sync_Meta()->log( new WP_Error( 'error', 'Testing error notice' ) );
 		SP_Admin()->setup();
-		SP_Admin()->sync();
+		SP_Admin()->settings_page();
 	}
 
 	public function log_output_data() {
@@ -479,7 +486,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		SP_Sync_Meta()->log( new WP_Error( $type, 'Testing notices' ) );
 		SP_Admin()->setup();
-		SP_Admin()->sync();
+		SP_Admin()->settings_page();
 	}
 
 	public function test_sync_status_running() {

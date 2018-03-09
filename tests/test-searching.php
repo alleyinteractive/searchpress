@@ -485,7 +485,7 @@ class Tests_Searching extends SearchPress_UnitTestCase {
 			'query' => array(
 				'match_all' => new stdClass,
 			),
-			'fields' => array( 'post_id' ),
+			'_source' => array( 'post_id' ),
 			'size' => 1,
 			'from' => 1,
 			'sort' => array(
@@ -498,7 +498,7 @@ class Tests_Searching extends SearchPress_UnitTestCase {
 			'query' => array(
 				'match_all' => new stdClass
 			),
-			'fields' => array( 'post_id' ),
+			'_source' => array( 'post_id' ),
 			'size' => 1,
 			'from' => 2,
 			'sort' => array(
@@ -521,7 +521,7 @@ class Tests_Searching extends SearchPress_UnitTestCase {
 					)
 				)
 			),
-			'fields' => array( 'post_id' ),
+			'_source' => array( 'post_id' ),
 			'size' => 1,
 			'from' => 0,
 			'sort' => array(

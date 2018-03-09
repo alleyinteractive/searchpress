@@ -47,6 +47,9 @@ class SP_Config extends SP_Singleton {
 			// Get all post statuses that aren't explicitly flagged as internal.
 			$this->post_statuses = array_values( get_post_stati( array( 'internal' => false ) ) );
 
+			// Add 'inherit', which gets special treatment due to attachments.
+			$this->post_statuses[] = 'inherit';
+
 			/**
 			 * Filter the *indexed* (synced) post statuses. Also
 			 * {@see sp_searchable_post_statuses()} and the
@@ -84,12 +87,20 @@ class SP_Config extends SP_Singleton {
 			 *
 			 * @param array $post_types Valid post types to index.
 			 */
-			return apply_filters( 'sp_config_sync_post_types', $this->post_types );
+			$this->post_types = apply_filters( 'sp_config_sync_post_types', $this->post_types );
 		}
 		return $this->post_types;
 	}
 
-
+	/**
+	 * Set the mappings.
+	 *
+	 * The map version is stored in sp_settings. When the map is updated, the
+	 * version is bumped. When updates are made to the map, the site should be
+	 * reindexed.
+	 *
+	 * @return mixed {@see SP_API::put()}.
+	 */
 	public function create_mapping() {
 		$mapping = array(
 			'settings' => array(
@@ -266,7 +277,29 @@ class SP_Config extends SP_Singleton {
 				),
 			),
 		);
+
+		/**
+		 * Filter the mappings. Plugins and themes can customize the mappings
+		 * however they need by manipulating this array.
+		 *
+		 * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html
+		 * @param array $mapping SearchPress' mapping array.
+		 */
 		$mapping = apply_filters( 'sp_config_mapping', $mapping );
+
+		/**
+		 * Filter the map version. Plugins and themes can tweak this value if
+		 * they update the mapping, and SearchPress will flag that the site
+		 * needs to be reindexed.
+		 *
+		 * @param  int $map_version Map version. Should be of the format
+		 *                          `{year}{month}{day}{version}` where version
+		 *                          is a two-digit sequential number.
+		 */
+		$this->update_settings( array(
+			'map_version' => apply_filters( 'sp_map_version', SP_MAP_VERSION ),
+		) );
+
 		return SP_API()->put( '', wp_json_encode( $mapping ) );
 	}
 
@@ -279,9 +312,11 @@ class SP_Config extends SP_Singleton {
 	public function get_settings() {
 		$settings = get_option( 'sp_settings' );
 		$this->settings = wp_parse_args( $settings, array(
-			'host'      => 'http://localhost:9200',
-			'must_init' => true,
-			'active'    => false,
+			'host'        => 'http://localhost:9200',
+			'must_init'   => true,
+			'active'      => false,
+			'map_version' => 0,
+			'es_version'  => -1,
 		) );
 		return $this->settings;
 	}
@@ -320,6 +355,28 @@ class SP_Config extends SP_Singleton {
 		 * @param array $old_settings The old settings.
 		 */
 		do_action( 'sp_config_update_settings', $this->settings, $new_settings, $old_settings );
+	}
+
+	/**
+	 * Update the stored version of Elasticsearch if it's changed.
+	 */
+	public function update_version() {
+		$version = SP_API()->version();
+		if ( $version && $this->get_setting( 'es_version' ) !== $version ) {
+			$this->update_settings( array(
+				'es_version' => $version,
+			) );
+		}
+	}
+
+	/**
+	 * Get the ES version, either from cache or directly from ES.
+	 *
+	 * @return string|bool Version string on success, false on failure.
+	 */
+	public function get_es_version() {
+		$version = $this->get_setting( 'es_version' );
+		return -1 !== $version ? $version : SP_API()->version();
 	}
 }
 

@@ -76,44 +76,6 @@ function sp_tests_verify_response_code( $response ) {
 	}
 }
 
-
-/**
- * Fakes a cron job
- */
-function sp_tests_fake_cron() {
-	$crons = _get_cron_array();
-	foreach ( $crons as $timestamp => $cronhooks ) {
-		foreach ( $cronhooks as $hook => $keys ) {
-			if ( substr( $hook, 0, 3 ) !== 'sp_' ) {
-				continue; // only run our own jobs.
-			}
-
-			foreach ( $keys as $k => $v ) {
-				$schedule = $v['schedule'];
-
-				if ( $schedule != false ) {
-					$new_args = array( $timestamp, $schedule, $hook, $v['args'] );
-					call_user_func_array( 'wp_reschedule_event', $new_args );
-				}
-
-				wp_unschedule_event( $timestamp, $hook, $v['args'] );
-				do_action_ref_array( $hook, $v['args'] );
-			}
-		}
-	}
-}
-
-/**
- * Is the current version of WordPress at least ... ?
- *
- * @param  float $min_version Minimum version required, e.g. 3.9.
- * @return bool True if it is, false if it isn't.
- */
-function sp_phpunit_is_wp_at_least( $min_version ) {
-	global $wp_version;
-	return floatval( $wp_version ) >= $min_version;
-}
-
 require $_tests_dir . '/includes/bootstrap.php';
 
 // Load a reusable test case.

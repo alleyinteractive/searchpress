@@ -102,8 +102,14 @@ class SP_Post extends SP_Indexable {
 				unset( $this->data[ $field ] );
 			}
 		}
-	}
 
+		// If post status is inherit, but there's no parent status, index the
+		// parent status as 'publish'. This is a bit hacky, but required for
+		// proper indexing and searching.
+		if ( 'inherit' === $this->data['post_status'] && empty( $this->data['parent_status'] ) ) {
+			$this->data['parent_status'] = 'publish';
+		}
+	}
 
 	/**
 	 * Get post meta for a given post ID.
@@ -276,7 +282,14 @@ class SP_Post extends SP_Indexable {
 	 * @return string
 	 */
 	public function to_json() {
-		return wp_json_encode( apply_filters( 'sp_post_pre_index', $this->data ) );
+		/**
+		 * Filter the data prior to indexing. If you need to modify the data sent
+		 * to Elasticsearch, this is likely the best filter to use.
+		 *
+		 * @param array    $data Data to be sent to Elasticsearch.
+		 * @param \SP_Post $this This object.
+		 */
+		return wp_json_encode( apply_filters( 'sp_post_pre_index', $this->data, $this ) );
 	}
 
 	public function should_be_indexed() {
@@ -288,7 +301,7 @@ class SP_Post extends SP_Indexable {
 		}
 
 		// Check post status
-		if ( 'inherit' === $this->data['post_status'] ) {
+		if ( 'inherit' === $this->data['post_status'] && ! empty( $this->data['parent_status'] ) ) {
 			$post_status = $this->data['parent_status'];
 		} else {
 			$post_status = $this->data['post_status'];

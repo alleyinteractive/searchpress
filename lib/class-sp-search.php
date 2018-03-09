@@ -93,7 +93,7 @@ class SP_Search {
 		$return = array();
 
 		if ( ! $field ) {
-			$field = reset( $this->es_args['fields'] );
+			$field = reset( $this->es_args['_source'] );
 		}
 
 		return sp_results_pluck( $this->search_results, $field, $as_single );

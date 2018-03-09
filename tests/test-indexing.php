@@ -27,7 +27,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 			array( 'private',    true,  false ),
 			array( 'trash',      false, false ),
 			array( 'auto-draft', false, false ),
-			array( 'inherit',    false, false ), // 'inherit' without a parent
+			array( 'inherit',    true,  true ), // 'inherit' without a parent
 
 			// custom post statuses
 			array( 'cps-1',      false, false, array() ), // Assumed to be internal
@@ -95,21 +95,56 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		);
 	}
 
-	public function test_post_status_inherit() {
+	public function test_post_status_inherit_publish() {
 		$post_id = $this->factory->post->create();
 		$attachment_id = $this->factory->attachment->create_object( 'image.jpg', $post_id, array(
 			'post_mime_type' => 'image/jpeg',
 			'post_type'      => 'attachment',
 			'post_title'     => 'test attachment',
-			'post_name'      => 'test-attachment',
+			'post_name'      => 'test-attachment-1',
 		) );
 		SP_API()->post( '_refresh' );
 
 		// Test the searchability (and inherent indexability) of this status
 		$this->assertSame(
-			array( 'test-attachment' ),
+			array( 'test-attachment-1' ),
 			$this->search_and_get_field( array( 'query' => 'test attachment' ) ),
-			'Inherit status should be searchable'
+			'Inherit publish status should be searchable'
+		);
+	}
+
+	public function test_post_status_inherit_draft() {
+		$post_id = $this->factory->post->create( array( 'post_status' => 'draft' ) );
+		$attachment_id = $this->factory->attachment->create_object( 'image.jpg', $post_id, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_type'      => 'attachment',
+			'post_title'     => 'test attachment',
+			'post_name'      => 'test-attachment-2',
+		) );
+		SP_API()->post( '_refresh' );
+
+		// Test the searchability (and inherent indexability) of this status
+		$this->assertSame(
+			array(),
+			$this->search_and_get_field( array( 'query' => 'test attachment' ) ),
+			'Inherit draft status should not be searchable'
+		);
+	}
+
+	public function test_orphan_post_status_inherit() {
+		$attachment_id = $this->factory->attachment->create_object( 'image.jpg', 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_type'      => 'attachment',
+			'post_title'     => 'test attachment',
+			'post_name'      => 'test-attachment-3',
+		) );
+		SP_API()->post( '_refresh' );
+
+		// Test the searchability (and inherent indexability) of this status
+		$this->assertSame(
+			array( 'test-attachment-3' ),
+			$this->search_and_get_field( array( 'query' => 'test attachment' ) ),
+			'Inherit status without parent should be searchable'
 		);
 	}
 
@@ -309,13 +344,13 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
-		sp_tests_fake_cron();
+		$this->fake_cron();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
-		sp_tests_fake_cron();
+		$this->fake_cron();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
-		sp_tests_fake_cron();
+		$this->fake_cron();
 		$this->assertEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
 		SP_API()->post( '_refresh' );
@@ -347,7 +382,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		SP_Sync_Meta()->save();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 		$this->assertTrue( empty( SP_Sync_Meta()->messages['error'] ) );
-		sp_tests_fake_cron();
+		$this->fake_cron();
 
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
 	}
@@ -374,7 +409,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		SP_Sync_Meta()->bulk = 3;
 		SP_Sync_Meta()->save();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
-		sp_tests_fake_cron();
+		$this->fake_cron();
 
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
 	}
@@ -449,4 +484,26 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		$this->assertSame( 3, SP_Sync_Manager()->count_posts_indexed() );
 	}
 
+	public function test_counts_mixed_types_and_statuses() {
+		SP_Sync_Manager()->published_posts = false;
+		$this->assertSame( 0, SP_Sync_Manager()->count_posts() );
+		$this->assertSame( 0, SP_Sync_Manager()->count_posts_indexed() );
+
+		// These should be indexed:
+		$this->factory->post->create( array( 'post_title' => 'test count 1', 'post_type' => 'attachment',    'post_status' => 'inherit' ) );
+		$this->factory->post->create( array( 'post_title' => 'test count 2', 'post_type' => 'page',          'post_status' => 'publish' ) );
+		$this->factory->post->create( array( 'post_title' => 'test count 3', 'post_type' => 'post',          'post_status' => 'draft' ) );
+		$this->factory->post->create( array( 'post_title' => 'test count 4', 'post_type' => 'post',          'post_status' => 'future' ) );
+		$this->factory->post->create( array( 'post_title' => 'test count 5', 'post_type' => 'post',          'post_status' => 'publish' ) );
+
+		// These should not be indexed:
+		$this->factory->post->create( array( 'post_title' => 'test count 6', 'post_type' => 'nav_menu_item', 'post_status' => 'publish' ) );
+		$this->factory->post->create( array( 'post_title' => 'test count 7', 'post_type' => 'post',          'post_status' => 'auto-draft' ) );
+		$this->factory->post->create( array( 'post_title' => 'test count 8', 'post_type' => 'revision',      'post_status' => 'inherit' ) );
+		SP_API()->post( '_refresh' );
+		SP_Sync_Manager()->published_posts = false;
+
+		$this->assertSame( 5, SP_Sync_Manager()->count_posts() );
+		$this->assertSame( 5, SP_Sync_Manager()->count_posts_indexed() );
+	}
 }

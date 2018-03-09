@@ -16,7 +16,7 @@ class Tests_Heartbeat extends SearchPress_UnitTestCase {
 
 		// Run the cron
 		$pre_cron = time();
-		sp_tests_fake_cron();
+		$this->fake_cron();
 		$cron_time = time() - $pre_cron;
 
 		$this->assertTrue( wp_next_scheduled( 'sp_heartbeat' ) > 0 );

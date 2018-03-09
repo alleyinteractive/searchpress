@@ -176,8 +176,22 @@ class SP_API extends SP_Singleton {
 		 *
 		 * @param string  $url  URI or URL to hit to query the cluster health.
 		 */
-		$health_uri = apply_filters( 'sp_cluster_health_uri', "/_cluster/health/{$this->index}?wait_for_status=yellow&timeout=0.2s" );
+		$health_uri = apply_filters( 'sp_cluster_health_uri', "/_cluster/health/{$this->index}?wait_for_status=yellow&timeout=200ms" );
 		return $this->get( $health_uri );
+	}
+
+	/**
+	 * Get the version from Elasticsearch.
+	 *
+	 * @return string|bool Version string on success, false on failure.
+	 */
+	public function version() {
+		static $version;
+		if ( ! isset( $version ) ) {
+			$response = $this->get( '/' );
+			$version = ! empty( $response->version->number ) ? $response->version->number : false;
+		}
+		return $version;
 	}
 }
 
