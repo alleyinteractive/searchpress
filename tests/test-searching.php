@@ -47,6 +47,9 @@ class Tests_Searching extends SearchPress_UnitTestCase {
 		$this->factory->post->create( array( 'post_title' => 'child-three', 'post_parent' => $this->parent_two, 'post_date' => '2007-01-01 00:00:06' ) );
 		$this->factory->post->create( array( 'post_title' => 'child-four', 'post_parent' => $this->parent_two, 'post_date' => '2007-01-01 00:00:07' ) );
 
+		// Trigger post index.
+		$this->fake_cron();
+
 		// Force refresh the index so the data is available immediately
 		SP_API()->post( '_refresh' );
 	}
@@ -194,6 +197,10 @@ class Tests_Searching extends SearchPress_UnitTestCase {
 			wp_update_post( array( 'ID' => $post->ID, 'menu_order' => $i++ ) );
 			sleep( 1 );
 		}
+
+		// Trigger post index.
+		$this->fake_cron();
+
 		SP_API()->post( '_refresh' );
 
 		$this->assertEquals(
@@ -543,6 +550,9 @@ class Tests_Searching extends SearchPress_UnitTestCase {
 
 		$author_4 = $this->factory->user->create( array( 'user_login' => 'author4', 'user_pass' => rand_str(), 'role' => 'author' ) );
 		$post_4 = $this->factory->post->create( array( 'post_title' => rand_str(), 'post_author' => $author_4, 'post_date' => '2006-01-01 00:00:00' ) );
+
+		// Trigger post index.
+		$this->fake_cron();
 
 		// Force refresh the index so the data is available immediately
 		SP_API()->post( '_refresh' );

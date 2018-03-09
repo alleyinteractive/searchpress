@@ -62,9 +62,9 @@ class SP_Sync_Manager extends SP_Singleton {
 		if ( ! is_array( $to_delete ) ) {
 			$to_delete = array();
 		}
-		$to_delete[] = $post_id;
+		$to_delete[] = absint( $post_id );
 
-		update_option( 'sp_delete', $to_delete, 'no' );
+		update_option( 'sp_delete', array_unique( $to_delete ), 'no' );
 		SP_Cron()->schedule_queue_index();
 	}
 
@@ -282,6 +282,8 @@ class SP_Sync_Manager extends SP_Singleton {
 	 */
 	public function update_index_from_queue() {
 		global $wpdb;
+
+		$sync_meta = SP_Sync_Meta();
 		$post_ids = $wpdb->get_col( "SELECT SQL_CALC_FOUND_ROWS `post_id` FROM {$wpdb->postmeta} WHERE `meta_key`='_sp_index' LIMIT 500" );
 		$total = $wpdb->get_var( 'SELECT FOUND_ROWS()' );
 		if ( ! empty( $post_ids ) ) {
@@ -316,9 +318,36 @@ class SP_Sync_Manager extends SP_Singleton {
 				SP_Cron()->schedule_queue_index();
 			}
 		}
+
+		// Get the posts to delete.
+		$delete_post_ids = get_option( 'sp_delete' );
+		if ( ! empty( $delete_post_ids ) && is_array( $delete_post_ids ) ) {
+
+			foreach ( $delete_post_ids as $delete_post_id ) {
+				// This is excessive, figure out a better way around it.
+				$response = SP_API()->delete_post( $delete_post_id );
+
+				// We're OK with 404 responses here because a post might not be in the index
+				if ( ! $this->parse_error( $response, array( 200, 404 ) ) ) {
+					do_action( 'sp_debug', '[SP_Sync_Manager] Deleted Post', $response );
+				} else {
+					do_action( 'sp_debug', '[SP_Sync_Manager] Error Deleting Post', $response );
+				}
+			}
+		}
+
+		delete_option( 'sp_delete' );
 	}
 }
 
+/**
+ * Get the singleton instance for the SP_Sync_Manager class.
+ *
+ * @return \SP_Sync_Manager The singleton instance.
+ */
 function SP_Sync_Manager() {
 	return SP_Sync_Manager::instance();
 }
+
+// Get the ball rolling!
+SP_Sync_Manager();

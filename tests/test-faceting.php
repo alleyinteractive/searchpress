@@ -55,6 +55,9 @@ class Tests_Faceting extends SearchPress_UnitTestCase {
 		$this->factory->post->create( array( 'post_title' => 'child-three', 'post_parent' => $this->parent_two, 'post_type' => 'page', 'post_date' => '2007-01-01 00:00:06' ) );
 		$this->factory->post->create( array( 'post_title' => 'child-four', 'post_parent' => $this->parent_two, 'post_type' => 'page', 'post_date' => '2007-01-01 00:00:07' ) );
 
+		// Trigger post index.
+		$this->fake_cron();
+
 		// Force refresh the index so the data is available immediately
 		SP_API()->post( '_refresh' );
 	}
@@ -126,6 +129,10 @@ class Tests_Faceting extends SearchPress_UnitTestCase {
 
 		$this->factory->post->create( array( 'post_title' => 'first lorem', 'post_date' => '2010-01-01 00:00:00', 'post_type' => 'custom-post-type' ) );
 		$this->factory->post->create( array( 'post_title' => 'second lorem', 'post_date' => '2010-02-01 00:00:00', 'post_type' => 'custom-post-type' ) );
+
+		// Trigger post index.
+		$this->fake_cron();
+
 		// Force refresh the index so the data is available immediately
 		SP_API()->post( '_refresh' );
 

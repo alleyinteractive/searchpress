@@ -19,6 +19,9 @@ class Tests_General extends SearchPress_UnitTestCase {
 		$this->factory->post->create( array( 'post_title' => 'simple-markup-test', 'post_date' => '2010-02-01 00:00:00' ) );
 		$this->factory->post->create( array( 'post_title' => 'raw-html-code', 'post_date' => '2010-03-01 00:00:00' ) );
 
+		// Trigger post index.
+		$this->fake_cron();
+
 		// Force refresh the index so the data is available immediately
 		SP_API()->post( '_refresh' );
 	}

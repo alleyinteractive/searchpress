@@ -11,6 +11,9 @@ class Tests_Api extends SearchPress_UnitTestCase {
 
 		$this->post_id = $this->factory->post->create( array( 'post_title' => 'lorem-ipsum', 'post_date' => '2009-07-01 00:00:00' ) );
 
+		// Trigger post index.
+		$this->fake_cron();
+
 		// Force refresh the index so the data is available immediately
 		SP_API()->post( '_refresh' );
 	}
