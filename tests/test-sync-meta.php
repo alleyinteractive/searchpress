@@ -91,7 +91,7 @@ class Tests_Sync_Meta extends SearchPress_UnitTestCase {
 
 	function test_sync_meta_error_notice() {
 		SP_Sync_Meta()->running = false;
-		$message = rand_str();
+		$message                = rand_str();
 		SP_Sync_Meta()->log( new WP_Error( 'error', $message ) );
 		$this->assertEquals( $message, SP_Sync_Meta()->messages['error'][0] );
 		$this->assertTrue( SP_Sync_Meta()->has_errors() );

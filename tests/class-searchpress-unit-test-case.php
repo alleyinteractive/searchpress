@@ -21,7 +21,7 @@ class SearchPress_UnitTestCase extends WP_UnitTestCase {
 		$this->reset_post_types();
 		$this->reset_taxonomies();
 		$this->reset_post_statuses();
-		SP_Config()->post_types = null;
+		SP_Config()->post_types    = null;
 		SP_Config()->post_statuses = null;
 		sp_searchable_post_types( true );
 		sp_searchable_post_statuses( true );
@@ -34,9 +34,11 @@ class SearchPress_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	function search_and_get_field( $args, $field = 'post_name' ) {
-		$args = wp_parse_args( $args, array(
-			'fields' => $field
-		) );
+		$args  = wp_parse_args(
+			$args, array(
+				'fields' => $field,
+			)
+		);
 		$posts = sp_wp_search( $args, true );
 		return sp_results_pluck( $posts, $field );
 	}

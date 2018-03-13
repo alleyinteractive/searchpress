@@ -20,14 +20,14 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		// Re-init scripts. @see Tests_Dependencies_Scripts.
 		$this->old_wp_scripts = isset( $GLOBALS['wp_scripts'] ) ? $GLOBALS['wp_scripts'] : null;
 		remove_action( 'wp_default_scripts', 'wp_default_scripts' );
-		$GLOBALS['wp_scripts'] = new WP_Scripts();
+		$GLOBALS['wp_scripts']                  = new WP_Scripts();
 		$GLOBALS['wp_scripts']->default_version = get_bloginfo( 'version' );
 
 		// Re-init styles. @see Tests_Dependencies_Styles.
 		$this->old_wp_styles = isset( $GLOBALS['wp_styles'] ) ? $GLOBALS['wp_styles'] : null;
 		remove_action( 'wp_default_styles', 'wp_default_styles' );
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
-		$GLOBALS['wp_styles'] = new WP_Styles();
+		$GLOBALS['wp_styles']                  = new WP_Styles();
 		$GLOBALS['wp_styles']->default_version = get_bloginfo( 'version' );
 
 		add_filter( 'wp_redirect', array( $this, 'prevent_redirect' ) );
@@ -75,7 +75,11 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 	 */
 	function test_settings_page_custom_capability() {
 		$this->expectOutputRegex( '/<h2>SearchPress<\/h2>/' );
-		add_filter( 'sp_admin_settings_capability', function() { return 'edit_posts'; } );
+		add_filter(
+			'sp_admin_settings_capability', function() {
+				return 'edit_posts';
+			}
+		);
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'editor' ) ) );
 		SP_Admin()->setup();
 		SP_Admin()->settings_page();
@@ -145,10 +149,10 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 	public function test_save_settings_update_host() {
 		$sp_settings = get_option( 'sp_settings' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
-		$host = 'http://' . rand_str() . ':9200';
+		$host  = 'http://' . rand_str() . ':9200';
 		$_POST = array(
 			'sp_settings_nonce' => wp_create_nonce( 'sp_settings' ),
-			'sp_host' => $host,
+			'sp_host'           => $host,
 		);
 
 		/**
@@ -171,7 +175,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		$_POST = array(
 			'sp_settings_nonce' => wp_create_nonce( 'sp_settings' ),
-			'sp_reindex' => '1',
+			'sp_reindex'        => '1',
 		);
 
 		/**
@@ -334,7 +338,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		$_POST = array(
 			'sp_active_nonce' => wp_create_nonce( 'sp_active' ),
-			'currently' => 'inactive',
+			'currently'       => 'inactive',
 		);
 
 		SP_Config()->update_settings( array( 'active' => false ) );
@@ -357,7 +361,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		$_POST = array(
 			'sp_active_nonce' => wp_create_nonce( 'sp_active' ),
-			'currently' => 'active',
+			'currently'       => 'active',
 		);
 
 		$this->assertSame( true, SP_Config()->get_setting( 'active' ) );
@@ -470,9 +474,9 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 
 	public function log_output_data() {
 		return array(
-			array( 'error',   'Errors' ),
+			array( 'error', 'Errors' ),
 			array( 'warning', 'Warnings' ),
-			array( 'line',    'Messages' ),
+			array( 'line', 'Messages' ),
 			array( 'success', 'Success' ),
 			array( 'other', '' ),
 		);
@@ -490,21 +494,29 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 	}
 
 	public function test_sync_status_running() {
-		$this->expectOutputString( wp_json_encode( array(
-			'processed' => 22,
-			'page' => 2,
-		) ) );
+		$this->expectOutputString(
+			wp_json_encode(
+				array(
+					'processed' => 22,
+					'page'      => 2,
+				)
+			)
+		);
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
-		SP_Sync_Meta()->running = true;
+		SP_Sync_Meta()->running   = true;
 		SP_Sync_Meta()->processed = 22;
-		SP_Sync_Meta()->page = 2;
+		SP_Sync_Meta()->page      = 2;
 		SP_Admin()->sp_sync_status();
 	}
 
 	public function test_sync_status_done() {
-		$this->expectOutputString( wp_json_encode( array(
-			'processed' => 'complete',
-		) ) );
+		$this->expectOutputString(
+			wp_json_encode(
+				array(
+					'processed' => 'complete',
+				)
+			)
+		);
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		SP_Sync_Meta()->running = false;
 		SP_Admin()->sp_sync_status();
