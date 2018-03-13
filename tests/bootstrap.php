@@ -15,11 +15,13 @@ function sp_manually_load_plugin() {
 		$host = 'http://localhost:9200';
 	}
 
-	update_option( 'sp_settings', array(
-		'host'      => $host,
-		'must_init' => false,
-		'active'    => true,
-	) );
+	update_option(
+		'sp_settings', array(
+			'host'      => $host,
+			'must_init' => false,
+			'active'    => true,
+		)
+	);
 	require dirname( __FILE__ ) . '/../searchpress.php';
 
 	SP_API()->index = 'searchpress-tests';
@@ -79,4 +81,4 @@ function sp_tests_verify_response_code( $response ) {
 require $_tests_dir . '/includes/bootstrap.php';
 
 // Load a reusable test case.
-require_once( dirname( __FILE__ ) . '/class-searchpress-unit-test-case.php' );
+require_once dirname( __FILE__ ) . '/class-searchpress-unit-test-case.php';

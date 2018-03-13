@@ -83,19 +83,19 @@ class Tests_Heartbeat extends SearchPress_UnitTestCase {
 
 		update_option( 'sp_heartbeat', time() - SP_Heartbeat()->thresholds['alert'] );
 		SP_Heartbeat()->get_last_beat( true );
-		$alert_status = SP_Heartbeat()->get_status();
+		$alert_status    = SP_Heartbeat()->get_status();
 		$has_pulse_alert = SP_Heartbeat()->has_pulse();
 
 		update_option( 'sp_heartbeat', time() - SP_Heartbeat()->thresholds['shutdown'] );
 		SP_Heartbeat()->get_last_beat( true );
-		$shutdown_status = SP_Heartbeat()->get_status();
+		$shutdown_status    = SP_Heartbeat()->get_status();
 		$has_pulse_shutdown = SP_Heartbeat()->has_pulse();
 
 		SP_Config()->update_settings( array( 'host' => $host ) );
 
 		$beat_result = SP_Heartbeat()->check_beat( true );
 		SP_Heartbeat()->get_last_beat( true );
-		$ok_status = SP_Heartbeat()->get_status();
+		$ok_status    = SP_Heartbeat()->get_status();
 		$has_pulse_ok = SP_Heartbeat()->has_pulse();
 
 		$this->assertEquals( 'alert', $alert_status );

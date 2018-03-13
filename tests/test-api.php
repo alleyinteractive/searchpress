@@ -9,7 +9,12 @@ class Tests_Api extends SearchPress_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 
-		$this->post_id = $this->factory->post->create( array( 'post_title' => 'lorem-ipsum', 'post_date' => '2009-07-01 00:00:00' ) );
+		$this->post_id = $this->factory->post->create(
+			array(
+				'post_title' => 'lorem-ipsum',
+				'post_date'  => '2009-07-01 00:00:00',
+			)
+		);
 
 		// Force refresh the index so the data is available immediately
 		SP_API()->post( '_refresh' );
@@ -21,7 +26,7 @@ class Tests_Api extends SearchPress_UnitTestCase {
 		$this->assertEquals( '200', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
 		$this->assertEquals( $this->post_id, $response->_source->post_id );
 
-		SP_API()->get( "post/foo" );
+		SP_API()->get( 'post/foo' );
 		$this->assertEquals( 'GET', SP_API()->last_request['params']['method'] );
 		$this->assertEquals( '404', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
 	}
@@ -48,7 +53,7 @@ class Tests_Api extends SearchPress_UnitTestCase {
 	function test_api_delete() {
 		SP_API()->put( 'post/123456', '{"post_id":123456}' );
 		$this->assertEquals( '201', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
-		$response = SP_API()->get( "post/123456" );
+		$response = SP_API()->get( 'post/123456' );
 		$this->assertEquals( 123456, $response->_source->post_id );
 
 		SP_API()->delete( 'post/123456' );

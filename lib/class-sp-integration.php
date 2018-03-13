@@ -51,29 +51,29 @@ class SP_Integration extends SP_Singleton {
 		add_filter( 'post_limits_request', array( $this, 'filter__post_limits_request' ), 999, 2 );
 
 		// Replaces the standard search query with one that fetches the posts based on post IDs supplied by ES
-		add_filter( 'posts_request',       array( $this, 'filter__posts_request' ),         5, 2 );
+		add_filter( 'posts_request', array( $this, 'filter__posts_request' ), 5, 2 );
 
 		// Nukes the FOUND_ROWS() database query
-		add_filter( 'found_posts_query',   array( $this, 'filter__found_posts_query' ),     5, 2 );
+		add_filter( 'found_posts_query', array( $this, 'filter__found_posts_query' ), 5, 2 );
 
 		// Since the FOUND_ROWS() query was nuked, we need to supply the total number of found posts
-		add_filter( 'found_posts',         array( $this, 'filter__found_posts' ),           5, 2 );
+		add_filter( 'found_posts', array( $this, 'filter__found_posts' ), 5, 2 );
 
 		// Add our custom query var for advanced searches
-		add_filter( 'query_vars',          array( $this, 'query_vars' ) );
+		add_filter( 'query_vars', array( $this, 'query_vars' ) );
 
 		// Force the search template if ?sp[force]=1
-		add_action( 'parse_query',         array( $this, 'force_search_template' ), 5 );
+		add_action( 'parse_query', array( $this, 'force_search_template' ), 5 );
 	}
 
 
 	public function remove_hooks() {
 		remove_filter( 'post_limits_request', array( $this, 'filter__post_limits_request' ), 999, 2 );
-		remove_filter( 'posts_request',       array( $this, 'filter__posts_request' ),         5, 2 );
-		remove_filter( 'found_posts_query',   array( $this, 'filter__found_posts_query' ),     5, 2 );
-		remove_filter( 'found_posts',         array( $this, 'filter__found_posts' ),           5, 2 );
-		remove_filter( 'query_vars',          array( $this, 'query_vars' ) );
-		remove_action( 'parse_query',         array( $this, 'force_search_template' ), 5 );
+		remove_filter( 'posts_request', array( $this, 'filter__posts_request' ), 5, 2 );
+		remove_filter( 'found_posts_query', array( $this, 'filter__found_posts_query' ), 5, 2 );
+		remove_filter( 'found_posts', array( $this, 'filter__found_posts' ), 5, 2 );
+		remove_filter( 'query_vars', array( $this, 'query_vars' ) );
+		remove_action( 'parse_query', array( $this, 'force_search_template' ), 5 );
 	}
 
 
@@ -109,7 +109,7 @@ class SP_Integration extends SP_Singleton {
 			// First, we'll set the search string to something phony
 			$wp_query->set( 's', '1441f19754335ca4638bfdf1aea00c6d' );
 			$wp_query->is_search = true;
-			$wp_query->is_home = false;
+			$wp_query->is_home   = false;
 		}
 	}
 
@@ -145,7 +145,7 @@ class SP_Integration extends SP_Singleton {
 
 		// Convert the WP-style args into ES args
 		$this->search_obj = new SP_WP_Search( $es_wp_query_args );
-		$results = $this->search_obj->get_results( 'hits' );
+		$results          = $this->search_obj->get_results( 'hits' );
 
 		// Total number of results for paging purposes
 		$this->found_posts = $this->search_obj->get_results( 'total' );
@@ -229,7 +229,10 @@ class SP_Integration extends SP_Singleton {
 				$date_end   = $query->get( 'year' ) . '-12-31 23:59:59';
 			}
 
-			$es_wp_query_args['date_range'] = array( 'gte' => $date_start, 'lte' => $date_end );
+			$es_wp_query_args['date_range'] = array(
+				'gte' => $date_start,
+				'lte' => $date_end,
+			);
 		}
 
 		// Advanced search fields
@@ -286,7 +289,7 @@ class SP_Integration extends SP_Singleton {
 			$return = array();
 			foreach ( $query->query as $qv => $value ) {
 				if ( in_array( $qv, $query_vars ) ) {
-					$taxonomy = array_search( $qv, $query_vars );
+					$taxonomy            = array_search( $qv, $query_vars );
 					$return[ $taxonomy ] = $value;
 				}
 			}

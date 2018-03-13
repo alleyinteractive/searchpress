@@ -1,8 +1,8 @@
 <?php
 
 /**
-* An abstract class for objects which will be indexed in ES.
-*/
+ * An abstract class for objects which will be indexed in ES.
+ */
 abstract class SP_Indexable {
 	/**
 	 * Hold the ID for this object for reference.
@@ -15,6 +15,7 @@ abstract class SP_Indexable {
 	 * Set the token length limit, used by string limiting functions. Defaults
 	 * to 1k, but you can alter this to your preference by calling e.g.
 	 * `SP_Indexable::$token_size_limit = 255;`
+	 *
 	 * @var integer
 	 */
 	public static $token_size_limit = 1024;
@@ -46,10 +47,10 @@ abstract class SP_Indexable {
 			'boolean' => (bool) $value,
 		);
 
-		$time = false;
+		$time   = false;
 		$double = floatval( $value );
 		if ( is_numeric( $value ) && is_finite( $double ) ) {
-			$int = intval( $value );
+			$int              = intval( $value );
 			$return['long']   = $int;
 			$return['double'] = $double;
 
