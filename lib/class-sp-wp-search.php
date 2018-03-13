@@ -10,26 +10,23 @@ class SP_WP_Search extends SP_Search {
 
 	/**
 	 * The WP-style arguments for this search.
-	 *
 	 * @var array
 	 */
 	public $wp_args;
 
 	/**
 	 * The requested facets, used to parse the facet data in the response.
-	 *
 	 * @var array
 	 */
 	public $facets = array();
 
 	/**
 	 * Construct the object.
-	 *
 	 * @param array $wp_args WP-style ES arguments.
 	 */
 	public function __construct( $wp_args ) {
 		$this->wp_args = apply_filters( 'sp_search_wp_query_args', $wp_args );
-		$es_args       = $this->wp_to_es_args( $this->wp_args );
+		$es_args = $this->wp_to_es_args( $this->wp_args );
 		if ( ! empty( $this->wp_args['facets'] ) ) {
 			$this->facets = $this->wp_args['facets'];
 		}
@@ -38,7 +35,6 @@ class SP_WP_Search extends SP_Search {
 
 	/**
 	 * Convert WP-style arguments to Elasticsearch arguments.
-	 *
 	 * @static
 	 * @param  array $args {
 	 *     WordPress-style arguments for Elasticsearch.
@@ -58,7 +54,7 @@ class SP_WP_Search extends SP_Search {
 	 *                                     Default null.
 	 *     @type array $terms Taxonomy terms to search within. Default array().
 	 *                        The format is array( 'taxonomy' => 'slug' ), e.g.
-	 *                        array( 'post_tag' => 'WordPress' ). The "slug"
+	 *                        array( 'post_tag' => 'wordpress' ). The "slug"
 	 *                        can be multiple terms, as WP would parse them if
 	 *                        they were in a URL. That is,
 	 *                        * Union (OR) 'slug-a,slug-b': Posts in slug-a OR slug-b.
@@ -129,7 +125,7 @@ class SP_WP_Search extends SP_Search {
 		$es_query_args = array(
 			'size' => absint( $args['posts_per_page'] ),
 		);
-		$filters       = array();
+		$filters = array();
 
 		/**
 		 * Pagination
@@ -199,10 +195,10 @@ class SP_WP_Search extends SP_Search {
 			foreach ( (array) $args['terms'] as $tax => $terms ) {
 				if ( strpos( $terms, ',' ) ) {
 					$terms = explode( ',', $terms );
-					$comp  = 'or';
+					$comp = 'or';
 				} else {
 					$terms = explode( '+', $terms );
-					$comp  = 'and';
+					$comp = 'and';
 				}
 
 				$terms = array_map( 'sanitize_title', $terms );
@@ -235,9 +231,9 @@ class SP_WP_Search extends SP_Search {
 		}
 
 		// Fill in the query
-		// todo: add auto phrase searching
-		// todo: add fuzzy searching to correct for spelling mistakes
-		// todo: boost title, tag, and category matches
+		//  todo: add auto phrase searching
+		//  todo: add fuzzy searching to correct for spelling mistakes
+		//  todo: boost title, tag, and category matches
 		if ( ! empty( $args['query'] ) ) {
 			$multi_match = array(
 				array(
@@ -262,7 +258,7 @@ class SP_WP_Search extends SP_Search {
 		// Ordering
 		$es_query_args['sort'] = array();
 		if ( is_string( $args['orderby'] ) ) {
-			$args['order']   = ( 'asc' === strtolower( $args['order'] ) ) ? 'asc' : 'desc';
+			$args['order'] = ( 'asc' === strtolower( $args['order'] ) ) ? 'asc' : 'desc';
 			$args['orderby'] = array( $args['orderby'] => $args['order'] );
 		}
 
@@ -270,31 +266,31 @@ class SP_WP_Search extends SP_Search {
 			$order = ( 'asc' === strtolower( $order ) ) ? 'asc' : 'desc';
 			// Translate orderby from WP field to ES field
 			switch ( strtolower( $orderby ) ) {
-				case 'relevance':
+				case 'relevance' :
 					$es_query_args['sort'][] = array( '_score' => $order );
 					break;
-				case 'date':
+				case 'date' :
 					$es_query_args['sort'][] = array( 'post_date.date' => $order );
 					break;
-				case 'modified':
+				case 'modified' :
 					$es_query_args['sort'][] = array( 'post_modified.date' => $order );
 					break;
-				case 'id':
+				case 'id' :
 					$es_query_args['sort'][] = array( 'post_id' => $order );
 					break;
-				case 'author':
+				case 'author' :
 					$es_query_args['sort'][] = array( 'post_author.user_id' => $order );
 					break;
-				case 'name':
+				case 'name' :
 					$es_query_args['sort'][] = array( 'post_name.raw' => $order );
 					break;
-				case 'title':
+				case 'title' :
 					$es_query_args['sort'][] = array( 'post_title.raw' => $order );
 					break;
-				case 'menu_order':
+				case 'menu_order' :
 					$es_query_args['sort'][] = array( 'menu_order' => $order );
 					break;
-				case 'parent':
+				case 'parent' :
 					$es_query_args['sort'][] = array( 'post_parent' => $order );
 					break;
 			}
@@ -312,7 +308,7 @@ class SP_WP_Search extends SP_Search {
 						$es_query_args['aggregations'][ $label ] = array(
 							'terms' => array(
 								'field' => "terms.{$facet['taxonomy']}.slug",
-								'size'  => $facet['count'],
+								'size' => $facet['count'],
 							),
 						);
 
@@ -322,7 +318,7 @@ class SP_WP_Search extends SP_Search {
 						$es_query_args['aggregations'][ $label ] = array(
 							'terms' => array(
 								'field' => 'post_type.raw',
-								'size'  => $facet['count'],
+								'size' => $facet['count'],
 							),
 						);
 
@@ -342,7 +338,7 @@ class SP_WP_Search extends SP_Search {
 						$es_query_args['aggregations'][ $label ] = array(
 							'terms' => array(
 								'field' => 'post_author.login',
-								'size'  => $facet['count'],
+								'size' => $facet['count'],
 							),
 						);
 
@@ -407,7 +403,7 @@ class SP_WP_Search extends SP_Search {
 				continue;
 			}
 
-			$facet_data[ $label ]          = $this->facets[ $label ];
+			$facet_data[ $label ] = $this->facets[ $label ];
 			$facet_data[ $label ]['items'] = array();
 
 			// All taxonomy terms are going to have the same query_var
@@ -474,7 +470,7 @@ class SP_WP_Search extends SP_Search {
 								continue 2;
 							}
 
-							$name       = $user->display_name;
+							$name = $user->display_name;
 							$query_vars = array( 'author' => $user->ID );
 
 							break;
@@ -485,9 +481,9 @@ class SP_WP_Search extends SP_Search {
 							switch ( $this->facets[ $label ]['interval'] ) {
 								case 'year':
 									$query_vars = array(
-										'year' => date( 'Y', $timestamp ),
+										'year'     => date( 'Y', $timestamp ),
 									);
-									$name       = date( 'Y', $timestamp );
+									$name = date( 'Y', $timestamp );
 									break;
 
 								case 'month':
@@ -495,7 +491,7 @@ class SP_WP_Search extends SP_Search {
 										'year'     => date( 'Y', $timestamp ),
 										'monthnum' => date( 'n', $timestamp ),
 									);
-									$name       = date( 'F Y', $timestamp );
+									$name = date( 'F Y', $timestamp );
 									break;
 
 								case 'day':
@@ -504,7 +500,7 @@ class SP_WP_Search extends SP_Search {
 										'monthnum' => date( 'n', $timestamp ),
 										'day'      => date( 'j', $timestamp ),
 									);
-									$name       = date( 'F j, Y', $timestamp );
+									$name = date( 'F j, Y', $timestamp );
 									break;
 
 								default:
@@ -514,7 +510,7 @@ class SP_WP_Search extends SP_Search {
 							break;
 
 						default:
-							// continue 2; // switch() is considered a looping structure
+							//continue 2; // switch() is considered a looping structure
 					}
 
 					$datum = array(

@@ -15,31 +15,31 @@ class Tests_Mapping extends SearchPress_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 
-		$this->demo_user    = array(
-			'user_login'    => 'author1',
+		$this->demo_user = array(
+			'user_login' => 'author1',
 			'user_nicename' => 'author-nicename',
-			'user_pass'     => rand_str(),
-			'role'          => 'author',
-			'display_name'  => 'Michael Scott',
+			'user_pass' => rand_str(),
+			'role' => 'author',
+			'display_name' => 'Michael Scott',
 		);
 		$this->demo_user_id = $this->factory->user->create( $this->demo_user );
 
-		$this->demo_term    = array(
+		$this->demo_term = array(
 			'taxonomy' => 'category',
-			'name'     => 'cat-a',
-			'slug'     => 'cat-a',
+			'name' => 'cat-a',
+			'slug' => 'cat-a',
 		);
 		$this->demo_term_id = $this->factory->term->create( $this->demo_term );
 
-		$post_date        = '';
+		$post_date = '';
 		$this->demo_dates = array(
-			'post_date'         => array( 'date' => '2013-02-28 01:23:45' ),
-			'post_date_gmt'     => array( 'date' => '2013-02-28 05:23:45' ),
-			'post_modified'     => array( 'date' => '2013-02-28 01:23:45' ),
+			'post_date' => array( 'date' => '2013-02-28 01:23:45' ),
+			'post_date_gmt' => array( 'date' => '2013-02-28 05:23:45' ),
+			'post_modified' => array( 'date' => '2013-02-28 01:23:45' ),
 			'post_modified_gmt' => array( 'date' => '2013-02-28 05:23:45' ),
 		);
 		foreach ( $this->demo_dates as &$date ) {
-			$ts   = strtotime( $date['date'] );
+			$ts = strtotime( $date['date'] );
 			$date = array(
 				'date'              => strval( $date['date'] ),
 				'year'              => intval( date( 'Y', $ts ) ),
@@ -56,21 +56,21 @@ class Tests_Mapping extends SearchPress_UnitTestCase {
 			);
 		}
 
-		$this->demo_post    = array(
-			'post_author'    => $this->demo_user_id,
-			'post_date'      => $this->demo_dates['post_date']['date'],
-			'post_date_gmt'  => $this->demo_dates['post_date_gmt']['date'],
-			'post_content'   => 'Welcome to <a href="http://wp.dev/">Local WordPress Dev Sites</a>. This is your first post. Edit or delete it, then start blogging!',
-			'post_title'     => 'Hello world!',
-			'post_excerpt'   => 'Lorem ipsum dolor sit amet',
-			'post_status'    => 'publish',
-			'post_password'  => 'foobar',
-			'post_name'      => 'hello-world',
-			'post_parent'    => 123,
-			'menu_order'     => 456,
-			'post_type'      => 'post',
-			'post_mime_type' => 'image/jpeg',
-			'post_category'  => array( $this->demo_term_id ),
+		$this->demo_post = array(
+			'post_author'       => $this->demo_user_id,
+			'post_date'         => $this->demo_dates['post_date']['date'],
+			'post_date_gmt'     => $this->demo_dates['post_date_gmt']['date'],
+			'post_content'      => 'Welcome to <a href="http://wp.dev/">Local WordPress Dev Sites</a>. This is your first post. Edit or delete it, then start blogging!',
+			'post_title'        => 'Hello world!',
+			'post_excerpt'      => 'Lorem ipsum dolor sit amet',
+			'post_status'       => 'publish',
+			'post_password'     => 'foobar',
+			'post_name'         => 'hello-world',
+			'post_parent'       => 123,
+			'menu_order'        => 456,
+			'post_type'         => 'post',
+			'post_mime_type'    => 'image/jpeg',
+			'post_category'     => array( $this->demo_term_id ),
 		);
 		$this->demo_post_id = $this->factory->post->create( $this->demo_post );
 		add_post_meta( $this->demo_post_id, 'test_string', 'foo' );

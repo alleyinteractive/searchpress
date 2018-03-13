@@ -1,8 +1,8 @@
 <?php
 
 /**
- * A simple class for debugging SearchPress
- */
+* A simple class for debugging SearchPress
+*/
 class SP_Debug {
 	public static $is_cli;
 

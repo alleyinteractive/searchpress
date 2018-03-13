@@ -1,10 +1,10 @@
 <?php
 
 /**
- * An object for posts in the ES index
- *
- * @todo should we index paginated posts differently? Would be nice to click a search result and go to correct page
- */
+* An object for posts in the ES index
+*
+* @todo should we index paginated posts differently? Would be nice to click a search result and go to correct page
+*/
 class SP_Post extends SP_Indexable {
 
 	/**
@@ -38,7 +38,7 @@ class SP_Post extends SP_Indexable {
 	 * OOP style accessing
 	 *
 	 * @param string $property
-	 * @param mixed  $value
+	 * @param mixed $value
 	 * @return void
 	 */
 	public function __set( $property, $value ) {
@@ -50,7 +50,7 @@ class SP_Post extends SP_Indexable {
 	 * OOP style accessing
 	 *
 	 * @param string $property
-	 * @param mixed  $value
+	 * @param mixed $value
 	 * @return void
 	 */
 	public function __get( $property ) {
@@ -73,7 +73,7 @@ class SP_Post extends SP_Indexable {
 		do_action( 'sp_debug', '[SP_Post] Populating Post' );
 		$apply_filters = apply_filters( 'sp_post_index_filtered_data', false );
 
-		$this->data['post_id'] = intval( $post->ID );
+		$this->data['post_id']           = intval( $post->ID );
 		// We're storing the login here instead of user ID, as that's more flexible
 		$this->data['post_author']       = $this->get_user( $post->post_author );
 		$this->data['post_date']         = $this->get_date( $post->post_date );
@@ -93,8 +93,8 @@ class SP_Post extends SP_Indexable {
 		$this->data['menu_order']        = intval( $post->menu_order );
 		$this->data['permalink']         = self::limit_string( strval( esc_url_raw( get_permalink( $post->ID ) ) ) );
 
-		$this->data['terms']     = $this->get_terms( $post );
-		$this->data['post_meta'] = $this->get_meta( $post->ID );
+		$this->data['terms']             = $this->get_terms( $post );
+		$this->data['post_meta']         = $this->get_meta( $post->ID );
 
 		// If a date field is empty, kill it to avoid indexing errors
 		foreach ( array( 'post_date', 'post_date_gmt', 'post_modified', 'post_modified_gmt' ) as $field ) {
@@ -122,21 +122,19 @@ class SP_Post extends SP_Indexable {
 		$meta = (array) get_post_meta( $post_id );
 
 		// Remove a filtered set of meta that we don't want indexed
-		$ignored_meta = apply_filters(
-			'sp_post_ignored_postmeta', array(
-				'_edit_lock',
-				'_edit_last',
-				'_wp_old_slug',
-				'_wp_trash_meta_time',
-				'_wp_trash_meta_status',
-				'_previous_revision',
-				'_wpas_done_all',
-				'_encloseme',
-				'_pingme',
-				'_sp_index',
-				'_sp_meta',
-			)
-		);
+		$ignored_meta = apply_filters( 'sp_post_ignored_postmeta', array(
+			'_edit_lock',
+			'_edit_last',
+			'_wp_old_slug',
+			'_wp_trash_meta_time',
+			'_wp_trash_meta_status',
+			'_previous_revision',
+			'_wpas_done_all',
+			'_encloseme',
+			'_pingme',
+			'_sp_index',
+			'_sp_meta',
+		) );
 		foreach ( $ignored_meta as $key ) {
 			unset( $meta[ $key ] );
 		}
@@ -176,7 +174,7 @@ class SP_Post extends SP_Indexable {
 		}
 
 		$object_terms = array();
-		$taxonomies   = get_object_taxonomies( $post->post_type );
+		$taxonomies = get_object_taxonomies( $post->post_type );
 		foreach ( $taxonomies as $taxonomy ) {
 			$these_terms = get_the_terms( $post->ID, $taxonomy );
 			if ( $these_terms && ! is_wp_error( $these_terms ) ) {
