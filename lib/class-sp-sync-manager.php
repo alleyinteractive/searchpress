@@ -290,8 +290,8 @@ class SP_Sync_Manager extends SP_Singleton {
 		global $wpdb;
 
 		$sync_meta = SP_Sync_Meta();
-		$post_ids  = $wpdb->get_col( "SELECT SQL_CALC_FOUND_ROWS `post_id` FROM {$wpdb->postmeta} WHERE `meta_key`='_sp_index' LIMIT 500" );
-		$total     = $wpdb->get_var( 'SELECT FOUND_ROWS()' );
+		$post_ids  = $wpdb->get_col( "SELECT SQL_CALC_FOUND_ROWS `post_id` FROM {$wpdb->postmeta} WHERE `meta_key`='_sp_index' LIMIT 500" ); // WPCS: cache ok.
+		$total     = $wpdb->get_var( 'SELECT FOUND_ROWS()' ); // WPCS: cache ok.
 		if ( ! empty( $post_ids ) ) {
 			$posts    = $this->get_posts(
 				array(
