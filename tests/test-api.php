@@ -64,6 +64,6 @@ class Tests_Api extends SearchPress_UnitTestCase {
 	}
 
 	public function test_version() {
-		$this->assertRegExp( '/^\d+\.\d+\.\d+$/', SP_API()->version() );
+		$this->assertRegExp( '/^\d+\.\d+\.\d+/', SP_API()->version() );
 	}
 }
