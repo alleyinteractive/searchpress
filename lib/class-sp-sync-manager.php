@@ -6,7 +6,6 @@
  * Controls the data sync from WordPress to elasticsearch
  *
  * Reminders and considerations while building this:
- *
  * @todo Trigger massive reindex (potentially) when indexed usermeta is edited
  * @todo Trigger massive reindex when term data is edited
  * @todo Changing permalinks should trigger full reindex?
@@ -93,12 +92,10 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @return string JSON array
 	 */
 	public function get_range( $start, $limit ) {
-		return $this->get_posts(
-			array(
-				'offset'         => $start,
-				'posts_per_page' => $limit,
-			)
-		);
+		return $this->get_posts( array(
+			'offset'         => $start,
+			'posts_per_page' => $limit,
+		) );
 	}
 
 	/**
@@ -108,16 +105,14 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @return array
 	 */
 	public function get_posts( $args = array() ) {
-		$args = wp_parse_args(
-			$args, array(
-				'post_status'         => null,
-				'post_type'           => null,
-				'orderby'             => 'ID',
-				'order'               => 'ASC',
-				'suppress_filters'    => true,
-				'ignore_sticky_posts' => true,
-			)
-		);
+		$args = wp_parse_args( $args, array(
+			'post_status'         => null,
+			'post_type'           => null,
+			'orderby'             => 'ID',
+			'order'               => 'ASC',
+			'suppress_filters'    => true,
+			'ignore_sticky_posts' => true,
+		) );
 
 		if ( empty( $args['post_type'] ) ) {
 			$args['post_type'] = SP_Config()->sync_post_types();
@@ -129,7 +124,7 @@ class SP_Sync_Manager extends SP_Singleton {
 
 		$args = apply_filters( 'searchpress_index_loop_args', $args );
 
-		$query = new WP_Query();
+		$query = new WP_Query;
 		$posts = $query->query( $args );
 
 		do_action( 'sp_debug', '[SP_Sync_Manager] Queried Posts', $args );
@@ -230,18 +225,16 @@ class SP_Sync_Manager extends SP_Singleton {
 	/**
 	 * Count the posts to index.
 	 *
-	 * @param  array $args WP_Query args used for counting.
+	 * @param  array  $args WP_Query args used for counting.
 	 * @return int Total number of posts to index.
 	 */
 	public function count_posts( $args = array() ) {
 		if ( false === $this->published_posts ) {
-			$args = wp_parse_args(
-				$args, array(
-					'post_type'      => null,
-					'post_status'    => null,
-					'posts_per_page' => 1,
-				)
-			);
+			$args = wp_parse_args( $args, array(
+				'post_type' => null,
+				'post_status' => null,
+				'posts_per_page' => 1,
+			) );
 			if ( empty( $args['post_type'] ) ) {
 				$args['post_type'] = SP_Config()->sync_post_types();
 			}
@@ -251,7 +244,7 @@ class SP_Sync_Manager extends SP_Singleton {
 
 			$args = apply_filters( 'searchpress_index_count_args', $args );
 
-			$query                 = new WP_Query( $args );
+			$query = new WP_Query( $args );
 			$this->published_posts = intval( $query->found_posts );
 		}
 		return $this->published_posts;
@@ -277,11 +270,11 @@ function SP_Sync_Manager() {
  * SP_Sync_Manager only gets instantiated when necessary, so we register these hooks outside of the class
  */
 if ( SP_Config()->active() ) {
-	add_action( 'save_post', array( SP_Sync_Manager(), 'sync_post' ) );
-	add_action( 'edit_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
-	add_action( 'add_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
+	add_action( 'save_post',                  array( SP_Sync_Manager(), 'sync_post' ) );
+	add_action( 'edit_attachment',            array( SP_Sync_Manager(), 'sync_post' ) );
+	add_action( 'add_attachment',             array( SP_Sync_Manager(), 'sync_post' ) );
 	// add_action( 'added_term_relationship',    array( SP_Sync_Manager(), 'sync_post' ) );
 	// add_action( 'deleted_term_relationships', array( SP_Sync_Manager(), 'sync_post' ) );
-	add_action( 'deleted_post', array( SP_Sync_Manager(), 'delete_post' ) );
-	add_action( 'trashed_post', array( SP_Sync_Manager(), 'delete_post' ) );
+	add_action( 'deleted_post',               array( SP_Sync_Manager(), 'delete_post' ) );
+	add_action( 'trashed_post',               array( SP_Sync_Manager(), 'delete_post' ) );
 }

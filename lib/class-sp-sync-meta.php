@@ -12,7 +12,6 @@ class SP_Sync_Meta extends SP_Singleton {
 
 	/**
 	 * Stores information about the current or most recent bulk sync.
-	 *
 	 * @access protected
 	 * @var array $data {
 	 *     @type bool  $running   Is the sync currently running? Default false.
@@ -30,7 +29,6 @@ class SP_Sync_Meta extends SP_Singleton {
 
 	/**
 	 * Store errors from routine syncing.
-	 *
 	 * @access protected
 	 * @var string
 	 */
@@ -58,15 +56,15 @@ class SP_Sync_Meta extends SP_Singleton {
 	 */
 	private function init() {
 		$this->data = array(
-			'running'   => false,   // Is the sync currently running
-			'started'   => 0,
-			'finished'  => 0,
-			'bulk'      => 500,
-			'page'      => 0,
-			'total'     => 0,
-			'processed' => 0,
-			'success'   => 0,
-			'messages'  => array(),
+			'running'       => false,	// Is the sync currently running
+			'started'       => 0,
+			'finished'      => 0,
+			'bulk'          => 500,
+			'page'          => 0,
+			'total'         => 0,
+			'processed'     => 0,
+			'success'       => 0,
+			'messages'      => array(),
 		);
 	}
 
@@ -92,7 +90,7 @@ class SP_Sync_Meta extends SP_Singleton {
 	 *                       Defaults to false.
 	 */
 	public function stop( $save = null ) {
-		$this->data['running']  = false;
+		$this->data['running'] = false;
 		$this->data['finished'] = time();
 		if ( 'save' == $save ) {
 			$this->save();
@@ -193,7 +191,7 @@ class SP_Sync_Meta extends SP_Singleton {
 	 * Set one of the sync meta properties.
 	 *
 	 * @param string $name Sync meta key.
-	 * @param mixed  $value Sync meta value.
+	 * @param mixed $value Sync meta value.
 	 */
 	public function __set( $name, $value ) {
 		if ( isset( $this->data[ $name ] ) ) {
@@ -204,7 +202,7 @@ class SP_Sync_Meta extends SP_Singleton {
 	/**
 	 * Overloaded isset.
 	 *
-	 * @param  string $name Sync meta key.
+	 * @param  string  $name Sync meta key.
 	 * @return boolean If the key exists or not.
 	 */
 	public function __isset( $name ) {
