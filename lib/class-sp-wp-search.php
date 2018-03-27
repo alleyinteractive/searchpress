@@ -433,11 +433,7 @@ class SP_WP_Search extends SP_Search {
 
 					switch ( $this->facets[ $label ]['type'] ) {
 						case 'taxonomy':
-							if ( function_exists( 'wpcom_vip_get_term_by' ) ) {
-								$term = wpcom_vip_get_term_by( 'slug', $item['key'], $this->facets[ $label ]['taxonomy'] );
-							} else {
-								$term = get_term_by( 'slug', $item['key'], $this->facets[ $label ]['taxonomy'] );
-							}
+							$term = get_term_by( 'slug', $item['key'], $this->facets[ $label ]['taxonomy'] );
 
 							if ( ! $term ) {
 								continue 2; // switch() is considered a looping structure
