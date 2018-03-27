@@ -27,6 +27,9 @@
 	<rule ref="WordPress.Arrays.ArrayDeclarationSpacing.AssociativeKeyFound">
 		<type>warning</type>
 	</rule>
+	<rule ref="WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound">
+		<type>warning</type>
+	</rule>
 	<rule ref="WordPress.VIP.RestrictedFunctions.get_term_by_get_term_by">
 		<type>warning</type>
 	</rule>

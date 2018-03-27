@@ -15,24 +15,30 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	private function contain_memory_leaks() {
 		global $wpdb, $wp_object_cache;
 		$wpdb->queries = array();
-		if ( !is_object( $wp_object_cache ) )
+		if ( ! is_object( $wp_object_cache ) ) {
 			return;
-		$wp_object_cache->group_ops = array();
-		$wp_object_cache->stats = array();
+		}
+		$wp_object_cache->group_ops      = array();
+		$wp_object_cache->stats          = array();
 		$wp_object_cache->memcache_debug = array();
-		$wp_object_cache->cache = array();
-		if ( method_exists( $wp_object_cache, '__remoteset' ) )
+		$wp_object_cache->cache          = array();
+		if ( method_exists( $wp_object_cache, '__remoteset' ) ) {
 			$wp_object_cache->__remoteset();
+		}
 	}
 
 
 	/**
 	 * Replacing the site's default search with SearchPress; this should only be done after indexing.
-	 *
 	 */
 	public function activate() {
-		WP_CLI::line( "Replacing the default search with SearchPress..." );
-		SP_Config()->update_settings( array( 'active' => true, 'must_init' => false ) );
+		WP_CLI::line( 'Replacing the default search with SearchPress...' );
+		SP_Config()->update_settings(
+			array(
+				'active'    => true,
+				'must_init' => false,
+			)
+		);
 		SP_Sync_Meta()->delete();
 		WP_CLI::success( "Successfully activated SearchPress!\n" );
 	}
@@ -40,11 +46,15 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 
 	/**
 	 * Deactivate SearchPress
-	 *
 	 */
 	public function deactivate() {
-		WP_CLI::line( "Deactivating SearchPress..." );
-		SP_Config()->update_settings( array( 'active' => false, 'must_init' => true ) );
+		WP_CLI::line( 'Deactivating SearchPress...' );
+		SP_Config()->update_settings(
+			array(
+				'active'    => false,
+				'must_init' => true,
+			)
+		);
 		SP_Sync_Meta()->delete();
 		WP_CLI::success( "Successfully deactivated SearchPress!\n" );
 	}
@@ -56,35 +66,34 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 * @subcommand put-mapping
 	 */
 	public function put_mapping() {
-		WP_CLI::line( "Adding mapping..." );
+		WP_CLI::line( 'Adding mapping...' );
 		$result = SP_Config()->create_mapping();
 		if ( '200' == SP_API()->last_request['response_code'] ) {
 			WP_CLI::success( "Successfully added mapping\n" );
 		} else {
 			print_r( SP_API()->last_request );
 			print_r( $result );
-			WP_CLI::error( "Could not add post mapping!" );
+			WP_CLI::error( 'Could not add post mapping!' );
 		}
 	}
 
 
 	/**
 	 * Flush the current index. !!Warning!! This empties your elasticsearch index for the entire site.
-	 *
 	 */
 	public function flush() {
-		WP_CLI::line( "Flushing current index..." );
+		WP_CLI::line( 'Flushing current index...' );
 		$result = SP_Config()->flush();
 		if ( '200' == SP_API()->last_request['response_code'] || '404' == SP_API()->last_request['response_code'] ) {
 			WP_CLI::success( "Successfully flushed Post index\n" );
 		} else {
 			print_r( SP_API()->last_request );
 			print_r( $result );
-			WP_CLI::error( "Could not flush existing data!" );
+			WP_CLI::error( 'Could not flush existing data!' );
 		}
 	}
 
- 	/**
+	/**
 	 * Add date range when retrieving posts in bulk.
 	 * Dates need to be passed as YYYY-MM-DD. See synopsis for index function.
 	 *
@@ -97,16 +106,16 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 				'inclusive' => true,
 			),
 		);
-		if ( isset ( $this->date_range['after'] ) ) {
-			$from = strtotime( $this->date_range['after'] );
+		if ( isset( $this->date_range['after'] ) ) {
+			$from                           = strtotime( $this->date_range['after'] );
 			$args['date_query'][0]['after'] = array(
 				'year'  => date( 'Y', $from ),
 				'month' => date( 'm', $from ),
 				'day'   => date( 'd', $from ),
 			);
 		}
-		if ( isset ( $this->date_range['before'] ) ) {
-			$to = strtotime( $this->date_range['before'] );
+		if ( isset( $this->date_range['before'] ) ) {
+			$to                              = strtotime( $this->date_range['before'] );
 			$args['date_query'][0]['before'] = array(
 				'year'  => date( 'Y', $to ),
 				'month' => date( 'm', $to ),
@@ -191,26 +200,28 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 		if ( ! empty( $args ) ) {
 			// Individual post indexing
 			$num_posts = count( $args );
-			WP_CLI::line( sprintf( _n( "Indexing %d post", "Indexing %d posts", $num_posts ), $num_posts ) );
+			WP_CLI::line( sprintf( _n( 'Indexing %d post', 'Indexing %d posts', $num_posts ), $num_posts ) );
 
 			foreach ( $args as $post_id ) {
 				$post_id = intval( $post_id );
-				if ( ! $post_id )
+				if ( ! $post_id ) {
 					continue;
+				}
 
 				WP_CLI::line( "Indexing post {$post_id}" );
 				SP_Sync_Manager()->sync_post( $post_id );
 			}
-			WP_CLI::success( "Index complete!" );
+			WP_CLI::success( 'Index complete!' );
 
 		} else {
 			// Bulk indexing
-
-			$assoc_args = array_merge( array(
-				'bulk'  => 2000,
-				'limit' => 0,
-				'page'  => 1
-			), $assoc_args );
+			$assoc_args = array_merge(
+				array(
+					'bulk'  => 2000,
+					'limit' => 0,
+					'page'  => 1,
+				), $assoc_args
+			);
 
 			if ( $assoc_args['limit'] && $assoc_args['limit'] < $assoc_args['bulk'] ) {
 				$assoc_args['bulk'] = $assoc_args['limit'];
@@ -229,18 +240,18 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 			}
 
 			$limit_number = $assoc_args['limit'] > 0 ? $assoc_args['limit'] : SP_Sync_Manager()->count_posts();
-			$limit_text = sprintf( _n( '%s post', '%s posts', $limit_number ), number_format( $limit_number ) );
+			$limit_text   = sprintf( _n( '%s post', '%s posts', $limit_number ), number_format( $limit_number ) );
 			WP_CLI::line( "Indexing {$limit_text}, " . number_format( $assoc_args['bulk'] ) . " at a time, starting on page {$assoc_args['page']}" );
 
 			// Keep tabs on where we are and what we've done
-			$sync_meta = SP_Sync_Meta();
-			$sync_meta->page = intval( $assoc_args['page'] ) - 1;
-			$sync_meta->bulk = $assoc_args['bulk'];
+			$sync_meta          = SP_Sync_Meta();
+			$sync_meta->page    = intval( $assoc_args['page'] ) - 1;
+			$sync_meta->bulk    = $assoc_args['bulk'];
 			$sync_meta->running = true;
 
-			$total_pages = $limit_number / $sync_meta->bulk;
+			$total_pages      = $limit_number / $sync_meta->bulk;
 			$total_pages_ceil = ceil( $total_pages );
-			$start_page = $sync_meta->page;
+			$start_page       = $sync_meta->page;
 
 			do {
 				$lap = microtime( true );
@@ -248,7 +259,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 
 				if ( 0 < ( $sync_meta->page - $start_page ) ) {
 					$seconds_per_page = ( microtime( true ) - $timestamp_start ) / ( $sync_meta->page - $start_page );
-					WP_CLI::line( "Completed page {$sync_meta->page}/{$total_pages_ceil} (" . number_format( ( microtime( true ) - $lap), 2 ) . 's / ' . round( memory_get_usage() / 1024 / 1024, 2 ) . 'M current / ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'M max), ' . $this->time_format( ( $total_pages - $sync_meta->page ) * $seconds_per_page ) . ' remaining' );
+					WP_CLI::line( "Completed page {$sync_meta->page}/{$total_pages_ceil} (" . number_format( ( microtime( true ) - $lap ), 2 ) . 's / ' . round( memory_get_usage() / 1024 / 1024, 2 ) . 'M current / ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'M max), ' . $this->time_format( ( $total_pages - $sync_meta->page ) * $seconds_per_page ) . ' remaining' );
 				}
 
 				$this->contain_memory_leaks();
@@ -258,15 +269,17 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 				}
 			} while ( $sync_meta->page < $total_pages_ceil );
 
-			$errors = ! empty( $sync_meta->messages['error'] ) ? count( $sync_meta->messages['error'] ) : 0;
+			$errors  = ! empty( $sync_meta->messages['error'] ) ? count( $sync_meta->messages['error'] ) : 0;
 			$errors += ! empty( $sync_meta->messages['warning'] ) ? count( $sync_meta->messages['warning'] ) : 0;
 
-			WP_CLI::success( sprintf(
-				__( "Index Complete!\n%d\tposts processed\n%d\tposts indexed\n%d\terrors/warnings", 'searchpress' ),
-				$sync_meta->processed,
-				$sync_meta->success,
-				$errors
-			) );
+			WP_CLI::success(
+				sprintf(
+					__( "Index Complete!\n%1\$d\tposts processed\n%2\$d\tposts indexed\n%3\$d\terrors/warnings", 'searchpress' ),
+					$sync_meta->processed,
+					$sync_meta->success,
+					$errors
+				)
+			);
 
 			$this->activate();
 		}
@@ -281,11 +294,13 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 * @synopsis <post_id>
 	 */
 	public function debug( $args ) {
-		if ( empty( $args[0] ) )
-			WP_CLI::error( "Invalid post ID" );
+		if ( empty( $args[0] ) ) {
+			WP_CLI::error( 'Invalid post ID' );
+		}
 		$post_id = intval( $args[0] );
-		if ( ! $post_id )
-			WP_CLI::error( "Invalid post ID" );
+		if ( ! $post_id ) {
+			WP_CLI::error( 'Invalid post ID' );
+		}
 
 		global $wpdb;
 		$timestamp_start = microtime( true );
@@ -294,32 +309,32 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 
 		SP_Sync_Manager()->sync_post( $post_id );
 
-		WP_CLI::success( "Index complete!" );
+		WP_CLI::success( 'Index complete!' );
 		print_r( $wpdb->queries );
 
 		$this->finish( $timestamp_start );
 	}
 
 	private function finish( $timestamp_start ) {
-		WP_CLI::line( "Process completed in " . $this->time_format( microtime( true ) - $timestamp_start ) );
-		WP_CLI::line( "Max memory usage was " . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . "M" );
+		WP_CLI::line( 'Process completed in ' . $this->time_format( microtime( true ) - $timestamp_start ) );
+		WP_CLI::line( 'Max memory usage was ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'M' );
 	}
 
 	private function time_format( $seconds ) {
 		$ret = '';
 		if ( $seconds > DAY_IN_SECONDS ) {
-			$days = floor( $seconds / DAY_IN_SECONDS );
-			$ret .= $days . 'd';
+			$days     = floor( $seconds / DAY_IN_SECONDS );
+			$ret     .= $days . 'd';
 			$seconds -= $days * DAY_IN_SECONDS;
 		}
 		if ( $seconds > HOUR_IN_SECONDS ) {
-			$hours = floor( $seconds / HOUR_IN_SECONDS );
-			$ret .= $hours . 'h';
+			$hours    = floor( $seconds / HOUR_IN_SECONDS );
+			$ret     .= $hours . 'h';
 			$seconds -= $hours * HOUR_IN_SECONDS;
 		}
 		if ( $seconds > MINUTE_IN_SECONDS ) {
-			$minutes = floor( $seconds / MINUTE_IN_SECONDS );
-			$ret .= $minutes . 'm';
+			$minutes  = floor( $seconds / MINUTE_IN_SECONDS );
+			$ret     .= $minutes . 'm';
 			$seconds -= $minutes * MINUTE_IN_SECONDS;
 		}
 		return $ret . absint( ceil( $seconds ) ) . 's';

@@ -11,27 +11,106 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 
-		$cat = $this->factory->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-demo' ) );
-		$tag = $this->factory->term->create( array( 'taxonomy' => 'post_tag', 'name' => 'tag-demo' ) );
+		$cat = $this->factory->term->create(
+			array(
+				'taxonomy' => 'category',
+				'name'     => 'cat-demo',
+			)
+		);
+		$tag = $this->factory->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'tag-demo',
+			)
+		);
 
-		$this->factory->post->create( array( 'post_title' => 'lorem-ipsum', 'post_date' => '2009-07-01 00:00:00', 'post_category' => array( $cat ) ) );
-		$this->factory->post->create( array( 'post_title' => 'comment-test', 'post_date' => '2009-08-01 00:00:00', 'post_category' => array( $cat ) ) );
-		$this->factory->post->create( array( 'post_title' => 'one-trackback', 'post_date' => '2009-09-01 00:00:00', 'post_category' => array( $cat ) ) );
-		$this->factory->post->create( array( 'post_title' => 'many-trackbacks', 'post_date' => '2009-10-01 00:00:00', 'post_category' => array( $cat ) ) );
-		$this->factory->post->create( array( 'post_title' => 'no-comments', 'post_date' => '2009-10-02 00:00:00' ) );
+		$this->factory->post->create(
+			array(
+				'post_title'    => 'lorem-ipsum',
+				'post_date'     => '2009-07-01 00:00:00',
+				'post_category' => array( $cat ),
+			)
+		);
+		$this->factory->post->create(
+			array(
+				'post_title'    => 'comment-test',
+				'post_date'     => '2009-08-01 00:00:00',
+				'post_category' => array( $cat ),
+			)
+		);
+		$this->factory->post->create(
+			array(
+				'post_title'    => 'one-trackback',
+				'post_date'     => '2009-09-01 00:00:00',
+				'post_category' => array( $cat ),
+			)
+		);
+		$this->factory->post->create(
+			array(
+				'post_title'    => 'many-trackbacks',
+				'post_date'     => '2009-10-01 00:00:00',
+				'post_category' => array( $cat ),
+			)
+		);
+		$this->factory->post->create(
+			array(
+				'post_title' => 'no-comments',
+				'post_date'  => '2009-10-02 00:00:00',
+			)
+		);
 
-		$this->factory->post->create( array( 'post_title' => 'one-comment', 'post_date' => '2009-11-01 00:00:00', 'tags_input' => array( $tag ) ) );
-		$this->factory->post->create( array( 'post_title' => 'contributor-post-approved', 'post_date' => '2009-12-01 00:00:00' ) );
-		$this->factory->post->create( array( 'post_title' => 'many-comments', 'post_date' => '2010-01-01 00:00:00' ) );
-		$this->factory->post->create( array( 'post_title' => 'simple-markup-test', 'post_date' => '2010-02-01 00:00:00', 'tags_input' => array( $tag ) ) );
-		$this->factory->post->create( array( 'post_title' => 'raw-html-code', 'post_date' => '2010-03-01 00:00:00', 'tags_input' => array( $tag ) ) );
+		$this->factory->post->create(
+			array(
+				'post_title' => 'one-comment',
+				'post_date'  => '2009-11-01 00:00:00',
+				'tags_input' => array( $tag ),
+			)
+		);
+		$this->factory->post->create(
+			array(
+				'post_title' => 'contributor-post-approved',
+				'post_date'  => '2009-12-01 00:00:00',
+			)
+		);
+		$this->factory->post->create(
+			array(
+				'post_title' => 'many-comments',
+				'post_date'  => '2010-01-01 00:00:00',
+			)
+		);
+		$this->factory->post->create(
+			array(
+				'post_title' => 'simple-markup-test',
+				'post_date'  => '2010-02-01 00:00:00',
+				'tags_input' => array( $tag ),
+			)
+		);
+		$this->factory->post->create(
+			array(
+				'post_title' => 'raw-html-code',
+				'post_date'  => '2010-03-01 00:00:00',
+				'tags_input' => array( $tag ),
+			)
+		);
 
 		register_post_type( 'cpt', array( 'public' => true ) );
 		SP_Config()->post_types = null;
 		sp_searchable_post_types( true );
 
-		$this->factory->post->create( array( 'post_title' => 'cpt', 'post_date' => '2010-01-01 00:00:00', 'post_type' => 'cpt' ) );
-		$this->factory->post->create( array( 'post_title' => 'lorem-cpt', 'post_date' => '2010-01-01 00:00:00', 'post_type' => 'cpt' ) );
+		$this->factory->post->create(
+			array(
+				'post_title' => 'cpt',
+				'post_date'  => '2010-01-01 00:00:00',
+				'post_type'  => 'cpt',
+			)
+		);
+		$this->factory->post->create(
+			array(
+				'post_title' => 'lorem-cpt',
+				'post_date'  => '2010-01-01 00:00:00',
+				'post_type'  => 'cpt',
+			)
+		);
 
 		// Force refresh the index so the data is available immediately
 		SP_API()->post( '_refresh' );

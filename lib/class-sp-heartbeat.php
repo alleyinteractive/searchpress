@@ -8,24 +8,28 @@ class SP_Heartbeat extends SP_Singleton {
 
 	/**
 	 * What cluster statuses do we consider successful? Default is ['yellow', 'green'].
+	 *
 	 * @var array
 	 */
 	public $healthy_statuses = array( 'yellow', 'green' );
 
 	/**
 	 * Store the intervals at which the heartbeat gets scheduled.
+	 *
 	 * @var array
 	 */
 	public $intervals = array();
 
 	/**
 	 * Store the threshholds that we compare against our last heartbeat.
+	 *
 	 * @var array
 	 */
 	public $thresholds = array();
 
 	/**
 	 * The action that the cron fires.
+	 *
 	 * @access protected
 	 * @var string
 	 */
@@ -33,6 +37,7 @@ class SP_Heartbeat extends SP_Singleton {
 
 	/**
 	 * Cached result of the heartbeat check.
+	 *
 	 * @access protected
 	 * @var boolean
 	 */
@@ -40,6 +45,7 @@ class SP_Heartbeat extends SP_Singleton {
 
 	/**
 	 * Cached result of the time of last heartbeat.
+	 *
 	 * @var int
 	 */
 	protected $last_beat;
@@ -56,9 +62,9 @@ class SP_Heartbeat extends SP_Singleton {
 		);
 
 		$this->thresholds = array(
-			'alert'     => 8 * MINUTE_IN_SECONDS,
-			'notify'    => 15 * MINUTE_IN_SECONDS,
-			'shutdown'  => 15 * MINUTE_IN_SECONDS,
+			'alert'    => 8 * MINUTE_IN_SECONDS,
+			'notify'   => 15 * MINUTE_IN_SECONDS,
+			'shutdown' => 15 * MINUTE_IN_SECONDS,
 		);
 
 		$this->maybe_schedule_cron();
@@ -76,7 +82,7 @@ class SP_Heartbeat extends SP_Singleton {
 	public function check_beat( $force = false ) {
 		// Ensure we only check the beat once per request
 		if ( $force || ! isset( $this->beat_result ) ) {
-			$health = SP_API()->cluster_health();
+			$health            = SP_API()->cluster_health();
 			$this->beat_result = ( ! empty( $health->status ) && in_array( $health->status, $this->healthy_statuses ) );
 			if ( $this->beat_result ) {
 				$this->record_pulse();
@@ -113,8 +119,8 @@ class SP_Heartbeat extends SP_Singleton {
 	/**
 	 * Check if SearchPress has a pulse within the provided threshold.
 	 *
-	 * @param  string  $threshold Optional. One of SP_Heartbeat::thresholds.
-	 *                            Defaults to 'shutdown'.
+	 * @param  string $threshold Optional. One of SP_Heartbeat::thresholds.
+	 *                           Defaults to 'shutdown'.
 	 * @return boolean
 	 */
 	public function has_pulse( $threshold = 'shutdown' ) {
@@ -168,6 +174,7 @@ class SP_Heartbeat extends SP_Singleton {
 
 	/**
 	 * Reschedules the cron event at the given interval from now.
+	 *
 	 * @param  string $interval Time from now to schedule the heartbeat.
 	 *                          possible values are in SP_Heartbeat::intervals.
 	 */
