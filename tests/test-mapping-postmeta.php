@@ -47,12 +47,7 @@ class Tests_Mapping_Postmeta extends SearchPress_UnitTestCase {
 	 * @dataProvider meta_sample_data
 	 */
 	function test_mapping_post_meta( $value, $boolean, $long, $double, $datetime ) {
-		$demo_post_id = $this->factory->post->create(
-			array(
-				'post_title' => rand_str(),
-				'post_date'  => '2015-01-02 03:04:05',
-			)
-		);
+		$demo_post_id = $this->factory->post->create( array( 'post_title' => rand_str(), 'post_date' => '2015-01-02 03:04:05' ) );
 
 		add_post_meta( $demo_post_id, 'mapping_postmeta_test', $value );
 		SP_Sync_Manager()->sync_post( $demo_post_id );
@@ -114,13 +109,7 @@ class Tests_Mapping_Postmeta extends SearchPress_UnitTestCase {
 	 * @dataProvider long_string_data
 	 */
 	public function test_long_strings( $string, $should_truncate_indexed, $should_truncate_raw ) {
-		$demo_post_id = $this->factory->post->create(
-			array(
-				'post_title'   => rand_str(),
-				'post_date'    => '2015-01-02 03:04:05',
-				'post_content' => $string,
-			)
-		);
+		$demo_post_id = $this->factory->post->create( array( 'post_title' => rand_str(), 'post_date' => '2015-01-02 03:04:05', 'post_content' => $string ) );
 
 		add_post_meta( $demo_post_id, 'long_string_test', $string );
 		SP_Sync_Manager()->sync_post( $demo_post_id );

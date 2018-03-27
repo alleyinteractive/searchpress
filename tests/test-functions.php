@@ -37,7 +37,7 @@ class Tests_Functions extends PHPUnit_Framework_TestCase {
 			array(
 				array( 'child' => array( 7, 8, 9 ) ),
 				array( 'child' ),
-				array( 7, 8, 9 ),
+				array( 7, 8, 9 )
 			),
 			array(
 				array(

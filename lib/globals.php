@@ -15,4 +15,4 @@ define( 'SP_MAP_VERSION', 2016112401 );
 define( 'SP_ERROR_FLUSH_FAIL', '100' );
 
 // SP_Heartbeat()->check_beat() failed
-define( 'SP_ERROR_NO_BEAT', '101' );
+define( 'SP_ERROR_NO_BEAT',    '101' );
