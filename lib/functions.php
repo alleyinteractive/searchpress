@@ -114,18 +114,16 @@ function sp_searchable_post_statuses( $reload = false ) {
 		$post_statuses = SP_Config()->sync_statuses();
 
 		// Collect post statuses we don't want to search and exclude them.
-		$exclude       = array_values(
-			get_post_stati(
-				array(
-					'internal'            => true,
-					'exclude_from_search' => true,
-					'private'             => true,
-					'protected'           => true,
-				),
-				'names',
-				'or'
-			)
-		);
+		$exclude = array_values( get_post_stati(
+			array(
+				'internal'            => true,
+				'exclude_from_search' => true,
+				'private'             => true,
+				'protected'           => true,
+			),
+			'names',
+			'or'
+		) );
 		$post_statuses = array_values( array_diff( $post_statuses, $exclude ) );
 
 		/**
@@ -136,7 +134,7 @@ function sp_searchable_post_statuses( $reload = false ) {
 		 * @param array $post_statuses Post statuses.
 		 */
 		$post_statuses = apply_filters( 'sp_searchable_post_statuses', $post_statuses );
-	}//end if
+	}
 	return $post_statuses;
 }
 

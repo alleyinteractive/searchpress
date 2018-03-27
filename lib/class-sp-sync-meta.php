@@ -56,15 +56,15 @@ class SP_Sync_Meta extends SP_Singleton {
 	 */
 	private function init() {
 		$this->data = array(
-			'running'   => false,   // Is the sync currently running
-			'started'   => 0,
-			'finished'  => 0,
-			'bulk'      => 500,
-			'page'      => 0,
-			'total'     => 0,
-			'processed' => 0,
-			'success'   => 0,
-			'messages'  => array(),
+			'running'       => false,	// Is the sync currently running
+			'started'       => 0,
+			'finished'      => 0,
+			'bulk'          => 500,
+			'page'          => 0,
+			'total'         => 0,
+			'processed'     => 0,
+			'success'       => 0,
+			'messages'      => array(),
 		);
 	}
 
@@ -90,7 +90,7 @@ class SP_Sync_Meta extends SP_Singleton {
 	 *                       Defaults to false.
 	 */
 	public function stop( $save = null ) {
-		$this->data['running']  = false;
+		$this->data['running'] = false;
 		$this->data['finished'] = time();
 		if ( 'save' == $save ) {
 			$this->save();

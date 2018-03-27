@@ -46,10 +46,10 @@ abstract class SP_Indexable {
 			'boolean' => (bool) $value,
 		);
 
-		$time   = false;
+		$time = false;
 		$double = floatval( $value );
 		if ( is_numeric( $value ) && is_finite( $double ) ) {
-			$int              = intval( $value );
+			$int = intval( $value );
 			$return['long']   = $int;
 			$return['double'] = $double;
 
@@ -76,7 +76,7 @@ abstract class SP_Indexable {
 
 			// add date/time if we have it.
 			$time = strtotime( $value );
-		}//end if
+		}
 
 		if ( false !== $time ) {
 			$return['date']     = date( 'Y-m-d', $time );
