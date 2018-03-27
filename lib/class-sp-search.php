@@ -66,16 +66,16 @@ class SP_Search {
 	 */
 	public function get_results( $return = 'raw' ) {
 		switch ( $return ) {
-			case 'hits' :
+			case 'hits':
 				return ( ! empty( $this->search_results['hits']['hits'] ) ) ? $this->search_results['hits']['hits'] : array();
 
-			case 'total' :
+			case 'total':
 				return ( ! empty( $this->search_results['hits']['total'] ) ) ? intval( $this->search_results['hits']['total'] ) : 0;
 
-			case 'facets' :
+			case 'facets':
 				return ( ! empty( $this->search_results['aggregations'] ) ) ? $this->search_results['aggregations'] : array();
 
-			default :
+			default:
 				return $this->search_results;
 		}
 	}
@@ -113,14 +113,16 @@ class SP_Search {
 			$this->posts = array();
 		} else {
 			$ids = $this->pluck_field( 'post_id' );
-			$this->posts = get_posts( array(
-				'post_type'      => array_values( get_post_types() ),
-				'post_status'    => array_values( get_post_stati() ),
-				'posts_per_page' => $this->get_results( 'total' ),
-				'post__in'       => $ids,
-				'orderby'        => 'post__in',
-				'order'          => 'ASC',
-			) );
+			$this->posts = get_posts(
+				array(
+					'post_type'      => array_values( get_post_types() ),
+					'post_status'    => array_values( get_post_stati() ),
+					'posts_per_page' => $this->get_results( 'total' ),
+					'post__in'       => $ids,
+					'orderby'        => 'post__in',
+					'order'          => 'ASC',
+				)
+			);
 		}
 
 		return $this->posts;

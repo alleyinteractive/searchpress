@@ -92,10 +92,12 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @return string JSON array
 	 */
 	public function get_range( $start, $limit ) {
-		return $this->get_posts( array(
-			'offset'         => $start,
-			'posts_per_page' => $limit,
-		) );
+		return $this->get_posts(
+			array(
+				'offset'         => $start,
+				'posts_per_page' => $limit,
+			)
+		);
 	}
 
 	/**
@@ -105,14 +107,16 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @return array
 	 */
 	public function get_posts( $args = array() ) {
-		$args = wp_parse_args( $args, array(
-			'post_status'         => null,
-			'post_type'           => null,
-			'orderby'             => 'ID',
-			'order'               => 'ASC',
-			'suppress_filters'    => true,
-			'ignore_sticky_posts' => true,
-		) );
+		$args = wp_parse_args(
+			$args, array(
+				'post_status'         => null,
+				'post_type'           => null,
+				'orderby'             => 'ID',
+				'order'               => 'ASC',
+				'suppress_filters'    => true,
+				'ignore_sticky_posts' => true,
+			)
+		);
 
 		if ( empty( $args['post_type'] ) ) {
 			$args['post_type'] = SP_Config()->sync_post_types();
@@ -230,11 +234,13 @@ class SP_Sync_Manager extends SP_Singleton {
 	 */
 	public function count_posts( $args = array() ) {
 		if ( false === $this->published_posts ) {
-			$args = wp_parse_args( $args, array(
-				'post_type' => null,
-				'post_status' => null,
-				'posts_per_page' => 1,
-			) );
+			$args = wp_parse_args(
+				$args, array(
+					'post_type' => null,
+					'post_status' => null,
+					'posts_per_page' => 1,
+				)
+			);
 			if ( empty( $args['post_type'] ) ) {
 				$args['post_type'] = SP_Config()->sync_post_types();
 			}

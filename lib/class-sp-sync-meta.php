@@ -56,7 +56,7 @@ class SP_Sync_Meta extends SP_Singleton {
 	 */
 	private function init() {
 		$this->data = array(
-			'running'       => false,	// Is the sync currently running
+			'running'       => false,   // Is the sync currently running
 			'started'       => 0,
 			'finished'      => 0,
 			'bulk'          => 500,

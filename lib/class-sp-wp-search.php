@@ -266,31 +266,31 @@ class SP_WP_Search extends SP_Search {
 			$order = ( 'asc' === strtolower( $order ) ) ? 'asc' : 'desc';
 			// Translate orderby from WP field to ES field
 			switch ( strtolower( $orderby ) ) {
-				case 'relevance' :
+				case 'relevance':
 					$es_query_args['sort'][] = array( '_score' => $order );
 					break;
-				case 'date' :
+				case 'date':
 					$es_query_args['sort'][] = array( 'post_date.date' => $order );
 					break;
-				case 'modified' :
+				case 'modified':
 					$es_query_args['sort'][] = array( 'post_modified.date' => $order );
 					break;
-				case 'id' :
+				case 'id':
 					$es_query_args['sort'][] = array( 'post_id' => $order );
 					break;
-				case 'author' :
+				case 'author':
 					$es_query_args['sort'][] = array( 'post_author.user_id' => $order );
 					break;
-				case 'name' :
+				case 'name':
 					$es_query_args['sort'][] = array( 'post_name.raw' => $order );
 					break;
-				case 'title' :
+				case 'title':
 					$es_query_args['sort'][] = array( 'post_title.raw' => $order );
 					break;
-				case 'menu_order' :
+				case 'menu_order':
 					$es_query_args['sort'][] = array( 'menu_order' => $order );
 					break;
-				case 'parent' :
+				case 'parent':
 					$es_query_args['sort'][] = array( 'post_parent' => $order );
 					break;
 			}

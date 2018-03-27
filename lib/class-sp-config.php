@@ -303,9 +303,11 @@ class SP_Config extends SP_Singleton {
 		 *                          `{year}{month}{day}{version}` where version
 		 *                          is a two-digit sequential number.
 		 */
-		$this->update_settings( array(
-			'map_version' => apply_filters( 'sp_map_version', SP_MAP_VERSION ),
-		) );
+		$this->update_settings(
+			array(
+				'map_version' => apply_filters( 'sp_map_version', SP_MAP_VERSION ),
+			)
+		);
 
 		return SP_API()->put( '', wp_json_encode( $mapping ) );
 	}
@@ -318,13 +320,15 @@ class SP_Config extends SP_Singleton {
 
 	public function get_settings() {
 		$settings = get_option( 'sp_settings' );
-		$this->settings = wp_parse_args( $settings, array(
-			'host'        => 'http://localhost:9200',
-			'must_init'   => true,
-			'active'      => false,
-			'map_version' => 0,
-			'es_version'  => -1,
-		) );
+		$this->settings = wp_parse_args(
+			$settings, array(
+				'host'        => 'http://localhost:9200',
+				'must_init'   => true,
+				'active'      => false,
+				'map_version' => 0,
+				'es_version'  => -1,
+			)
+		);
 		return $this->settings;
 	}
 
@@ -370,9 +374,11 @@ class SP_Config extends SP_Singleton {
 	public function update_version() {
 		$version = SP_API()->version();
 		if ( $version && $this->get_setting( 'es_version' ) !== $version ) {
-			$this->update_settings( array(
-				'es_version' => $version,
-			) );
+			$this->update_settings(
+				array(
+					'es_version' => $version,
+				)
+			);
 		}
 	}
 

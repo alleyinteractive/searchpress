@@ -122,17 +122,19 @@ class SP_Post extends SP_Indexable {
 		$meta = (array) get_post_meta( $post_id );
 
 		// Remove a filtered set of meta that we don't want indexed
-		$ignored_meta = apply_filters( 'sp_post_ignored_postmeta', array(
-			'_edit_lock',
-			'_edit_last',
-			'_wp_old_slug',
-			'_wp_trash_meta_time',
-			'_wp_trash_meta_status',
-			'_previous_revision',
-			'_wpas_done_all',
-			'_encloseme',
-			'_pingme',
-		) );
+		$ignored_meta = apply_filters(
+			'sp_post_ignored_postmeta', array(
+				'_edit_lock',
+				'_edit_last',
+				'_wp_old_slug',
+				'_wp_trash_meta_time',
+				'_wp_trash_meta_status',
+				'_previous_revision',
+				'_wpas_done_all',
+				'_encloseme',
+				'_pingme',
+			)
+		);
 		foreach ( $ignored_meta as $key ) {
 			unset( $meta[ $key ] );
 		}

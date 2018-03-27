@@ -86,13 +86,15 @@ class SP_API extends SP_Singleton {
 			return $result['body'];
 		}
 
-		return wp_json_encode( array(
-			'error' => array(
-				'code' => $result->get_error_code(),
-				'message' => $result->get_error_message(),
-				'data' => $result->get_error_data(),
-			),
-		) );
+		return wp_json_encode(
+			array(
+				'error' => array(
+					'code' => $result->get_error_code(),
+					'message' => $result->get_error_message(),
+					'data' => $result->get_error_data(),
+				),
+			)
+		);
 	}
 
 	public function parse_url( $url = '' ) {
@@ -154,9 +156,11 @@ class SP_API extends SP_Singleton {
 	}
 
 	public function search( $query, $args = array() ) {
-		$args = wp_parse_args( $args, array(
-			'output' => OBJECT,
-		) );
+		$args = wp_parse_args(
+			$args, array(
+				'output' => OBJECT,
+			)
+		);
 		return $this->post( 'post/_search', $query, $args['output'] );
 	}
 
