@@ -56,9 +56,9 @@ class SP_Heartbeat extends SP_Singleton {
 		);
 
 		$this->thresholds = array(
-			'alert'     => 8 * MINUTE_IN_SECONDS,
-			'notify'    => 15 * MINUTE_IN_SECONDS,
-			'shutdown'  => 15 * MINUTE_IN_SECONDS,
+			'alert'    => 8 * MINUTE_IN_SECONDS,
+			'notify'   => 15 * MINUTE_IN_SECONDS,
+			'shutdown' => 15 * MINUTE_IN_SECONDS,
 		);
 
 		$this->maybe_schedule_cron();
@@ -76,7 +76,7 @@ class SP_Heartbeat extends SP_Singleton {
 	public function check_beat( $force = false ) {
 		// Ensure we only check the beat once per request
 		if ( $force || ! isset( $this->beat_result ) ) {
-			$health = SP_API()->cluster_health();
+			$health            = SP_API()->cluster_health();
 			$this->beat_result = ( ! empty( $health->status ) && in_array( $health->status, $this->healthy_statuses ) );
 			if ( $this->beat_result ) {
 				$this->record_pulse();
