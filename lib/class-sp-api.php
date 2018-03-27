@@ -26,6 +26,9 @@ class SP_API extends SP_Singleton {
 			'timeout'            => 10,
 			'user-agent'         => 'SearchPress 0.1 for WordPress',
 			'reject_unsafe_urls' => false,
+			'headers'            => array(
+				'Content-Type' => 'application/json',
+			),
 		);
 
 		// Increase the timeout for bulk indexing

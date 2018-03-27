@@ -32,7 +32,10 @@ function sp_manually_load_plugin() {
 	do {
 		$response = wp_remote_get( 'http://localhost:9200/' );
 		if ( '200' == wp_remote_retrieve_response_code( $response ) ) {
-			// Looks good!
+			$body = json_decode( wp_remote_retrieve_body( $response ), true );
+			if ( ! empty( $body['version']['number'] ) ) {
+				printf( "Elasticsearch is up and running, using version %s.\n", $body['version']['number'] );
+			}
 			break;
 		} else {
 			printf( "\nInvalid response from ES (%s), sleeping %d seconds and trying again...\n", wp_remote_retrieve_response_code( $response ), $sleep );

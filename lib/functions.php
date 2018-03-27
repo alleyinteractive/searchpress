@@ -191,5 +191,5 @@ function sp_global_cluster_health() {
  * @return bool|null Null on failure, bool on success.
  */
 function sp_es_version_compare( $version, $compare = '>=' ) {
-	return version_compare( $version, SP_Config()->get_es_version(), $compare );
+	return version_compare( SP_Config()->get_es_version(), $version, $compare );
 }
