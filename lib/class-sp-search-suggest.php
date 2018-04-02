@@ -26,8 +26,6 @@ class SP_Search_Suggest extends SP_Singleton {
 		$mapping['mappings']['post']['properties']['search_suggest'] = array(
 			'type' => 'completion',
 			'analyzer' => 'standard',
-			'search_analyzer' => 'standard',
-			'payloads' => true,
 		);
 
 		return $mapping;
@@ -89,11 +87,6 @@ class SP_Search_Suggest extends SP_Singleton {
 				'input' => apply_filters( 'sp_search_suggest_data', array(
 					$data['post_title'],
 				), $data, $sp_post ),
-				'output' => $data['post_title'],
-				'payload' => array(
-					'id' => $data['post_id'],
-					'permalink' => $data['permalink'],
-				),
 			);
 		}
 
@@ -139,16 +132,23 @@ class SP_Search_Suggest extends SP_Singleton {
 		 * @param array Search suggest query.
 		 */
 		$request = apply_filters( 'sp_search_suggest_query', array(
-			'search_suggestions' => array(
-				'text' => $fragment,
-				'completion' => array(
-					'field' => 'search_suggest',
+			'suggest' => array(
+				'search_suggestions' => array(
+					'prefix' => $fragment,
+					'completion' => array(
+						'field' => 'search_suggest',
+					),
 				),
 			),
+			'_source' => array(
+				'post_id',
+				'post_title',
+				'permalink',
+			),
 		) );
-		$results = SP_API()->post( '_suggest', wp_json_encode( $request ), ARRAY_A );
+		$results = SP_API()->search( wp_json_encode( $request ), array( 'output' => ARRAY_A ) );
 
-		$options = ! empty( $results['search_suggestions'][0]['options'] )
+		$options = ! empty( $results['suggest']['search_suggestions'][0]['options'] )
 			? $results['search_suggestions'][0]['options']
 			: array();
 
