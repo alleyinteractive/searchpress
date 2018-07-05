@@ -19,7 +19,7 @@ class SP_API extends SP_Singleton {
 	 */
 	public function setup() {
 		$url = get_site_url();
-		$this->index = preg_replace( '#^.*?//(.*?)/?$#', '$1', $url );
+		$this->index = str_replace ('/', '_', preg_replace( '#^.*?//(.*?)/?$#', '$1', $url ) );
 		$this->host = SP_Config()->get_setting( 'host' );
 		$this->request_defaults = array(
 			'sslverify'          => false,
