@@ -127,6 +127,13 @@ class SP_Config extends SP_Singleton {
 	 * @return mixed {@see SP_API::put()}.
 	 */
 	public function create_mapping() {
+		if ( sp_es_version_compare( '5.0' ) ) {
+			$analyzed_string_type = 'text';
+			$not_analyzed_string = array( 'type' => 'keyword' );
+		} else {
+			$analyzed_string_type = 'string';
+			$not_analyzed_string = array( 'type' => 'string', 'index' => 'not_analyzed' );
+		}
 		$mapping = array(
 			'settings' => array(
 				'analysis' => array(
@@ -153,8 +160,8 @@ class SP_Config extends SP_Singleton {
 								'mapping' => array(
 									'type' => 'object',
 									'properties' => array(
-										'value' => array( 'type' => 'string' ),
-										'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
+										'value' => array( 'type' => $analyzed_string_type ),
+										'raw' => $not_analyzed_string,
 										'long' => array( 'type' => 'long' ),
 										'double' => array( 'type' => 'double' ),
 										'boolean' => array( 'type' => 'boolean' ),
@@ -172,29 +179,29 @@ class SP_Config extends SP_Singleton {
 									'type' => 'object',
 									'properties' => array(
 										'name' => array(
-											'type' => 'string',
+											'type' => $analyzed_string_type,
 											'fields' => array(
-												'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
+												'raw' => $not_analyzed_string,
 											),
 										),
 										'term_id' => array( 'type' => 'long' ),
 										'parent' => array( 'type' => 'long' ),
-										'slug' => array( 'type' => 'string', 'index' => 'not_analyzed' ),
+										'slug' => $not_analyzed_string,
 									),
 								),
 							),
 						),
 					),
-					'_all' => array( 'analyzer' => 'simple' ),
+					'_all' => array( 'enabled' => false ),
 					'properties' => array(
-						'post_id'     => array( 'type' => 'long', 'include_in_all' => false ),
+						'post_id'     => array( 'type' => 'long' ),
 						'post_author' => array(
 							'type'       => 'object',
 							'properties' => array(
-								'user_id'       => array( 'type' => 'long', 'include_in_all' => false ),
-								'display_name'  => array( 'type' => 'string' ),
-								'login'         => array( 'type' => 'string', 'index' => 'not_analyzed' ),
-								'user_nicename' => array( 'type' => 'string', 'index' => 'not_analyzed' ),
+								'user_id'       => array( 'type' => 'long' ),
+								'display_name'  => array( 'type' => $analyzed_string_type ),
+								'login'         => $not_analyzed_string,
+								'user_nicename' => $not_analyzed_string,
 							),
 						),
 						'post_date' => array(
@@ -270,32 +277,32 @@ class SP_Config extends SP_Singleton {
 							),
 						),
 						'post_title' => array(
-							'type' => 'string',
+							'type' => $analyzed_string_type,
 							'fields' => array(
-								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
+								'raw' => $not_analyzed_string,
 							),
 						),
-						'post_excerpt' => array( 'type' => 'string' ),
-						'post_content' => array( 'type' => 'string' ),
-						'post_status' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
-						'parent_status' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
+						'post_excerpt' => array( 'type' => $analyzed_string_type ),
+						'post_content' => array( 'type' => $analyzed_string_type ),
+						'post_status' => $not_analyzed_string,
+						'parent_status' => $not_analyzed_string,
 						'post_name' => array(
-							'type' => 'string',
+							'type' => $analyzed_string_type,
 							'fields' => array(
-								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
+								'raw' => $not_analyzed_string,
 							),
 						),
-						'post_parent' => array( 'type' => 'long', 'include_in_all' => false ),
+						'post_parent' => array( 'type' => 'long' ),
 						'post_type' => array(
-							'type' => 'string',
+							'type' => $analyzed_string_type,
 							'fields' => array(
-								'raw' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
+								'raw' => $not_analyzed_string,
 							),
 						),
-						'post_mime_type' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
-						'post_password' => array( 'type' => 'string', 'index' => 'not_analyzed', 'include_in_all' => false ),
+						'post_mime_type' => $not_analyzed_string,
+						'post_password' => $not_analyzed_string,
 						'menu_order' => array( 'type' => 'integer' ),
-						'permalink' => array( 'type' => 'string' ),
+						'permalink' => array( 'type' => $analyzed_string_type ),
 						'terms' => array( 'type' => 'object' ),
 						'post_meta' => array( 'type' => 'object' ),
 					),
