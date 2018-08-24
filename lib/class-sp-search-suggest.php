@@ -149,7 +149,7 @@ class SP_Search_Suggest extends SP_Singleton {
 		$results = SP_API()->search( wp_json_encode( $request ), array( 'output' => ARRAY_A ) );
 
 		$options = ! empty( $results['suggest']['search_suggestions'][0]['options'] )
-			? $results['search_suggestions'][0]['options']
+			? $results['suggest']['search_suggestions'][0]['options']
 			: array();
 
 		/**
