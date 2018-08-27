@@ -110,7 +110,7 @@ class SP_Search_Suggest extends SP_Singleton {
 	 */
 	public function rest_response( $request ) {
 		// Sanitize the request arguments.
-		$fragment = sanitize_text_field( $request['fragment'] );
+		$fragment = sanitize_text_field( wp_unslash( $request['fragment'] ) );
 
 		// Query search suggest against the fragment.
 		$data = $this->get_suggestions( $fragment );
