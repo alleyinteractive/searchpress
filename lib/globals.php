@@ -12,8 +12,8 @@ define( 'SP_MAP_VERSION', 2016112401 );
  * Error Codes
  */
 
-// The function SP_Config()->flush() didn't respond with 200.
+// The function SP_Config->flush didn't respond with 200.
 define( 'SP_ERROR_FLUSH_FAIL', '100' );
 
-// The function SP_Heartbeat()->check_beat() failed.
+// The function SP_Heartbeat->check_beat failed.
 define( 'SP_ERROR_NO_BEAT', '101' );

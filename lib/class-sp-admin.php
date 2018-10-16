@@ -80,12 +80,12 @@ class SP_Admin extends SP_Singleton {
 		<div class="wrap">
 			<h2><?php esc_html_e( 'SearchPress', 'searchpress' ); ?></h2>
 
-			<?php if ( isset( $_GET['error'] ) ) : ?>
+			<?php if ( isset( $_GET['error'] ) ) : // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification ?>
 				<?php // translators: error text. ?>
-				<div class="error updated"><p><?php echo esc_html( sprintf( __( 'An error has occurred: %s', 'searchpress' ), $this->get_error( sanitize_text_field( $_GET['error'] ) ) ) ); ?></p></div>
+				<div class="error updated"><p><?php echo esc_html( sprintf( __( 'An error has occurred: %s', 'searchpress' ), $this->get_error( sanitize_text_field( wp_unslash( $_GET['error'] ) ) ) ) ); // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification ?></p></div>
 			<?php endif ?>
 
-			<?php if ( isset( $_GET['complete'] ) ) : ?>
+			<?php if ( isset( $_GET['complete'] ) ) : // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification ?>
 				<div class="updated success"><p><?php esc_html_e( 'Sync complete!', 'searchpress' ); ?></p></div>
 			<?php endif ?>
 
@@ -307,14 +307,14 @@ class SP_Admin extends SP_Singleton {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
 		}
 
-		if ( ! isset( $_POST['sp_settings_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $_POST['sp_settings_nonce'] ), 'sp_settings' ) ) {
+		if ( ! isset( $_POST['sp_settings_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sp_settings_nonce'] ) ), 'sp_settings' ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
 			wp_die( 'You are not authorized to perform that action' );
 		}
 
-		if ( isset( $_POST['sp_host'] ) ) {
-			SP_Config()->update_settings( array( 'host' => esc_url_raw( $_POST['sp_host'] ) ) );
+		if ( isset( $_POST['sp_host'] ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
+			SP_Config()->update_settings( array( 'host' => esc_url_raw( wp_unslash( $_POST['sp_host'] ) ) ) ); // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
 		}
-		if ( isset( $_POST['sp_reindex'] ) && '1' == $_POST['sp_reindex'] ) {
+		if ( isset( $_POST['sp_reindex'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['sp_reindex'] ) ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
 			// The full sync process checks the nonce, so we have to insert it into the postdata.
 			$_POST['sp_sync_nonce'] = wp_create_nonce( 'sp_sync' );
 
@@ -335,7 +335,7 @@ class SP_Admin extends SP_Singleton {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
 		}
 
-		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $_POST['sp_sync_nonce'] ), 'sp_sync' ) ) {
+		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sp_sync_nonce'] ) ), 'sp_sync' ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected
 			wp_die( 'You are not authorized to perform that action' );
 		}
 
@@ -373,7 +373,7 @@ class SP_Admin extends SP_Singleton {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
 		}
 
-		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $_POST['sp_sync_nonce'] ), 'sp_sync' ) ) {
+		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sp_sync_nonce'] ) ), 'sp_sync' ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected
 			wp_die( esc_html__( 'You are not authorized to perform that action', 'searchpress' ) );
 		}
 
@@ -391,7 +391,7 @@ class SP_Admin extends SP_Singleton {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
 		}
 
-		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $_POST['sp_sync_nonce'] ), 'sp_flush_log_nonce' ) ) {
+		if ( ! isset( $_POST['sp_sync_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sp_sync_nonce'] ) ), 'sp_flush_log_nonce' ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected
 			wp_die( esc_html__( 'You are not authorized to perform that action', 'searchpress' ) );
 		}
 
@@ -407,11 +407,11 @@ class SP_Admin extends SP_Singleton {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
 		}
 
-		if ( ! isset( $_POST['sp_active_nonce'], $_POST['currently'] ) || ! wp_verify_nonce( sanitize_text_field( $_POST['sp_active_nonce'] ), 'sp_active' ) ) {
+		if ( ! isset( $_POST['sp_active_nonce'], $_POST['currently'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sp_active_nonce'] ) ), 'sp_active' ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected
 			wp_die( esc_html__( 'You are not authorized to perform that action', 'searchpress' ) );
 		}
 
-		$new_status = ( 'inactive' === $_POST['currently'] );
+		$new_status = ( 'inactive' === sanitize_text_field( wp_unslash( $_POST['currently'] ) ) ); // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected
 		if ( SP_Config()->get_setting( 'active' ) !== $new_status ) {
 			SP_Config()->update_settings( array( 'active' => $new_status ) );
 		}
@@ -492,7 +492,7 @@ class SP_Admin extends SP_Singleton {
 	 * @return bool True if the user is on the settings page, false if not.
 	 */
 	public function is_settings_page() {
-		return ( isset( $_GET['page'] ) && 'searchpress' == $_GET['page'] );
+		return ( isset( $_GET['page'] ) && 'searchpress' === sanitize_text_field( wp_unslash( $_GET['page'] ) ) ); // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
 	}
 
 	/**

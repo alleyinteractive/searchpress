@@ -404,8 +404,8 @@ class SP_Integration extends SP_Singleton {
 
 		if ( $query->get( 'post_type' ) && 'any' != $query->get( 'post_type' ) ) {
 			$post_types = (array) $query->get( 'post_type' );
-		} elseif ( ! empty( $_GET['post_type'] ) ) {
-			$post_types = explode( ',', sanitize_text_field( $_GET['post_type'] ) );
+		} elseif ( ! empty( $_GET['post_type'] ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
+			$post_types = explode( ',', sanitize_text_field( wp_unslash( $_GET['post_type'] ) ) ); // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
 		} else {
 			$post_types = false;
 		}
