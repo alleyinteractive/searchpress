@@ -1,4 +1,9 @@
 <?php
+/**
+ * SearchPress library: SP_Search class
+ *
+ * @package SearchPress
+ */
 
 /**
  * You know, for search.

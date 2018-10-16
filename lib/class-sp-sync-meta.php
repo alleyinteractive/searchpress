@@ -1,4 +1,9 @@
 <?php
+/**
+ * SearchPress library: SP_Sync_Meta class
+ *
+ * @package SearchPress
+ */
 
 /**
  * Simple class for working with the meta information associated with ES Syncing.
@@ -7,7 +12,6 @@
  *
  * @author Matthew Boynes
  */
-
 class SP_Sync_Meta extends SP_Singleton {
 
 	/**
@@ -46,7 +50,8 @@ class SP_Sync_Meta extends SP_Singleton {
 			return;
 		}
 
-		if ( false != ( $sync_meta = get_option( 'sp_sync_meta' ) ) ) {
+		$sync_meta = get_option( 'sp_sync_meta' );
+		if ( ! empty( $sync_meta ) && is_array( $sync_meta ) ) {
 			foreach ( $sync_meta as $key => $value ) {
 				$this->data[ $key ] = $value;
 			}
@@ -58,7 +63,7 @@ class SP_Sync_Meta extends SP_Singleton {
 	 */
 	private function init() {
 		$this->data = array(
-			'running'   => false,   // Is the sync currently running
+			'running'   => false,   // Is the sync currently running?
 			'started'   => 0,
 			'finished'  => 0,
 			'bulk'      => 500,
@@ -134,7 +139,7 @@ class SP_Sync_Meta extends SP_Singleton {
 	/**
 	 * Reset the sync meta back to defaults.
 	 *
-	 * @param  string $save Should we save the reset data?
+	 * @param string $save Whether we should save the reset data.
 	 */
 	public function reset( $save = null ) {
 		$this->init();
@@ -239,6 +244,11 @@ class SP_Sync_Meta extends SP_Singleton {
 	}
 }
 
-function SP_Sync_Meta() {
+/**
+ * Returns an initialized instance of the SP_Sync_Meta class.
+ *
+ * @return SP_Sync_Meta An initialized instance of the SP_Sync_Meta class.
+ */
+function SP_Sync_Meta() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	return SP_Sync_Meta::instance();
 }

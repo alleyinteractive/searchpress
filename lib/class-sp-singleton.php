@@ -1,8 +1,13 @@
 <?php
 /**
- * Base Singleton Class
+ * SearchPress library: SP_Singleton abstract class
+ *
+ * @package SearchPress
  */
 
+/**
+ * Base Singleton Class
+ */
 abstract class SP_Singleton {
 	/**
 	 * Holds references to the singleton instances.

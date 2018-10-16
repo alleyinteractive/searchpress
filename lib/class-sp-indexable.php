@@ -1,4 +1,9 @@
 <?php
+/**
+ * SearchPress library: SP_Indexable abstract class
+ *
+ * @package SearchPress
+ */
 
 /**
  * An abstract class for objects which will be indexed in ES.
@@ -54,8 +59,10 @@ abstract class SP_Indexable {
 			$return['long']   = $int;
 			$return['double'] = $double;
 
-			// If this is an integer (represented as a string), check to see if
-			// it is a valid timestamp
+			/*
+			 * If this is an integer (represented as a string), check to see if
+			 * it is a valid timestamp.
+			 */
 			if ( (string) $int === (string) $value ) {
 				$year = intval( date( 'Y', $int ) );
 				// Ensure that the year is between 1-2038. Technically, the year
@@ -68,7 +75,7 @@ abstract class SP_Indexable {
 			$return['value'] = self::limit_word_length( $value );
 			$return['raw']   = self::limit_string( $value );
 
-			// correct boolean values
+			// Correct boolean values.
 			if ( 'false' === strtolower( $value ) ) {
 				$return['boolean'] = false;
 			} elseif ( 'true' === strtolower( $value ) ) {

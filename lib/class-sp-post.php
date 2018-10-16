@@ -1,4 +1,9 @@
 <?php
+/**
+ * SearchPress library: SP_Post class
+ *
+ * @package SearchPress
+ */
 
 /**
  * An object for posts in the ES index
@@ -15,12 +20,12 @@ class SP_Post extends SP_Indexable {
 	public $data = array();
 
 	/**
-	 * Instantiate the class
+	 * Instantiate the class.
 	 *
-	 * @param int|object $post Can either be a WP_Post object or a post ID
-	 * @return void
+	 * @param int|object $post Can either be a WP_Post object or a post ID.
+	 * @access public
 	 */
-	function __construct( $post ) {
+	public function __construct( $post ) {
 		if ( is_numeric( $post ) && 0 != intval( $post ) ) {
 			$post = get_post( intval( $post ) );
 		}
@@ -35,11 +40,10 @@ class SP_Post extends SP_Indexable {
 
 	/**
 	 * Use magic methods to make the normal post properties available in
-	 * OOP style accessing
+	 * OOP style accessing.
 	 *
-	 * @param string $property
-	 * @param mixed  $value
-	 * @return void
+	 * @param string $property The property name to update.
+	 * @param mixed  $value    The value to set.
 	 */
 	public function __set( $property, $value ) {
 		$this->data[ $property ] = $value;
@@ -47,14 +51,13 @@ class SP_Post extends SP_Indexable {
 
 	/**
 	 * Use magic methods to make the normal post properties available in
-	 * OOP style accessing
+	 * OOP style accessing.
 	 *
-	 * @param string $property
-	 * @param mixed  $value
-	 * @return void
+	 * @param string $property The property name to look up.
+	 * @return mixed The property value if set, null if not.
 	 */
 	public function __get( $property ) {
-		// let the post ID be accessed either way
+		// Let the post ID be accessed either way.
 		if ( 'ID' == $property ) {
 			$property = 'post_id';
 		}
@@ -64,17 +67,17 @@ class SP_Post extends SP_Indexable {
 
 
 	/**
-	 * Populate this object with all of the post's properties
+	 * Populate this object with all of the post's properties.
 	 *
-	 * @param object $post
-	 * @return void
+	 * @param WP_Post $post The post object to use when populating properties.
+	 * @access public
 	 */
 	public function fill( $post ) {
 		do_action( 'sp_debug', '[SP_Post] Populating Post' );
 		$apply_filters = apply_filters( 'sp_post_index_filtered_data', false );
 
 		$this->data['post_id'] = intval( $post->ID );
-		// We're storing the login here instead of user ID, as that's more flexible
+		// We're storing the login here instead of user ID, as that's more flexible.
 		$this->data['post_author']       = $this->get_user( $post->post_author );
 		$this->data['post_date']         = $this->get_date( $post->post_date );
 		$this->data['post_date_gmt']     = $this->get_date( $post->post_date_gmt );
@@ -82,7 +85,7 @@ class SP_Post extends SP_Indexable {
 		$this->data['post_modified_gmt'] = $this->get_date( $post->post_modified_gmt );
 		$this->data['post_title']        = self::limit_string( $apply_filters ? strval( get_the_title( $post->ID ) ) : strval( $post->post_title ) );
 		$this->data['post_excerpt']      = self::limit_word_length( strval( $post->post_excerpt ) );
-		$this->data['post_content']      = self::limit_word_length( $apply_filters ? strval( str_replace( ']]>', ']]&gt;', apply_filters( 'the_content', $post->post_content ) ) ) : strval( $post->post_content ) );
+		$this->data['post_content']      = self::limit_word_length( $apply_filters ? strval( str_replace( ']]>', ']]&gt;', apply_filters( 'the_content', $post->post_content ) ) ) : strval( $post->post_content ) ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		$this->data['post_status']       = self::limit_string( strval( $post->post_status ) );
 		$this->data['post_name']         = self::limit_string( strval( $post->post_name ) );
 		$this->data['post_parent']       = intval( $post->post_parent );
@@ -96,7 +99,7 @@ class SP_Post extends SP_Indexable {
 		$this->data['terms']     = $this->get_terms( $post );
 		$this->data['post_meta'] = $this->get_meta( $post->ID );
 
-		// If a date field is empty, kill it to avoid indexing errors
+		// If a date field is empty, kill it to avoid indexing errors.
 		foreach ( array( 'post_date', 'post_date_gmt', 'post_modified', 'post_modified_gmt' ) as $field ) {
 			if ( empty( $this->data[ $field ] ) ) {
 				unset( $this->data[ $field ] );
@@ -115,13 +118,14 @@ class SP_Post extends SP_Indexable {
 	 * Get post meta for a given post ID.
 	 * Some post meta is removed (you can filter it), and serialized data gets unserialized
 	 *
-	 * @param int $post_id
-	 * @return array 'meta_key' => array( value 1, value 2... )
+	 * @param int $post_id The ID of the post for which to retrieve meta.
+	 * @access public
+	 * @return array 'meta_key' => array( value 1, value 2... ).
 	 */
 	public static function get_meta( $post_id ) {
 		$meta = (array) get_post_meta( $post_id );
 
-		// Remove a filtered set of meta that we don't want indexed
+		// Remove a filtered set of meta that we don't want indexed.
 		$ignored_meta = apply_filters(
 			'sp_post_ignored_postmeta',
 			array(
@@ -149,7 +153,7 @@ class SP_Post extends SP_Indexable {
 		$meta = apply_filters( 'sp_post_indexable_meta', $meta, $post_id );
 
 		foreach ( $meta as $key => &$values ) {
-			// Ignore oembed meta, which continuously expands the mapping
+			// Ignore oembed meta, which continuously expands the mapping.
 			if ( '_oembed_' === substr( $key, 0, 8 ) ) {
 				unset( $meta[ $key ] );
 				continue;
@@ -166,8 +170,9 @@ class SP_Post extends SP_Indexable {
 	/**
 	 * Get all terms across all taxonomies for a given post
 	 *
-	 * @param object $post
-	 * @return array
+	 * @param WP_Post $post The post object to query for terms.
+	 * @access public
+	 * @return array The list of terms for the post.
 	 */
 	public static function get_terms( $post ) {
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
@@ -208,7 +213,8 @@ class SP_Post extends SP_Indexable {
 	 *
 	 * @codeCoverageIgnore
 	 *
-	 * @param object $post
+	 * @param WP_Post $post The post to query for terms.
+	 * @access private
 	 * @return array Terms to index.
 	 */
 	private static function get_terms_efficiently( $post ) {
@@ -245,10 +251,11 @@ class SP_Post extends SP_Indexable {
 
 
 	/**
-	 * Get information about a post author
+	 * Get information about a post author.
 	 *
-	 * @param int $user_id
-	 * @return array
+	 * @param int $user_id The user ID to look up.
+	 * @access public
+	 * @return array An array of information about the user.
 	 */
 	public function get_user( $user_id ) {
 		if ( ! empty( SP_Sync_Manager()->users[ $user_id ] ) ) {
@@ -293,13 +300,19 @@ class SP_Post extends SP_Indexable {
 		return wp_json_encode( apply_filters( 'sp_post_pre_index', $this->data, $this ) );
 	}
 
+	/**
+	 * Determines whether the current post should be indexed or not.
+	 *
+	 * @access public
+	 * @return bool True if the post should be indexed, false if not.
+	 */
 	public function should_be_indexed() {
-		// Check post type
+		// Check post type.
 		if ( ! in_array( $this->data['post_type'], SP_Config()->sync_post_types() ) ) {
 			return false;
 		}
 
-		// Check post status
+		// Check post status.
 		if ( 'inherit' === $this->data['post_status'] && ! empty( $this->data['parent_status'] ) ) {
 			$post_status = $this->data['parent_status'];
 		} else {

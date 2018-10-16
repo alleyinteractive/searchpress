@@ -1,9 +1,13 @@
 <?php
-
 /**
+ * SearchPress library: SP_Admin class
  *
+ * @package SearchPress
  */
 
+/**
+ * A class to handle admin functionality for the plugin, such as settings pages.
+ */
 class SP_Admin extends SP_Singleton {
 
 	/**
@@ -13,6 +17,11 @@ class SP_Admin extends SP_Singleton {
 	 */
 	protected $capability;
 
+	/**
+	 * Initializes values in the class.
+	 *
+	 * @access public
+	 */
 	public function setup() {
 		/**
 		 * Filter the capability required to manage SearchPress.
@@ -40,11 +49,15 @@ class SP_Admin extends SP_Singleton {
 	 * @codeCoverageIgnore
 	 */
 	public function admin_menu() {
-		// Add new admin menu and save returned page hook
+		// Add new admin menu and save returned page hook.
 		$hook_suffix = add_management_page( __( 'SearchPress', 'searchpress' ), __( 'SearchPress', 'searchpress' ), $this->capability, 'searchpress', array( $this, 'settings_page' ) );
 	}
 
-
+	/**
+	 * Gets the content for the SearchPress settings page.
+	 *
+	 * @access public
+	 */
 	public function settings_page() {
 		if ( ! current_user_can( $this->capability ) ) {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
@@ -68,6 +81,7 @@ class SP_Admin extends SP_Singleton {
 			<h2><?php esc_html_e( 'SearchPress', 'searchpress' ); ?></h2>
 
 			<?php if ( isset( $_GET['error'] ) ) : ?>
+				<?php // translators: error text. ?>
 				<div class="error updated"><p><?php echo esc_html( sprintf( __( 'An error has occurred: %s', 'searchpress' ), $this->get_error( sanitize_text_field( $_GET['error'] ) ) ) ); ?></p></div>
 			<?php endif ?>
 
@@ -110,6 +124,7 @@ class SP_Admin extends SP_Singleton {
 					<input type="hidden" name="currently" value="<?php echo esc_attr( $active_status ); ?>" />
 					<?php wp_nonce_field( 'sp_active', 'sp_active_nonce' ); ?>
 					<h3 class="<?php echo esc_attr( $active_status ); ?>">
+						<?php // translators: open <strong> tag, status text, closing </strong> tag. ?>
 						<?php printf( esc_html__( 'SearchPress is currently %1$s%2$s%3$s', 'searchpress' ), '<strong>', esc_attr( $active_status ), '</strong>' ); ?>
 						<?php
 						if ( 'active' === $active_status ) {
@@ -123,8 +138,10 @@ class SP_Admin extends SP_Singleton {
 
 				<?php if ( ! empty( $sync->started ) ) : ?>
 					<h3><?php esc_html_e( 'Last full sync', 'searchpress' ); ?></h3>
+					<?php // translators: date and time started. ?>
 					<p><?php echo esc_html( sprintf( __( 'Started at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->started ) ) ); ?></p>
 					<?php if ( ! empty( $sync->finished ) ) : ?>
+						<?php // translators: time completed. ?>
 						<p><?php echo esc_html( sprintf( __( 'Completed at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->finished ) ) ); ?></p>
 					<?php endif ?>
 				<?php endif ?>
@@ -204,12 +221,26 @@ class SP_Admin extends SP_Singleton {
 		<?php
 	}
 
+	/**
+	 * Given the active tab slug and a tab slug to compare, determines if the
+	 * comparison tab is the active tab, and prints a class if so.
+	 *
+	 * @param string      $active  The active tab slug.
+	 * @param string|bool $compare The comparison tab slug.
+	 */
 	protected function tab_active( $active, $compare = true ) {
 		if ( $active === $compare ) {
 			echo ' nav-tab-active';
 		}
 	}
 
+	/**
+	 * Gets a human-readable error type given a type code.
+	 *
+	 * @param string $type The type code to dereference.
+	 * @access protected
+	 * @return string The human-readable error type.
+	 */
 	protected function error_type( $type ) {
 		switch ( $type ) {
 			case 'error': 
@@ -220,6 +251,8 @@ class SP_Admin extends SP_Singleton {
 				return __( 'Messages', 'searchpress' );
 			case 'success': 
 				return __( 'Success', 'searchpress' );
+			default:
+				return __( 'Unknown', 'searchpress' );
 		}
 	}
 
@@ -237,6 +270,7 @@ class SP_Admin extends SP_Singleton {
 				case 'ok':
 					return array(
 						__( 'OK', 'searchpress' ),
+						// translators: amount of time since last heartbeat (e.g., 36 minutes).
 						sprintf( __( 'SearchPress is active and the Elasticsearch server was last seen %s ago.', 'searchpress' ), human_time_diff( SP_Heartbeat()->get_last_beat(), time() ) ),
 					);
 				case 'alert':
@@ -263,6 +297,11 @@ class SP_Admin extends SP_Singleton {
 		);
 	}
 
+	/**
+	 * Saves SearchPress settings.
+	 *
+	 * @access public
+	 */
 	public function save_settings() {
 		if ( ! current_user_can( $this->capability ) ) {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
@@ -276,16 +315,21 @@ class SP_Admin extends SP_Singleton {
 			SP_Config()->update_settings( array( 'host' => esc_url_raw( $_POST['sp_host'] ) ) );
 		}
 		if ( isset( $_POST['sp_reindex'] ) && '1' == $_POST['sp_reindex'] ) {
-			// The full sync process checks the nonce, so we have to insert it into the postdata
+			// The full sync process checks the nonce, so we have to insert it into the postdata.
 			$_POST['sp_sync_nonce'] = wp_create_nonce( 'sp_sync' );
 
-			// This will redirect and exit
+			// This will redirect and exit.
 			$this->full_sync();
 		}
 
 		return $this->redirect( admin_url( 'tools.php?page=searchpress&save=1' ) );
 	}
 
+	/**
+	 * Initializes a full sync.
+	 *
+	 * @access public
+	 */
 	public function full_sync() {
 		if ( ! current_user_can( $this->capability ) ) {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
@@ -303,7 +347,7 @@ class SP_Admin extends SP_Singleton {
 			) 
 		);
 
-		// The index may not exist yet, so use the global cluster health to check the heartbeat
+		// The index may not exist yet, so use the global cluster health to check the heartbeat.
 		add_filter( 'sp_cluster_health_uri', 'sp_global_cluster_health' );
 		if ( ! SP_Heartbeat()->check_beat() ) {
 			return $this->redirect( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_NO_BEAT ) );
@@ -319,6 +363,11 @@ class SP_Admin extends SP_Singleton {
 		}
 	}
 
+	/**
+	 * Cancels an active sync.
+	 *
+	 * @access public
+	 */
 	public function cancel_sync() {
 		if ( ! current_user_can( $this->capability ) ) {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
@@ -332,6 +381,11 @@ class SP_Admin extends SP_Singleton {
 		return $this->redirect( admin_url( 'tools.php?page=searchpress&cancel=1' ) );
 	}
 
+	/**
+	 * Clears the SearchPress log.
+	 *
+	 * @access public
+	 */
 	public function clear_log() {
 		if ( ! current_user_can( $this->capability ) ) {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'searchpress' ) );
@@ -365,6 +419,11 @@ class SP_Admin extends SP_Singleton {
 		return $this->redirect( admin_url( 'tools.php?page=searchpress' ) );
 	}
 
+	/**
+	 * Sends the sync status as a JSON object.
+	 *
+	 * @access public
+	 */
 	public function sp_sync_status() {
 		if ( ! current_user_can( $this->capability ) ) {
 			wp_send_json_error();
@@ -390,6 +449,11 @@ class SP_Admin extends SP_Singleton {
 		}
 	}
 
+	/**
+	 * Enqueues scripts and styles.
+	 *
+	 * @access public
+	 */
 	public function assets() {
 		if ( current_user_can( $this->capability ) && $this->is_settings_page() ) {
 			wp_enqueue_style( 'searchpress-admin-css', SP_PLUGIN_URL . '/assets/admin.css', array(), '0.3' );
@@ -404,6 +468,13 @@ class SP_Admin extends SP_Singleton {
 		}
 	}
 
+	/**
+	 * Retrieves error text for a given error code.
+	 *
+	 * @param int $code The numeric error code to look up.
+	 * @access public
+	 * @return string The error message.
+	 */
 	public function get_error( $code ) {
 		switch ( $code ) {
 			case SP_ERROR_FLUSH_FAIL: 
@@ -414,10 +485,21 @@ class SP_Admin extends SP_Singleton {
 		return __( 'Unknown error', 'searchpress' );
 	}
 
+	/**
+	 * Determines if the user is on the settings page.
+	 *
+	 * @access public
+	 * @return bool True if the user is on the settings page, false if not.
+	 */
 	public function is_settings_page() {
 		return ( isset( $_GET['page'] ) && 'searchpress' == $_GET['page'] );
 	}
 
+	/**
+	 * Checks for and prints admin notices, as necessary.
+	 *
+	 * @access public
+	 */
 	public function admin_notices() {
 		if ( ! current_user_can( $this->capability ) ) {
 			return;
@@ -427,13 +509,19 @@ class SP_Admin extends SP_Singleton {
 			if ( $this->is_settings_page() ) {
 				return;
 			}
+
 			printf(
 				'<div class="updated error"><p>%s <a href="%s">%s</a></p></div>',
 				esc_html__( 'SearchPress needs to be configured and synced before you can use it.', 'searchpress' ),
 				esc_url( admin_url( 'tools.php?page=searchpress' ) ),
 				esc_html__( 'Go to SearchPress Settings', 'searchpress' )
 			);
-		} elseif ( 'ok' !== ( $heartbeat_status = SP_Heartbeat()->get_status() ) ) {
+
+			return;
+		}
+
+		$heartbeat_status = SP_Heartbeat()->get_status();
+		if ( 'ok' !== $heartbeat_status ) {
 			$message_escaped = esc_html__( 'SearchPress cannot reach the Elasticsearch server!', 'searchpress' );
 			if ( 'never' === $heartbeat_status && ! $this->is_settings_page() ) {
 				$message_escaped .= sprintf(
@@ -442,13 +530,18 @@ class SP_Admin extends SP_Singleton {
 					esc_html__( 'Check the server URL on the SearchPress settings page', 'searchpress' )
 				);
 			} elseif ( 'never' !== $heartbeat_status ) {
+				// translators: amount of time with units (e.g., 36 minutes).
 				$message_escaped .= ' ' . sprintf( esc_html__( 'The Elasticsearch server was last seen %s ago.', 'searchpress' ), human_time_diff( SP_Heartbeat()->get_last_beat(), time() ) );
 			}
 			if ( 'shutdown' == $heartbeat_status ) {
 				$message_escaped .= "\n" . esc_html__( "SearchPress has deactivated itself to preserve site search for your visitors. Your site will use WordPress' built-in search until the Elasticsearch server comes back online.", 'searchpress' );
 			}
 			echo '<div class="updated error">' . wpautop( $message_escaped ) . '</div>'; // WPCS: XSS ok.
-		} elseif ( SP_Sync_Meta()->running ) {
+
+			return;
+		}
+
+		if ( SP_Sync_Meta()->running ) {
 			$message_escaped = esc_html__( 'SearchPress sync is currently running.', 'searchpress' );
 			if ( ! $this->is_settings_page() ) {
 				$message_escaped .= sprintf(
@@ -458,7 +551,11 @@ class SP_Admin extends SP_Singleton {
 				);
 			}
 			echo '<div class="updated">' . wpautop( $message_escaped ) . '</div>'; // WPCS: XSS ok.
-		} elseif ( SP_Sync_Meta()->has_errors() ) {
+
+			return;
+		}
+
+		if ( SP_Sync_Meta()->has_errors() ) {
 			$message_escaped = esc_html__( 'SearchPress encountered an error.', 'searchpress' );
 			if ( ! $this->is_settings_page() ) {
 				$message_escaped .= sprintf(
@@ -468,9 +565,11 @@ class SP_Admin extends SP_Singleton {
 				);
 			}
 			echo '<div class="updated error">' . wpautop( $message_escaped ) . '</div>'; // WPCS: XSS ok.
-		} else {
-			$this->check_mapping_version();
+
+			return;
 		}
+
+		$this->check_mapping_version();
 	}
 
 	/**
@@ -508,7 +607,12 @@ class SP_Admin extends SP_Singleton {
 	}
 }
 
-function SP_Admin() {
+/**
+ * Returns an initialized instance of the SP_Admin class.
+ *
+ * @return SP_Admin An initialized instance of the SP_Admin class.
+ */
+function SP_Admin() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	return SP_Admin::instance();
 }
 add_action( 'after_setup_theme', 'SP_Admin' );

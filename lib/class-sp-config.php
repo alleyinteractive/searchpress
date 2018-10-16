@@ -1,9 +1,13 @@
 <?php
+/**
+ * SearchPress library: SP_Config class
+ *
+ * @package SearchPress
+ */
 
 /**
  * SearchPress configuration
  */
-
 class SP_Config extends SP_Singleton {
 
 	/**
@@ -28,10 +32,12 @@ class SP_Config extends SP_Singleton {
 	public $post_types;
 
 	/**
+	 * Stub for initializing the singleton.
+	 *
 	 * @codeCoverageIgnore
 	 */
 	public function setup() {
-		// initialize anything for the singleton here
+		// Initialize anything for the singleton here.
 	}
 
 	/**
@@ -352,12 +358,20 @@ class SP_Config extends SP_Singleton {
 		return SP_API()->put( '', wp_json_encode( $mapping ) );
 	}
 
-
+	/**
+	 * Deletes all data on the remote using the API.
+	 *
+	 * @return object The response from the API.
+	 */
 	public function flush() {
 		return SP_API()->delete();
 	}
 
-
+	/**
+	 * Gets saved settings merged with defaults.
+	 *
+	 * @return array The SearchPress settings.
+	 */
 	public function get_settings() {
 		$settings       = get_option( 'sp_settings' );
 		$this->settings = wp_parse_args(
@@ -373,7 +387,12 @@ class SP_Config extends SP_Singleton {
 		return $this->settings;
 	}
 
-
+	/**
+	 * Gets a setting for a given key.
+	 *
+	 * @param string $key The key to look up.
+	 * @return mixed The value of the setting, or null if not found.
+	 */
 	public function get_setting( $key ) {
 		if ( ! $this->settings ) {
 			$this->get_settings();
@@ -381,12 +400,22 @@ class SP_Config extends SP_Singleton {
 		return isset( $this->settings[ $key ] ) ? $this->settings[ $key ] : null;
 	}
 
-
+	/**
+	 * Magic method for getting settings using function call syntax.
+	 *
+	 * @param string $method The method that was called. Used as setting key.
+	 * @param mixed  $value  Not used.
+	 * @return mixed The value for the setting.
+	 */
 	public function __call( $method, $value ) {
 		return $this->get_setting( $method );
 	}
 
-
+	/**
+	 * Updates saved settings with new values.
+	 *
+	 * @param array $new_settings The new settings to save.
+	 */
 	public function update_settings( $new_settings = array() ) {
 		if ( ! $this->settings ) {
 			$this->get_settings();
@@ -434,6 +463,11 @@ class SP_Config extends SP_Singleton {
 	}
 }
 
-function SP_Config() {
+/**
+ * Returns an initialized instance of the SP_Config class.
+ *
+ * @return SP_Config An initialized instance of the SP_Config class.
+ */
+function SP_Config() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	return SP_Config::instance();
 }

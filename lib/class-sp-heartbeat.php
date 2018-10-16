@@ -1,9 +1,13 @@
 <?php
+/**
+ * SearchPress library: SP_Heartbeat class
+ *
+ * @package SearchPress
+ */
 
 /**
  * Lub dub. Lub dub.
  */
-
 class SP_Heartbeat extends SP_Singleton {
 
 	/**
@@ -80,7 +84,7 @@ class SP_Heartbeat extends SP_Singleton {
 	 * @return bool true on success or false on failure.
 	 */
 	public function check_beat( $force = false ) {
-		// Ensure we only check the beat once per request
+		// Ensure we only check the beat once per request.
 		if ( $force || ! isset( $this->beat_result ) ) {
 			$health            = SP_API()->cluster_health();
 			$this->beat_result = ( ! empty( $health->status ) && in_array( $health->status, $this->healthy_statuses ) );
@@ -129,7 +133,7 @@ class SP_Heartbeat extends SP_Singleton {
 			return true;
 		} else {
 			$result = $this->check_beat();
-			// If we updated the pulse, run this again
+			// If we updated the pulse, run this again.
 			if ( $last_beat != $this->get_last_beat() ) {
 				return $this->has_pulse( $threshold );
 			}
@@ -204,7 +208,12 @@ class SP_Heartbeat extends SP_Singleton {
 	}
 }
 
-function SP_Heartbeat() {
+/**
+ * Initializes and returns the instance of the SP_Heartbeat class.
+ *
+ * @return SP_Singleton The initialized instance of the SP_Heartbeat class.
+ */
+function SP_Heartbeat() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	return SP_Heartbeat::instance();
 }
 add_action( 'after_setup_theme', 'SP_Heartbeat', 20 );
