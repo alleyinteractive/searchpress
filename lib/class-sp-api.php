@@ -18,9 +18,9 @@ class SP_API extends SP_Singleton {
 	 * @codeCoverageIgnore
 	 */
 	public function setup() {
-		$url = get_site_url();
-		$this->index = preg_replace( '#^.*?//(.*?)/?$#', '$1', $url );
-		$this->host = SP_Config()->get_setting( 'host' );
+		$url                    = get_site_url();
+		$this->index            = preg_replace( '#^.*?//(.*?)/?$#', '$1', $url );
+		$this->host             = SP_Config()->get_setting( 'host' );
 		$this->request_defaults = array(
 			'sslverify'          => false,
 			'timeout'            => 10,
@@ -67,13 +67,16 @@ class SP_API extends SP_Singleton {
 
 
 	public function request( $url = '', $method = 'GET', $body = '', $request_params = array() ) {
-		$url = $this->parse_url( $url );
+		$url            = $this->parse_url( $url );
 		$request_params = array_merge(
 			$this->request_defaults,
 			$request_params,
-			array( 'method' => $method, 'body' => $body )
+			array(
+				'method' => $method,
+				'body'   => $body,
+			)
 		);
-		$result = wp_remote_request( $url, $request_params );
+		$result         = wp_remote_request( $url, $request_params );
 
 		if ( ! is_wp_error( $result ) ) {
 			$this->last_request = array(
@@ -86,13 +89,15 @@ class SP_API extends SP_Singleton {
 			return $result['body'];
 		}
 
-		return wp_json_encode( array(
-			'error' => array(
-				'code' => $result->get_error_code(),
-				'message' => $result->get_error_message(),
-				'data' => $result->get_error_data(),
-			),
-		) );
+		return wp_json_encode(
+			array(
+				'error' => array(
+					'code'    => $result->get_error_code(),
+					'message' => $result->get_error_message(),
+					'data'    => $result->get_error_data(),
+				),
+			) 
+		);
 	}
 
 	public function parse_url( $url = '' ) {
@@ -117,7 +122,7 @@ class SP_API extends SP_Singleton {
 			$url = array( 'action' => $url );
 		}
 
-		$url = wp_parse_args( $url, $defaults );
+		$url           = wp_parse_args( $url, $defaults );
 		$formatted_url = $url['host'];
 		foreach ( array( 'index', 'type', 'id', 'action' ) as $key ) {
 			if ( isset( $url[ $key ] ) ) {
@@ -154,9 +159,12 @@ class SP_API extends SP_Singleton {
 	}
 
 	public function search( $query, $args = array() ) {
-		$args = wp_parse_args( $args, array(
-			'output' => OBJECT,
-		) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'output' => OBJECT,
+			) 
+		);
 		return $this->post( 'post/_search', $query, $args['output'] );
 	}
 
@@ -192,7 +200,7 @@ class SP_API extends SP_Singleton {
 		static $version;
 		if ( ! isset( $version ) ) {
 			$response = $this->get( '/' );
-			$version = ! empty( $response->version->number ) ? $response->version->number : false;
+			$version  = ! empty( $response->version->number ) ? $response->version->number : false;
 		}
 		return $version;
 	}
