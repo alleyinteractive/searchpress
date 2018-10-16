@@ -18,6 +18,9 @@
 	<!-- Only check the PHP files. -->
 	<arg name="extensions" value="php" />
 
+	<!-- Set severity to 1 to see everything that isn't effectively turned off. -->
+	<arg name="severity" value="1" />
+
 	<!-- Check all files in this directory and the directories below it. -->
 	<file>.</file>
 
@@ -27,7 +30,6 @@
 	<exclude-pattern>tests/</exclude-pattern>
 
 	<rule ref="WordPress" />
-	<rule ref="WordPressVIPMinimum" />
 	<rule ref="WordPress-VIP-Go" />
 
 	<!-- The version set here matches the minimum version tested in .travis.yml.  -->
