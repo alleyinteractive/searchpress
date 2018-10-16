@@ -15,8 +15,7 @@ package.json
 phpunit.xml
 multisite.xml
 phpunit.xml.dist
-phpcs.ruleset.xml
-codesniffer.ruleset.xml
+phpcs.xml
 README.md
 wp-cli.local.yml
 tests
