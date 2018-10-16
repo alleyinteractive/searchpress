@@ -252,7 +252,7 @@ class SP_Admin extends SP_Singleton {
 			case 'success': 
 				return __( 'Success', 'searchpress' );
 			default:
-				return __( 'Unknown', 'searchpress' );
+				return '';
 		}
 	}
 
