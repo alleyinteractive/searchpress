@@ -1,4 +1,9 @@
 <?php
+/**
+ * SearchPress library: helper functions
+ *
+ * @package SearchPress
+ */
 
 /**
  * Pluck a certain field out of an ES response.
@@ -114,16 +119,18 @@ function sp_searchable_post_statuses( $reload = false ) {
 		$post_statuses = SP_Config()->sync_statuses();
 
 		// Collect post statuses we don't want to search and exclude them.
-		$exclude = array_values( get_post_stati(
-			array(
-				'internal'            => true,
-				'exclude_from_search' => true,
-				'private'             => true,
-				'protected'           => true,
-			),
-			'names',
-			'or'
-		) );
+		$exclude       = array_values(
+			get_post_stati(
+				array(
+					'internal'            => true,
+					'exclude_from_search' => true,
+					'private'             => true,
+					'protected'           => true,
+				),
+				'names',
+				'or'
+			) 
+		);
 		$post_statuses = array_values( array_diff( $post_statuses, $exclude ) );
 
 		/**
@@ -143,7 +150,8 @@ function sp_searchable_post_statuses( $reload = false ) {
  *
  * @see SP_Search::search()
  *
- * @param  array $es_args PHP array of ES arguments.
+ * @param array $es_args    PHP array of ES arguments.
+ * @param bool  $raw_result Whether to return the raw result or a post list.
  * @return array Search results.
  */
 function sp_search( $es_args, $raw_result = false ) {
@@ -156,7 +164,8 @@ function sp_search( $es_args, $raw_result = false ) {
  *
  * @see SP_WP_Search
  *
- * @param  array $wp_args PHP array of search arguments.
+ * @param array $wp_args    PHP array of search arguments.
+ * @param bool  $raw_result Whether to return the raw result or a post list.
  * @return array Search results.
  */
 function sp_wp_search( $wp_args, $raw_result = false ) {

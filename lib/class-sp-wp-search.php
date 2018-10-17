@@ -1,4 +1,9 @@
 <?php
+/**
+ * SearchPress library: SP_WP_Search class
+ *
+ * @package SearchPress
+ */
 
 /**
  * You know, for WordPress-style searching.
@@ -10,23 +15,26 @@ class SP_WP_Search extends SP_Search {
 
 	/**
 	 * The WP-style arguments for this search.
+	 *
 	 * @var array
 	 */
 	public $wp_args;
 
 	/**
 	 * The requested facets, used to parse the facet data in the response.
+	 *
 	 * @var array
 	 */
 	public $facets = array();
 
 	/**
 	 * Construct the object.
+	 *
 	 * @param array $wp_args WP-style ES arguments.
 	 */
 	public function __construct( $wp_args ) {
 		$this->wp_args = apply_filters( 'sp_search_wp_query_args', $wp_args );
-		$es_args = $this->wp_to_es_args( $this->wp_args );
+		$es_args       = $this->wp_to_es_args( $this->wp_args );
 		if ( ! empty( $this->wp_args['facets'] ) ) {
 			$this->facets = $this->wp_args['facets'];
 		}
@@ -35,6 +43,7 @@ class SP_WP_Search extends SP_Search {
 
 	/**
 	 * Convert WP-style arguments to Elasticsearch arguments.
+	 *
 	 * @static
 	 * @param  array $args {
 	 *     WordPress-style arguments for Elasticsearch.
@@ -54,7 +63,7 @@ class SP_WP_Search extends SP_Search {
 	 *                                     Default null.
 	 *     @type array $terms Taxonomy terms to search within. Default array().
 	 *                        The format is array( 'taxonomy' => 'slug' ), e.g.
-	 *                        array( 'post_tag' => 'wordpress' ). The "slug"
+	 *                        array( 'post_tag' => 'WordPress' ). The "slug"
 	 *                        can be multiple terms, as WP would parse them if
 	 *                        they were in a URL. That is,
 	 *                        * Union (OR) 'slug-a,slug-b': Posts in slug-a OR slug-b.
@@ -121,11 +130,12 @@ class SP_WP_Search extends SP_Search {
 
 		$args = wp_parse_args( $args, $defaults );
 
-		// Posts per page
+		// Posts per page.
 		$es_query_args = array(
 			'size' => absint( $args['posts_per_page'] ),
 		);
-		$filters = array();
+		$filters       = array();
+		$or            = array();
 
 		/**
 		 * Pagination
@@ -144,13 +154,13 @@ class SP_WP_Search extends SP_Search {
 			$es_query_args['from'] = max( 0, ( absint( $args['paged'] ) - 1 ) * $es_query_args['size'] );
 		}
 
-		// Post type
+		// Post type.
 		if ( empty( $args['post_type'] ) || 'any' === $args['post_type'] ) {
 			$args['post_type'] = sp_searchable_post_types();
 		}
 		$filters[] = array( 'terms' => array( 'post_type.raw' => (array) $args['post_type'] ) );
 
-		// Post status
+		// Post status.
 		if ( empty( $args['post_status'] ) || 'any' === $args['post_status'] ) {
 			$args['post_status'] = sp_searchable_post_statuses();
 		}
@@ -170,8 +180,8 @@ class SP_WP_Search extends SP_Search {
 			),
 		);
 
-		// Author
-		// @todo Add support for comma-delim terms like wp_query
+		// Author.
+		// @todo Add support for comma-delim terms like wp_query.
 		if ( ! empty( $args['author'] ) ) {
 			$filters[] = array( 'terms' => array( 'post_author.user_id' => (array) $args['author'] ) );
 		}
@@ -179,7 +189,7 @@ class SP_WP_Search extends SP_Search {
 			$filters[] = array( 'terms' => array( 'post_author.login' => (array) $args['author_name'] ) );
 		}
 
-		// Date range
+		// Date range.
 		if ( ! empty( $args['date_range'] ) ) {
 			if ( ! empty( $args['date_range']['field'] ) ) {
 				$field = $args['date_range']['field'];
@@ -190,15 +200,15 @@ class SP_WP_Search extends SP_Search {
 			$filters[] = array( 'range' => array( "{$field}.date" => $args['date_range'] ) );
 		}
 
-		// Taxonomy terms
+		// Taxonomy terms.
 		if ( ! empty( $args['terms'] ) ) {
 			foreach ( (array) $args['terms'] as $tax => $terms ) {
 				if ( strpos( $terms, ',' ) ) {
 					$terms = explode( ',', $terms );
-					$comp = 'or';
+					$comp  = 'or';
 				} else {
 					$terms = explode( '+', $terms );
-					$comp = 'and';
+					$comp  = 'and';
 				}
 
 				$terms = array_map( 'sanitize_title', $terms );
@@ -231,9 +241,9 @@ class SP_WP_Search extends SP_Search {
 		}
 
 		// Fill in the query
-		//  todo: add auto phrase searching
-		//  todo: add fuzzy searching to correct for spelling mistakes
-		//  todo: boost title, tag, and category matches
+		// todo: add auto phrase searching.
+		// todo: add fuzzy searching to correct for spelling mistakes.
+		// todo: boost title, tag, and category matches.
 		if ( ! empty( $args['query'] ) ) {
 			$multi_match = array(
 				array(
@@ -255,42 +265,42 @@ class SP_WP_Search extends SP_Search {
 			$args['orderby'] = 'date';
 		}
 
-		// Ordering
+		// Ordering.
 		$es_query_args['sort'] = array();
 		if ( is_string( $args['orderby'] ) ) {
-			$args['order'] = ( 'asc' === strtolower( $args['order'] ) ) ? 'asc' : 'desc';
+			$args['order']   = ( 'asc' === strtolower( $args['order'] ) ) ? 'asc' : 'desc';
 			$args['orderby'] = array( $args['orderby'] => $args['order'] );
 		}
 
 		foreach ( (array) $args['orderby'] as $orderby => $order ) {
 			$order = ( 'asc' === strtolower( $order ) ) ? 'asc' : 'desc';
-			// Translate orderby from WP field to ES field
+			// Translate orderby from WP field to ES field.
 			switch ( strtolower( $orderby ) ) {
-				case 'relevance' :
+				case 'relevance':
 					$es_query_args['sort'][] = array( '_score' => $order );
 					break;
-				case 'date' :
+				case 'date':
 					$es_query_args['sort'][] = array( 'post_date.date' => $order );
 					break;
-				case 'modified' :
+				case 'modified':
 					$es_query_args['sort'][] = array( 'post_modified.date' => $order );
 					break;
-				case 'id' :
+				case 'id':
 					$es_query_args['sort'][] = array( 'post_id' => $order );
 					break;
-				case 'author' :
+				case 'author':
 					$es_query_args['sort'][] = array( 'post_author.user_id' => $order );
 					break;
-				case 'name' :
+				case 'name':
 					$es_query_args['sort'][] = array( 'post_name.raw' => $order );
 					break;
-				case 'title' :
+				case 'title':
 					$es_query_args['sort'][] = array( 'post_title.raw' => $order );
 					break;
-				case 'menu_order' :
+				case 'menu_order':
 					$es_query_args['sort'][] = array( 'menu_order' => $order );
 					break;
-				case 'parent' :
+				case 'parent':
 					$es_query_args['sort'][] = array( 'post_parent' => $order );
 					break;
 			}
@@ -299,7 +309,7 @@ class SP_WP_Search extends SP_Search {
 			unset( $es_query_args['sort'] );
 		}
 
-		// Facets
+		// Facets.
 		if ( ! empty( $args['facets'] ) ) {
 			foreach ( (array) $args['facets'] as $label => $facet ) {
 				switch ( $facet['type'] ) {
@@ -308,7 +318,7 @@ class SP_WP_Search extends SP_Search {
 						$es_query_args['aggregations'][ $label ] = array(
 							'terms' => array(
 								'field' => "terms.{$facet['taxonomy']}.slug",
-								'size' => $facet['count'],
+								'size'  => $facet['count'],
 							),
 						);
 
@@ -318,7 +328,7 @@ class SP_WP_Search extends SP_Search {
 						$es_query_args['aggregations'][ $label ] = array(
 							'terms' => array(
 								'field' => 'post_type.raw',
-								'size' => $facet['count'],
+								'size'  => $facet['count'],
 							),
 						);
 
@@ -338,7 +348,7 @@ class SP_WP_Search extends SP_Search {
 						$es_query_args['aggregations'][ $label ] = array(
 							'terms' => array(
 								'field' => 'post_author.login',
-								'size' => $facet['count'],
+								'size'  => $facet['count'],
 							),
 						);
 
@@ -348,7 +358,7 @@ class SP_WP_Search extends SP_Search {
 			}
 		}
 
-		// Fields
+		// Fields.
 		if ( ! empty( $args['fields'] ) ) {
 			$es_query_args['_source'] = (array) $args['fields'];
 		}
@@ -358,6 +368,7 @@ class SP_WP_Search extends SP_Search {
 
 	/**
 	 * Parse the raw facet data from Elasticsearch into a constructive format.
+	 *
 	 * Specifically:
 	 *
 	 *     array(
@@ -403,10 +414,10 @@ class SP_WP_Search extends SP_Search {
 				continue;
 			}
 
-			$facet_data[ $label ] = $this->facets[ $label ];
+			$facet_data[ $label ]          = $this->facets[ $label ];
 			$facet_data[ $label ]['items'] = array();
 
-			// All taxonomy terms are going to have the same query_var
+			// All taxonomy terms are going to have the same query_var.
 			if ( 'taxonomy' === $this->facets[ $label ]['type'] ) {
 				$tax_query_var = $this->get_taxonomy_query_var( $this->facets[ $label ]['taxonomy'] );
 
@@ -422,29 +433,26 @@ class SP_WP_Search extends SP_Search {
 				$items = (array) $facet['buckets'];
 			}
 
-			// Some facet types like date_histogram don't support the max results parameter
+			// Some facet types like date_histogram don't support the max results parameter.
 			if ( count( $items ) > $this->facets[ $label ]['count'] ) {
 				$items = array_slice( $items, 0, $this->facets[ $label ]['count'] );
 			}
 
 			foreach ( $items as $item ) {
-				if ( false === ( $datum = apply_filters( 'sp_search_facet_datum', false, $item, $this->facets ) ) ) {
+				$datum = apply_filters( 'sp_search_facet_datum', false, $item, $this->facets );
+				if ( false === $datum ) {
 					$query_vars = array();
 
 					switch ( $this->facets[ $label ]['type'] ) {
 						case 'taxonomy':
-							if ( function_exists( 'wpcom_vip_get_term_by' ) ) {
-								$term = wpcom_vip_get_term_by( 'slug', $item['key'], $this->facets[ $label ]['taxonomy'] );
-							} else {
-								$term = get_term_by( 'slug', $item['key'], $this->facets[ $label ]['taxonomy'] );
-							}
+							$term = get_term_by( 'slug', $item['key'], $this->facets[ $label ]['taxonomy'] );
 
 							if ( ! $term ) {
-								continue 2; // switch() is considered a looping structure
+								continue 2; // switch() is considered a looping structure.
 							}
 
-							// Don't allow refinement on a term we're already refining on
-							if ( in_array( $term->slug, $existing_term_slugs ) ) {
+							// Don't allow refinement on a term we're already refining on.
+							if ( in_array( $term->slug, $existing_term_slugs, true ) ) {
 								continue 2;
 							}
 
@@ -459,7 +467,7 @@ class SP_WP_Search extends SP_Search {
 							$post_type = get_post_type_object( $item['key'] );
 
 							if ( ! $post_type || $post_type->exclude_from_search ) {
-								continue 2;  // switch() is considered a looping structure
+								continue 2;  // switch() is considered a looping structure.
 							}
 
 							$query_vars = array( 'post_type' => $item['key'] );
@@ -474,7 +482,7 @@ class SP_WP_Search extends SP_Search {
 								continue 2;
 							}
 
-							$name = $user->display_name;
+							$name       = $user->display_name;
 							$query_vars = array( 'author' => $user->ID );
 
 							break;
@@ -485,9 +493,9 @@ class SP_WP_Search extends SP_Search {
 							switch ( $this->facets[ $label ]['interval'] ) {
 								case 'year':
 									$query_vars = array(
-										'year'     => date( 'Y', $timestamp ),
+										'year' => date( 'Y', $timestamp ),
 									);
-									$name = date( 'Y', $timestamp );
+									$name       = date( 'Y', $timestamp );
 									break;
 
 								case 'month':
@@ -495,7 +503,7 @@ class SP_WP_Search extends SP_Search {
 										'year'     => date( 'Y', $timestamp ),
 										'monthnum' => date( 'n', $timestamp ),
 									);
-									$name = date( 'F Y', $timestamp );
+									$name       = date( 'F Y', $timestamp );
 									break;
 
 								case 'day':
@@ -504,17 +512,17 @@ class SP_WP_Search extends SP_Search {
 										'monthnum' => date( 'n', $timestamp ),
 										'day'      => date( 'j', $timestamp ),
 									);
-									$name = date( 'F j, Y', $timestamp );
+									$name       = date( 'F j, Y', $timestamp );
 									break;
 
 								default:
-									continue 3; // switch() is considered a looping structure
+									continue 3; // switch() is considered a looping structure.
 							}
 
 							break;
 
 						default:
-							//continue 2; // switch() is considered a looping structure
+							// continue 2; // switch() is considered a looping structure.
 					}
 
 					$datum = array(

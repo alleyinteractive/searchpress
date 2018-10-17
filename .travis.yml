@@ -2,14 +2,6 @@ sudo: false
 
 language: php
 
-jdk:
-  - oraclejdk8
-
-addons:
-  apt:
-    packages:
-      - oracle-java8-installer
-
 notifications:
   email:
     on_success: never
@@ -18,10 +10,6 @@ notifications:
 branches:
   only:
     - master
-
-env:
-  global:
-    - JAVA_HOME=/usr/lib/jvm/java-8-oracle
 
 matrix:
   include:
@@ -34,9 +22,7 @@ matrix:
     - php: 7.1
       env: WP_VERSION=latest PHP_LINT=1 ES_VERSION=2.4.6
     - php: 7.2
-      env: WP_VERSION=nightly PHP_LINT=1 ES_VERSION=6.0.0-beta2
-  allow_failures:
-    - php: 7.2
+      env: WP_VERSION=nightly PHP_LINT=1 ES_VERSION=6.4.1
 
 install:
   - bash bin/install-es.sh $ES_VERSION
@@ -55,10 +41,8 @@ before_script:
     fi
   - |
     if [[ "$WP_PHPCS" == "1" ]]; then
-      composer install
-      export PATH=$PATH:${PWD}/vendor/bin/
-      # After CodeSniffer install you should refresh your path.
-      phpenv rehash
+      composer global require automattic/vipwpcs
+      phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs,$HOME/.composer/vendor/automattic/vipwpcs
     fi
   - sleep 5
   - curl localhost:9200 && echo "ES is up" || (cat /tmp/elasticsearch.log && exit 1)
@@ -67,7 +51,7 @@ before_script:
 
 script:
   - if [[ "$PHP_LINT" == "1" ]]; then find . -type "f" -iname "*.php" | xargs -L "1" php -l; fi
-  - if [[ "$WP_PHPCS" == "1" ]]; then phpcs -p -s -v -n --standard=./codesniffer.ruleset.xml --extensions=php .; fi
+  - if [[ "$WP_PHPCS" == "1" ]]; then phpcs; fi
   - phpunit
   - phpunit -c multisite.xml
 
