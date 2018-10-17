@@ -13,14 +13,14 @@ branches:
 
 matrix:
   include:
-    # - php: 5.4
-    #  env: WP_VERSION=4.4.2 PHP_LINT=1 ES_VERSION=1.3.0
-    #- php: 5.6
-    #  env: WP_VERSION=latest PHP_LINT=1 ES_VERSION=1.7.6
-    #- php: 7.0
-    #  env: WP_VERSION=nightly WP_PHPCS=1 ES_VERSION=5.6.0
-    #- php: 7.1
-    #  env: WP_VERSION=latest PHP_LINT=1 ES_VERSION=2.4.6
+    - php: 5.4
+      env: WP_VERSION=4.4.2 PHP_LINT=1 ES_VERSION=1.3.0
+    - php: 5.6
+      env: WP_VERSION=latest PHP_LINT=1 ES_VERSION=1.7.6
+    - php: 7.0
+      env: WP_VERSION=nightly WP_PHPCS=1 ES_VERSION=5.6.0
+    - php: 7.1
+      env: WP_VERSION=latest PHP_LINT=1 ES_VERSION=2.4.6
     - php: 7.2
       env: WP_VERSION=nightly PHP_LINT=1 ES_VERSION=6.4.1
 
