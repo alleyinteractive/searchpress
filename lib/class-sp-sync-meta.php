@@ -85,7 +85,7 @@ class SP_Sync_Meta extends SP_Singleton {
 		$this->init();
 		$this->data['running'] = true;
 		$this->data['started'] = time();
-		if ( 'save' == $save ) {
+		if ( 'save' === $save ) {
 			$this->save();
 		}
 	}
@@ -99,7 +99,7 @@ class SP_Sync_Meta extends SP_Singleton {
 	public function stop( $save = null ) {
 		$this->data['running']  = false;
 		$this->data['finished'] = time();
-		if ( 'save' == $save ) {
+		if ( 'save' === $save ) {
 			$this->save();
 		}
 	}
@@ -143,7 +143,7 @@ class SP_Sync_Meta extends SP_Singleton {
 	 */
 	public function reset( $save = null ) {
 		$this->init();
-		if ( 'save' == $save ) {
+		if ( 'save' === $save ) {
 			$this->save();
 		}
 	}
@@ -157,7 +157,7 @@ class SP_Sync_Meta extends SP_Singleton {
 	public function log( WP_Error $error ) {
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			$method = $error->get_error_code();
-			if ( ! in_array( $method, array( 'success', 'warning', 'error' ) ) ) {
+			if ( ! in_array( $method, array( 'success', 'warning', 'error' ), true ) ) {
 				$method = 'line';
 			}
 			$message = $error->get_error_data() ? $error->get_error_message() . '; Data: ' . wp_json_encode( $error->get_error_data() ) : $error->get_error_message();

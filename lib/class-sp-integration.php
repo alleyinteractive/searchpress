@@ -141,7 +141,7 @@ class SP_Integration extends SP_Singleton {
 		$this->sp = get_query_var( 'sp' );
 
 		// If this is a search, but not a keyword search, we have to fake it.
-		if ( ! $wp_query->is_search() && ! empty( $this->sp ) && '1' == $this->sp['force'] ) {
+		if ( ! $wp_query->is_search() && ! empty( $this->sp ) && 1 === intval( $this->sp['force'] ) ) {
 			// First, we'll set the search string to something phony.
 			$wp_query->set( 's', '1441f19754335ca4638bfdf1aea00c6d' );
 			$wp_query->is_search = true;
@@ -190,7 +190,7 @@ class SP_Integration extends SP_Singleton {
 		}
 
 		// If we put in a phony search term, remove it now.
-		if ( '1441f19754335ca4638bfdf1aea00c6d' == $query->get( 's' ) ) {
+		if ( '1441f19754335ca4638bfdf1aea00c6d' === $query->get( 's' ) ) {
 			$query->set( 's', '' );
 		}
 
@@ -336,7 +336,7 @@ class SP_Integration extends SP_Singleton {
 		// Set results sorting.
 		$orderby = $query->get( 'orderby' );
 		if ( ! empty( $orderby ) ) {
-			if ( in_array( $orderby, array( 'date', 'relevance' ) ) ) {
+			if ( in_array( $orderby, array( 'date', 'relevance' ), true ) ) {
 				$es_wp_query_args['orderby'] = $orderby;
 			}
 		}
@@ -344,7 +344,7 @@ class SP_Integration extends SP_Singleton {
 		// Set sort ordering.
 		$order = strtolower( $query->get( 'order' ) );
 		if ( ! empty( $order ) ) {
-			if ( in_array( $order, array( 'asc', 'desc' ) ) ) {
+			if ( in_array( $order, array( 'asc', 'desc' ), true ) ) {
 				$es_wp_query_args['order'] = $order;
 			}
 		}
@@ -368,13 +368,13 @@ class SP_Integration extends SP_Singleton {
 	 * @return array An array of valid taxonomy query variables.
 	 */
 	protected function get_valid_taxonomy_query_vars( $query = false ) {
-		$taxonomies = get_taxonomies( array( 'public' => true ), $output = 'objects' );
+		$taxonomies = get_taxonomies( array( 'public' => true ), 'objects' );
 		$query_vars = wp_list_pluck( $taxonomies, 'query_var' );
 		if ( $query ) {
 			$return = array();
 			foreach ( $query->query as $qv => $value ) {
-				if ( in_array( $qv, $query_vars ) ) {
-					$taxonomy            = array_search( $qv, $query_vars );
+				if ( in_array( $qv, $query_vars, true ) ) {
+					$taxonomy            = array_search( $qv, $query_vars, true );
 					$return[ $taxonomy ] = $value;
 				}
 			}
@@ -402,7 +402,7 @@ class SP_Integration extends SP_Singleton {
 		// Post type filters.
 		$indexed_post_types = SP_Config()->sync_post_types();
 
-		if ( $query->get( 'post_type' ) && 'any' != $query->get( 'post_type' ) ) {
+		if ( $query->get( 'post_type' ) && 'any' !== $query->get( 'post_type' ) ) {
 			$post_types = (array) $query->get( 'post_type' );
 		} elseif ( ! empty( $_GET['post_type'] ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
 			$post_types = explode( ',', sanitize_text_field( wp_unslash( $_GET['post_type'] ) ) ); // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
@@ -415,7 +415,7 @@ class SP_Integration extends SP_Singleton {
 		// Validate post types, making sure they exist and are indexed.
 		if ( $post_types ) {
 			foreach ( (array) $post_types as $post_type ) {
-				if ( in_array( $post_type, $indexed_post_types ) ) {
+				if ( in_array( $post_type, $indexed_post_types, true ) ) {
 					$vars['post_type'][] = $post_type;
 				}
 			}

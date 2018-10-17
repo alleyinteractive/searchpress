@@ -135,6 +135,7 @@ class SP_WP_Search extends SP_Search {
 			'size' => absint( $args['posts_per_page'] ),
 		);
 		$filters       = array();
+		$or            = array();
 
 		/**
 		 * Pagination
@@ -451,7 +452,7 @@ class SP_WP_Search extends SP_Search {
 							}
 
 							// Don't allow refinement on a term we're already refining on.
-							if ( in_array( $term->slug, $existing_term_slugs ) ) {
+							if ( in_array( $term->slug, $existing_term_slugs, true ) ) {
 								continue 2;
 							}
 

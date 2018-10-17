@@ -99,8 +99,6 @@ class SP_Search {
 	 * @return array
 	 */
 	public function pluck_field( $field = null, $as_single = true ) {
-		$return = array();
-
 		if ( ! $field ) {
 			$field = reset( $this->es_args['_source'] );
 		}
@@ -118,11 +116,11 @@ class SP_Search {
 			return $this->posts;
 		}
 
-		if ( 0 == $this->get_results( 'total' ) ) {
+		if ( 0 === $this->get_results( 'total' ) ) {
 			$this->posts = array();
 		} else {
 			$ids         = $this->pluck_field( 'post_id' );
-			$this->posts = get_posts(
+			$this->posts = get_posts( // phpcs:ignore WordPressVIPMinimum.VIP.RestrictedFunctions.get_posts_get_posts
 				array(
 					'post_type'      => array_values( get_post_types() ),
 					'post_status'    => array_values( get_post_stati() ),
@@ -130,7 +128,7 @@ class SP_Search {
 					'post__in'       => $ids,
 					'orderby'        => 'post__in',
 					'order'          => 'ASC',
-				) 
+				)
 			);
 		}
 

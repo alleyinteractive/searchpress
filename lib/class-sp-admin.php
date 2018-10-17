@@ -50,7 +50,7 @@ class SP_Admin extends SP_Singleton {
 	 */
 	public function admin_menu() {
 		// Add new admin menu and save returned page hook.
-		$hook_suffix = add_management_page( __( 'SearchPress', 'searchpress' ), __( 'SearchPress', 'searchpress' ), $this->capability, 'searchpress', array( $this, 'settings_page' ) );
+		add_management_page( __( 'SearchPress', 'searchpress' ), __( 'SearchPress', 'searchpress' ), $this->capability, 'searchpress', array( $this, 'settings_page' ) );
 	}
 
 	/**
@@ -352,8 +352,8 @@ class SP_Admin extends SP_Singleton {
 		if ( ! SP_Heartbeat()->check_beat() ) {
 			return $this->redirect( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_NO_BEAT ) );
 		} else {
-			$result = SP_Config()->flush();
-			if ( ! isset( SP_API()->last_request['response_code'] ) || ! in_array( SP_API()->last_request['response_code'], array( 200, 404 ) ) ) {
+			SP_Config()->flush();
+			if ( ! isset( SP_API()->last_request['response_code'] ) || ! in_array( intval( SP_API()->last_request['response_code'] ), array( 200, 404 ), true ) ) {
 				return $this->redirect( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_FLUSH_FAIL ) );
 			} else {
 				SP_Config()->create_mapping();
@@ -533,7 +533,7 @@ class SP_Admin extends SP_Singleton {
 				// translators: amount of time with units (e.g., 36 minutes).
 				$message_escaped .= ' ' . sprintf( esc_html__( 'The Elasticsearch server was last seen %s ago.', 'searchpress' ), human_time_diff( SP_Heartbeat()->get_last_beat(), time() ) );
 			}
-			if ( 'shutdown' == $heartbeat_status ) {
+			if ( 'shutdown' === $heartbeat_status ) {
 				$message_escaped .= "\n" . esc_html__( "SearchPress has deactivated itself to preserve site search for your visitors. Your site will use WordPress' built-in search until the Elasticsearch server comes back online.", 'searchpress' );
 			}
 			echo '<div class="updated error">' . wpautop( $message_escaped ) . '</div>'; // WPCS: XSS ok.

@@ -86,7 +86,7 @@ class SP_Sync_Manager extends SP_Singleton {
 			} else {
 				SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . wp_json_encode( $response->error ) ) );
 			}
-		} elseif ( ! in_array( SP_API()->last_request['response_code'], $allowed_codes ) ) {
+		} elseif ( ! in_array( intval( SP_API()->last_request['response_code'] ), $allowed_codes, true ) ) {
 			// translators: date, status code, JSON-encoded last request object.
 			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%1$s] Elasticsearch response failed! Status code %2$d; %3$s', 'searchpress' ), date( 'Y-m-d H:i:s' ), SP_API()->last_request['response_code'], wp_json_encode( SP_API()->last_request ) ) ) );
 		} elseif ( ! is_object( $response ) ) {
@@ -188,7 +188,7 @@ class SP_Sync_Manager extends SP_Singleton {
 
 		$sync_meta->processed += count( $posts );
 
-		if ( '200' != SP_API()->last_request['response_code'] ) {
+		if ( 200 !== intval( SP_API()->last_request['response_code'] ) ) {
 			// Should probably throw an error here or something.
 			$sync_meta->log( new WP_Error( 'error', __( 'ES response failed', 'searchpress' ), SP_API()->last_request ) );
 			$sync_meta->save();
@@ -205,7 +205,7 @@ class SP_Sync_Manager extends SP_Singleton {
 				if ( ! isset( $post->index->status ) ) {
 					// translators: post ID, JSON-encoded API response.
 					$sync_meta->log( new WP_Error( 'warning', sprintf( __( 'Error indexing post %1$s; Response: %2$s', 'searchpress' ), $post->index->_id, wp_json_encode( $post ) ), $post ) );
-				} elseif ( ! in_array( $post->index->status, array( 200, 201 ) ) ) {
+				} elseif ( ! in_array( intval( $post->index->status ), array( 200, 201 ), true ) ) {
 					// translators: post ID, HTTP response code.
 					$sync_meta->log( new WP_Error( 'warning', sprintf( __( 'Error indexing post %1$s; HTTP response code: %2$s', 'searchpress' ), $post->index->_id, $post->index->status ), $post ) );
 				} else {

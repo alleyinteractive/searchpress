@@ -26,7 +26,7 @@ class SP_Post extends SP_Indexable {
 	 * @access public
 	 */
 	public function __construct( $post ) {
-		if ( is_numeric( $post ) && 0 != intval( $post ) ) {
+		if ( is_numeric( $post ) && 0 !== intval( $post ) ) {
 			$post = get_post( intval( $post ) );
 		}
 		if ( ! is_object( $post ) ) {
@@ -58,7 +58,7 @@ class SP_Post extends SP_Indexable {
 	 */
 	public function __get( $property ) {
 		// Let the post ID be accessed either way.
-		if ( 'ID' == $property ) {
+		if ( 'ID' === $property ) {
 			$property = 'post_id';
 		}
 
@@ -308,7 +308,7 @@ class SP_Post extends SP_Indexable {
 	 */
 	public function should_be_indexed() {
 		// Check post type.
-		if ( ! in_array( $this->data['post_type'], SP_Config()->sync_post_types() ) ) {
+		if ( ! in_array( $this->data['post_type'], SP_Config()->sync_post_types(), true ) ) {
 			return false;
 		}
 
@@ -318,7 +318,7 @@ class SP_Post extends SP_Indexable {
 		} else {
 			$post_status = $this->data['post_status'];
 		}
-		if ( ! in_array( $post_status, SP_Config()->sync_statuses() ) ) {
+		if ( ! in_array( $post_status, SP_Config()->sync_statuses(), true ) ) {
 			return false;
 		}
 

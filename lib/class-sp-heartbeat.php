@@ -87,7 +87,7 @@ class SP_Heartbeat extends SP_Singleton {
 		// Ensure we only check the beat once per request.
 		if ( $force || ! isset( $this->beat_result ) ) {
 			$health            = SP_API()->cluster_health();
-			$this->beat_result = ( ! empty( $health->status ) && in_array( $health->status, $this->healthy_statuses ) );
+			$this->beat_result = ( ! empty( $health->status ) && in_array( $health->status, $this->healthy_statuses, true ) );
 			if ( $this->beat_result ) {
 				$this->record_pulse();
 			} else {
@@ -132,9 +132,9 @@ class SP_Heartbeat extends SP_Singleton {
 		if ( time() - $last_beat < $this->thresholds[ $threshold ] ) {
 			return true;
 		} else {
-			$result = $this->check_beat();
+			$this->check_beat();
 			// If we updated the pulse, run this again.
-			if ( $last_beat != $this->get_last_beat() ) {
+			if ( $last_beat !== $this->get_last_beat() ) {
 				return $this->has_pulse( $threshold );
 			}
 		}
