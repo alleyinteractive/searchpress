@@ -26,6 +26,9 @@
 	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+// Whitelist the SP_PLUGIN_DIR constant for use in file inclusion.
+// phpcs:disable WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+
 if ( ! defined( 'SP_PLUGIN_URL' ) ) {
 	define( 'SP_PLUGIN_URL', plugins_url( '/', __FILE__ ) );
 }
@@ -34,57 +37,57 @@ if ( ! defined( 'SP_PLUGIN_DIR' ) ) {
 }
 
 // Base Singleton class.
-require_once SP_PLUGIN_DIR . '/lib/class-sp-singleton.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+require_once SP_PLUGIN_DIR . '/lib/class-sp-singleton.php';
 
 // Base indexable class.
-require_once SP_PLUGIN_DIR . '/lib/class-sp-indexable.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+require_once SP_PLUGIN_DIR . '/lib/class-sp-indexable.php';
 
 // Constants, etc.
-require_once SP_PLUGIN_DIR . '/lib/globals.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+require_once SP_PLUGIN_DIR . '/lib/globals.php';
 
 // Helper functions.
-require_once SP_PLUGIN_DIR . '/lib/functions.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+require_once SP_PLUGIN_DIR . '/lib/functions.php';
 
 // To communicate with the ES API.
-require_once SP_PLUGIN_DIR . '/lib/class-sp-api.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+require_once SP_PLUGIN_DIR . '/lib/class-sp-api.php';
 
 // Settings, mappings, etc. for ES.
-require_once SP_PLUGIN_DIR . '/lib/class-sp-config.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+require_once SP_PLUGIN_DIR . '/lib/class-sp-config.php';
 
 // Heartbeat.
-require_once SP_PLUGIN_DIR . '/lib/class-sp-heartbeat.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+require_once SP_PLUGIN_DIR . '/lib/class-sp-heartbeat.php';
 
 // An object wrapper that becomes the indexed ES documents.
-require_once SP_PLUGIN_DIR . '/lib/class-sp-post.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+require_once SP_PLUGIN_DIR . '/lib/class-sp-post.php';
 
 // A controller for syncing content across to ES.
-require_once SP_PLUGIN_DIR . '/lib/class-sp-sync-manager.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+require_once SP_PLUGIN_DIR . '/lib/class-sp-sync-manager.php';
 
 // Manages all cron processes.
-require_once SP_PLUGIN_DIR . '/lib/class-sp-cron.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+require_once SP_PLUGIN_DIR . '/lib/class-sp-cron.php';
 
 // Manages metadata for the syncing process.
-require_once SP_PLUGIN_DIR . '/lib/class-sp-sync-meta.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+require_once SP_PLUGIN_DIR . '/lib/class-sp-sync-meta.php';
 
 // You know, for search.
-require_once SP_PLUGIN_DIR . '/lib/class-sp-search.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+require_once SP_PLUGIN_DIR . '/lib/class-sp-search.php';
 
 // Extends the search with WP-style arguments.
-require_once SP_PLUGIN_DIR . '/lib/class-sp-wp-search.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+require_once SP_PLUGIN_DIR . '/lib/class-sp-wp-search.php';
 
 // Replaces core search with SearchPress.
-require_once SP_PLUGIN_DIR . '/lib/class-sp-integration.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+require_once SP_PLUGIN_DIR . '/lib/class-sp-integration.php';
 
 if ( is_admin() ) {
-	require_once SP_PLUGIN_DIR . '/lib/class-sp-admin.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+	require_once SP_PLUGIN_DIR . '/lib/class-sp-admin.php';
 }
 
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
-	include SP_PLUGIN_DIR . '/bin/wp-cli.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+	include SP_PLUGIN_DIR . '/bin/wp-cli.php';
 }
 
 if ( defined( 'SP_DEBUG' ) && SP_DEBUG ) {
-	include SP_PLUGIN_DIR . '/lib/class-sp-debug.php'; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+	include SP_PLUGIN_DIR . '/lib/class-sp-debug.php';
 }
 
 do_action( 'searchpress_loaded' );
