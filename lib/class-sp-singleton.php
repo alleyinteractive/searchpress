@@ -1,8 +1,13 @@
 <?php
 /**
- * Base Singleton Class
+ * SearchPress library: SP_Singleton abstract class
+ *
+ * @package SearchPress
  */
 
+/**
+ * Base Singleton Class
+ */
 abstract class SP_Singleton {
 	/**
 	 * Holds references to the singleton instances.
@@ -26,7 +31,7 @@ abstract class SP_Singleton {
 	public static function instance() {
 		$class_name = get_called_class();
 		if ( ! isset( self::$instances[ $class_name ] ) ) {
-			self::$instances[ $class_name ] = new $class_name;
+			self::$instances[ $class_name ] = new $class_name();
 			self::$instances[ $class_name ]->setup();
 		}
 		return self::$instances[ $class_name ];
