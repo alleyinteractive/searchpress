@@ -166,6 +166,26 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @return bool
 	 */
 	public function do_index_loop() {
+
+		/**
+		 * Advanced Post Cache can periodically return the wrong value for
+		 * found_posts, which can cause the reindex operation to abort prematurely.
+		 * We will unhook it during cron to prevent this.
+		 */
+		if ( wp_doing_cron() && class_exists( 'Advanced_Post_Cache' ) ) {
+			global $advanced_post_cache_object;
+			if ( ! empty( $advanced_post_cache_object ) ) {
+				remove_filter(
+					'found_posts',
+					array( $advanced_post_cache_object, 'found_posts' )
+				);
+				remove_filter(
+					'found_posts_query',
+					array( $advanced_post_cache_object, 'found_posts_query' )
+				);
+			}
+		}
+
 		$sync_meta = SP_Sync_Meta();
 
 		$start = $sync_meta->page * $sync_meta->bulk;
