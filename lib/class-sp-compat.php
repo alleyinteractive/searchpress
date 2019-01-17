@@ -46,3 +46,5 @@ class SP_Compat extends SP_Singleton {
 function SP_Compat() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	return SP_Compat::instance();
 }
+
+SP_Compat();
