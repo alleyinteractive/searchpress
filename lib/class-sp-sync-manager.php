@@ -166,6 +166,16 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @return bool
 	 */
 	public function do_index_loop() {
+		/**
+		 * Action hook that fires before the index loop starts.
+		 *
+		 * Provides an opportunity to unhook actions that are incompatible with
+		 * the index loop.
+		 *
+		 * @since 0.3.0
+		 */
+		do_action( 'sp_pre_index_loop' );
+
 		$sync_meta = SP_Sync_Meta();
 
 		$start = $sync_meta->page * $sync_meta->bulk;
