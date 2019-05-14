@@ -120,7 +120,7 @@ class SP_Search {
 			$this->posts = array();
 		} else {
 			$ids         = $this->pluck_field( 'post_id' );
-			$this->posts = get_posts( // phpcs:ignore WordPressVIPMinimum.VIP.RestrictedFunctions.get_posts_get_posts
+			$this->posts = get_posts( // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.get_posts_get_posts
 				array(
 					'post_type'      => array_values( get_post_types() ),
 					'post_status'    => array_values( get_post_stati() ),

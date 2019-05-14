@@ -175,7 +175,7 @@ class SP_Post extends SP_Indexable {
 	 * @return array The list of terms for the post.
 	 */
 	public static function get_terms( $post ) {
-		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		if ( ! wp_doing_cron() && defined( 'WP_CLI' ) && WP_CLI ) {
 			return self::get_terms_efficiently( $post );
 		}
 
