@@ -34,10 +34,10 @@ install:
 
 before_script:
   - echo $HOME
-  - ls -la $HOME/.composer/vendor/bin
+  - ls -la $HOME/.config/vendor/bin
   - echo $COMPOSER_BIN_DIR
   - ls -la $COMPOSER_BIN_DIR
-  - export PATH="$HOME/.composer/vendor/bin:$PATH"
+  - export PATH="$HOME/.config/vendor/bin:$PATH"
   - |
     if [ -f ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/xdebug.ini ]; then
       phpenv config-rm xdebug.ini
