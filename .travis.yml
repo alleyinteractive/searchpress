@@ -55,8 +55,6 @@ before_script:
   - curl localhost:9200 && echo "ES is up" || (cat /tmp/elasticsearch.log && exit 1)
   - phpunit --version
   - which phpunit
-  - which phpcs
-
 
 script:
   - if [[ "$PHP_LINT" == "1" ]]; then find . -type "f" -iname "*.php" | xargs -L "1" php -l; fi
