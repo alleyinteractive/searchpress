@@ -49,12 +49,13 @@ before_script:
   - |
     if [[ "$WP_PHPCS" == "1" ]]; then
       composer global require automattic/vipwpcs
-      phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs
+      phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs,$HOME/.composer/vendor/automattic/vipwpcs
     fi
   - sleep 5
   - curl localhost:9200 && echo "ES is up" || (cat /tmp/elasticsearch.log && exit 1)
   - phpunit --version
   - which phpunit
+  - which phpcs
 
 
 script:
