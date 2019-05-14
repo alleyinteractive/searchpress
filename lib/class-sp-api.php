@@ -55,7 +55,7 @@ class SP_API extends SP_Singleton {
 		$this->host             = SP_Config()->get_setting( 'host' );
 		$this->request_defaults = array(
 			'sslverify'          => false,
-			'timeout'            => 10, // phpcs:ignore WordPressVIPMinimum.VIP.RemoteRequestTimeout.timeout_timeout
+			'timeout'            => 10, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 			'user-agent'         => 'SearchPress 0.1 for WordPress',
 			'reject_unsafe_urls' => false,
 			'headers'            => array(
@@ -65,7 +65,7 @@ class SP_API extends SP_Singleton {
 
 		// Increase the timeout for bulk indexing.
 		if ( wp_doing_cron() || defined( 'WP_CLI' ) && WP_CLI ) {
-			$this->request_defaults['timeout'] = 60;
+			$this->request_defaults['timeout'] = 60; // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 		}
 	}
 
@@ -289,7 +289,7 @@ class SP_API extends SP_Singleton {
 		 *
 		 * @param string  $url  URI or URL to hit to query the cluster health.
 		 */
-		$health_uri = apply_filters( 'sp_cluster_health_uri', "/_cluster/health/{$this->index}?wait_for_status=yellow&timeout=200ms" ); // phpcs:ignore WordPressVIPMinimum.VIP.RemoteRequestTimeout.timeout_timeout
+		$health_uri = apply_filters( 'sp_cluster_health_uri', "/_cluster/health/{$this->index}?wait_for_status=yellow&timeout=200ms" ); // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 		return $this->get( $health_uri );
 	}
 

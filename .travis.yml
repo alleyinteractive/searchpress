@@ -48,7 +48,7 @@ before_script:
     fi
   - |
     if [[ "$WP_PHPCS" == "1" ]]; then
-      composer global require wp-coding-standards/wpcs
+      composer global require automattic/vipwpcs
       phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs
     fi
   - sleep 5

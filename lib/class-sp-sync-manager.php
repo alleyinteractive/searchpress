@@ -129,7 +129,7 @@ class SP_Sync_Manager extends SP_Singleton {
 				'post_type'           => null,
 				'orderby'             => 'ID',
 				'order'               => 'ASC',
-				'suppress_filters'    => true, // phpcs:ignore WordPressVIPMinimum.VIP.WPQueryParams.suppressFiltersTrue
+				'suppress_filters'    => true, // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFiltersTrue
 				'ignore_sticky_posts' => true,
 			) 
 		);

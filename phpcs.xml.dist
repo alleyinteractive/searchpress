@@ -30,6 +30,7 @@
 	<exclude-pattern>tests/</exclude-pattern>
 
 	<rule ref="WordPress" />
+	<rule ref="WordPressVIPMinimum" />
 	<rule ref="WordPress-VIP-Go" />
 
 	<!-- The version set here matches the minimum version tested in .travis.yml.  -->

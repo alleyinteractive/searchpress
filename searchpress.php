@@ -27,7 +27,7 @@
 */
 
 // Whitelist the SP_PLUGIN_DIR constant for use in file inclusion.
-// phpcs:disable WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+// phpcs:disable WordPressVIPMinimum.Files.IncludingFile.UsingCustomConstant
 
 if ( ! defined( 'SP_PLUGIN_URL' ) ) {
 	define( 'SP_PLUGIN_URL', plugins_url( '/', __FILE__ ) );
