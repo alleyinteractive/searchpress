@@ -30,6 +30,7 @@ else
 fi
 
 if [[ "$ES_VERSION" == [12].* ]]; then
+  jdk_switcher use openjdk8
   start_es '-Des.path.repo=/tmp'
 else
   start_es '-Epath.repo=/tmp -Enetwork.host=_local_'
