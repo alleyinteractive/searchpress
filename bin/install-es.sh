@@ -34,18 +34,3 @@ if [[ "$ES_VERSION" == [12].* ]]; then
 else
   start_es '-Epath.repo=/tmp -Enetwork.host=_local_'
 fi
-
-# Wait up to 60 seconds until ES is up, or die if it never comes up.
-failures=0
-curl localhost:9200;
-while [[ $? -ne 0 && $failures -lt 60 ]]; do
-  sleep 1
-  ((failures++))
-  curl localhost:9200
-done
-
-if [ $? -ne 0 ]; then
-  echo "Elasticsearch is unavailable."
-  cat /tmp/elasticsearch.log
-  exit 1
-fi

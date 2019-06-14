@@ -77,6 +77,23 @@ before_script:
       phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs,$HOME/.composer/vendor/automattic/vipwpcs
     fi
 
+  # Wait up to 60 seconds until ES is up, or die if it never comes up.
+  - |
+    failures=0
+    curl localhost:9200;
+    while [[ $? -ne 0 && $failures -lt 60 ]]; do
+      sleep 1
+      ((failures++))
+      curl localhost:9200
+    done
+
+    if [ $? -ne 0 ]; then
+      echo "Elasticsearch is unavailable."
+      cat /tmp/elasticsearch.log
+      exit 1
+    fi
+
+
 script:
   - if [[ "$PHP_LINT" == "1" ]]; then find . -type "f" -iname "*.php" | xargs -L "1" php -l; fi
   - if [[ "$WP_PHPCS" == "1" ]]; then phpcs; fi
