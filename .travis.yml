@@ -1,9 +1,6 @@
 # Travis CI (MIT License) configuration file for SearchPress
 # @link https://travis-ci.org/
 
-# Xenial image has PHP versions 5.6,7.1,7.2 pre-installed
-dist: xenial
-
 # Xenial does not start mysql by default
 services:
   - mysql
@@ -31,20 +28,19 @@ matrix:
   include:
     - php: 5.6
       env: WP_VERSION=4.9.10 PHP_LINT=1 ES_VERSION=1.7.6
-    #- php: 7.0
-    #  env: WP_VERSION=latest PHP_LINT=1 ES_VERSION=2.4.6
-    #- php: 7.1
-    #  env: WP_VERSION=nightly WP_PHPCS=1 ES_VERSION=5.6.15
-    #- php: 7.2
-    #  env: WP_VERSION=latest PHP_LINT=1 ES_VERSION=6.8.0
-    #- php: 7.3
-    #  env: WP_VERSION=nightly PHP_LINT=1 ES_VERSION=7.1.1
-
-before_install:
-  - |
-    if [[ "$ES_VERSION" == [12].* ]]; then
-      jdk_switcher use openjdk8
-    fi
+      dist: trusty
+    - php: 7.0
+      env: WP_VERSION=latest PHP_LINT=1 ES_VERSION=2.4.6
+      dist: trusty
+    - php: 7.1
+      env: WP_VERSION=latest PHP_LINT=1 ES_VERSION=5.6.15
+      dist: xenial
+    - php: 7.2
+      env: WP_VERSION=latest PHP_LINT=1 ES_VERSION=6.8.0
+      dist: xenial
+    - php: 7.3
+      env: WP_VERSION=nightly PHP_LINT=1 WP_PHPCS=1 ES_VERSION=7.1.1
+      dist: xenial
 
 install:
   - bash bin/install-es.sh $ES_VERSION
