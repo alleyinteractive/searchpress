@@ -1,13 +1,19 @@
-sudo: false
-dist: trusty
+# Travis CI (MIT License) configuration file for SearchPress
+# @link https://travis-ci.org/
 
+# Xenial image has PHP versions 5.6,7.1,7.2 pre-installed
+dist: xenial
+
+# Xenial does not start mysql by default
+services:
+  - mysql
+  - memcached
+
+# Declare project language.
+# @link http://about.travis-ci.org/docs/user/languages/php/
 language: php
 
-notifications:
-  email:
-    on_success: never
-    on_failure: change
-
+# Specify when Travis should build.
 branches:
   only:
     - master
@@ -17,35 +23,52 @@ cache:
     - $HOME/.composer/cache
     - $HOME/.config/composer/cache
 
+# Git clone depth.
+git:
+  depth: 1
+
 matrix:
   include:
-    - php: 5.4
-      env: WP_VERSION=4.9.10 PHP_LINT=1 ES_VERSION=1.3.0
     - php: 5.6
-      env: WP_VERSION=latest PHP_LINT=1 ES_VERSION=1.7.6
+      env: WP_VERSION=4.9.10 PHP_LINT=1 ES_VERSION=1.7.6
     - php: 7.0
-      env: WP_VERSION=nightly WP_PHPCS=1 ES_VERSION=5.6.0
-    - php: 7.1
       env: WP_VERSION=latest PHP_LINT=1 ES_VERSION=2.4.6
+    - php: 7.1
+      env: WP_VERSION=nightly WP_PHPCS=1 ES_VERSION=5.6.15
     - php: 7.2
-      env: WP_VERSION=nightly PHP_LINT=1 ES_VERSION=6.4.1
+      env: WP_VERSION=latest PHP_LINT=1 ES_VERSION=6.8.0
+    - php: 7.3
+      env: WP_VERSION=nightly PHP_LINT=1 ES_VERSION=7.1.1
 
 install:
   - bash bin/install-es.sh $ES_VERSION
 
+# Prepare your build for testing.
+# Failures in this section will result in build status 'errored'.
 before_script:
   - export PATH="$HOME/.config/composer/vendor/bin:$HOME/.composer/vendor/bin:$PATH"
-  - |
-    if [ -f ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/xdebug.ini ]; then
-      phpenv config-rm xdebug.ini
-    else
-      echo "xdebug.ini does not exist"
-    fi
+
+  # Turn off Xdebug. See https://core.trac.wordpress.org/changeset/40138.
+  - phpenv config-rm xdebug.ini || echo "Xdebug not available"
+
   - |
     if [[ ! -z "$WP_VERSION" ]] ; then
       bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
-      composer global require "phpunit/phpunit=4.8.*|5.7.*"
     fi
+
+  # Couple the PHPUnit version to the PHP version.
+  - |
+    case "$TRAVIS_PHP_VERSION" in
+    5.6)
+      echo "Using PHPUnit 4.8"
+      composer global require "phpunit/phpunit=4.8.*"
+      ;;
+    *)
+      echo "Using PHPUnit 6.1"
+      composer global require "phpunit/phpunit=6.1.*"
+      ;;
+    esac
+
   - |
     if [[ "$WP_PHPCS" == "1" ]]; then
       composer global require automattic/vipwpcs
@@ -53,8 +76,6 @@ before_script:
     fi
   - sleep 5
   - curl localhost:9200 && echo "ES is up" || (cat /tmp/elasticsearch.log && exit 1)
-  - phpunit --version
-  - which phpunit
 
 script:
   - if [[ "$PHP_LINT" == "1" ]]; then find . -type "f" -iname "*.php" | xargs -L "1" php -l; fi
@@ -64,3 +85,8 @@ script:
 
 after_script:
   - cat /tmp/elasticsearch.log
+
+# Receive notifications for build results.
+# @link http://docs.travis-ci.com/user/notifications/#Email-notifications
+notifications:
+  email: false
