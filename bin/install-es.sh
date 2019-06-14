@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-source /opt/jdk_switcher/jdk_switcher.sh
-
 if [ $# -lt 1 ]; then
   echo "usage: $0 <es-version>"
   exit 1
@@ -32,7 +30,6 @@ else
 fi
 
 if [[ "$ES_VERSION" == [12].* ]]; then
-  jdk_switcher use openjdk8
   start_es '-Des.path.repo=/tmp'
 else
   start_es '-Epath.repo=/tmp -Enetwork.host=_local_'

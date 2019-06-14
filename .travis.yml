@@ -40,6 +40,12 @@ matrix:
     #- php: 7.3
     #  env: WP_VERSION=nightly PHP_LINT=1 ES_VERSION=7.1.1
 
+before_install:
+  - |
+    if [[ "$ES_VERSION" == [12].* ]]; then
+      jdk_switcher use openjdk8
+    fi
+
 install:
   - bash bin/install-es.sh $ES_VERSION
 
