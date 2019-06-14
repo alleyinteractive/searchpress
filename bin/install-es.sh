@@ -29,4 +29,23 @@ else
   setup_es https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ES_VERSION}-linux-x86_64.tar.gz
 fi
 
-start_es '-Epath.repo=/tmp -Enetwork.host=_local_'
+if [[ "$ES_VERSION" == [12].* ]]; then
+  start_es '-Des.path.repo=/tmp'
+else
+  start_es '-Epath.repo=/tmp -Enetwork.host=_local_'
+fi
+
+# Wait up to 60 seconds until ES is up, or die if it never comes up.
+failures=0
+curl localhost:9200;
+while [[ $? -ne 0 && $failures -lt 60 ]]; do
+  sleep 1
+  ((failures++))
+  curl localhost:9200
+done
+
+if [ $? -ne 0 ]; then
+  echo "Elasticsearch is unavailable."
+  cat /tmp/elasticsearch.log
+  exit 1
+fi

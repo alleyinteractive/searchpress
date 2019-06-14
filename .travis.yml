@@ -74,8 +74,6 @@ before_script:
       composer global require automattic/vipwpcs
       phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs,$HOME/.composer/vendor/automattic/vipwpcs
     fi
-  - sleep 15
-  - curl localhost:9200 && echo "ES is up" || (cat /tmp/elasticsearch.log && exit 1)
 
 script:
   - if [[ "$PHP_LINT" == "1" ]]; then find . -type "f" -iname "*.php" | xargs -L "1" php -l; fi
