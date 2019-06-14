@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+source ~/.jdk_switcher_rc
+
 if [ $# -lt 1 ]; then
   echo "usage: $0 <es-version>"
   exit 1
