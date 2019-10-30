@@ -50,11 +50,22 @@ class SP_API extends SP_Singleton {
 	 * @access public
 	 */
 	public function setup() {
-		$url                    = get_site_url();
-		$this->index            = preg_replace( '#^.*?//(.*?)/?$#', '$1', $url );
-		$this->host             = SP_Config()->get_setting( 'host' );
+		$url         = get_site_url();
+		$this->index = preg_replace( '#^.*?//(.*?)/?$#', '$1', $url );
+		$this->host  = SP_Config()->get_setting( 'host' );
+		$host_parts  = wp_parse_url( $this->host );
+
+		/**
+		 * Override SSL verification for API requests
+		 *
+		 * @param bool   $verify_ssl Whether to verify SSL certificate for non-localhost requests.
+		 * @param string $host Elasticsearch host.
+		 * @return bool
+		 */
+		$verify_ssl = apply_filters( 'sp_api_verify_ssl', 'https' === $host_parts['scheme'] && 'localhost' !== $host_parts['host'], $this->host );
+
 		$this->request_defaults = array(
-			'sslverify'          => false,
+			'sslverify'          => $verify_ssl,
 			'timeout'            => 10, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 			'user-agent'         => 'SearchPress 0.1 for WordPress',
 			'reject_unsafe_urls' => false,
