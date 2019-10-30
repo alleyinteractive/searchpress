@@ -209,19 +209,20 @@ function sp_es_version_compare( $version, $compare = '>=' ) {
  * wrap the request to wp_remote_request() as needed. The filtered callable is
  * immediately invoked.
  *
- * @param string $url  ES endpoint URL.
- * @param array  $args Optional. Request arguments. Default empty array.
+ * @param string $url            ES endpoint URL.
+ * @param array  $request_params Optional. Request arguments. Default empty
+ *                               array.
  * @return WP_Error|array The response or WP_Error on failure.
  */
 function sp_remote_request( $url, $request_params = array() ) {
 	/**
 	 * Filter the callable used to make API requests to ES.
 	 *
-	 * @param callable $callable Request callable. Should be compatible with
-	 *                           wp_remote_request.
-	 * @param string   $url      ES endpoint URL.
-	 * @param array    $args     Optional. Request arguments. Default empty
-	 *                           array.
+	 * @param callable $callable       Request callable. Should be compatible
+	 *                                 with wp_remote_request.
+	 * @param string   $url            ES endpoint URL.
+	 * @param array    $request_params Optional. Request arguments. Default
+	 *                                 empty array.
 	 */
 	$callable = apply_filters(
 		'sp_remote_request',
