@@ -27,7 +27,7 @@
 */
 
 // Whitelist the SP_PLUGIN_DIR constant for use in file inclusion.
-// phpcs:disable WordPressVIPMinimum.Files.IncludingFile.IncludingFile
+// phpcs:disable WordPressVIPMinimum.Files.IncludingFile.UsingCustomConstant
 
 if ( ! defined( 'SP_PLUGIN_URL' ) ) {
 	define( 'SP_PLUGIN_URL', plugins_url( '/', __FILE__ ) );
@@ -62,6 +62,9 @@ require_once SP_PLUGIN_DIR . '/lib/class-sp-post.php';
 
 // A controller for syncing content across to ES.
 require_once SP_PLUGIN_DIR . '/lib/class-sp-sync-manager.php';
+
+// Handles compatibility with other plugins.
+require_once SP_PLUGIN_DIR . '/lib/class-sp-compat.php';
 
 // Manages all cron processes.
 require_once SP_PLUGIN_DIR . '/lib/class-sp-cron.php';

@@ -46,7 +46,15 @@ class SearchPress_UnitTestCase extends WP_UnitTestCase {
 	 */
 	protected function fake_cron() {
 		$crons = _get_cron_array();
+		if ( ! is_array( $crons ) ) {
+			return;
+		}
+
 		foreach ( $crons as $timestamp => $cronhooks ) {
+			if ( ! is_array( $cronhooks ) ) {
+				continue;
+			}
+
 			foreach ( $cronhooks as $hook => $keys ) {
 				if ( substr( $hook, 0, 3 ) !== 'sp_' ) {
 					continue; // only run our own jobs.

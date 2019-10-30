@@ -30,10 +30,11 @@
 	<exclude-pattern>tests/</exclude-pattern>
 
 	<rule ref="WordPress" />
+	<rule ref="WordPressVIPMinimum" />
 	<rule ref="WordPress-VIP-Go" />
 
 	<!-- The version set here matches the minimum version tested in .travis.yml.  -->
-	<config name="minimum_supported_wp_version" value="4.4.2" />
+	<config name="minimum_supported_wp_version" value="4.8.0" />
 
 	<rule ref="WordPress.WP.I18n">
 		<properties>

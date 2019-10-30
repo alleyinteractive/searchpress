@@ -54,7 +54,4 @@ class SP_Cron extends SP_Singleton {
 function SP_Cron() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	return SP_Cron::instance();
 }
-
-if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
-	SP_Cron();
-}
+add_action( 'after_setup_theme', 'SP_Cron', 20 );

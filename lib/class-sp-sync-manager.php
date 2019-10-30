@@ -129,7 +129,7 @@ class SP_Sync_Manager extends SP_Singleton {
 				'post_type'           => null,
 				'orderby'             => 'ID',
 				'order'               => 'ASC',
-				'suppress_filters'    => true, // phpcs:ignore WordPressVIPMinimum.VIP.WPQueryParams.suppressFiltersTrue
+				'suppress_filters'    => true, // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFiltersTrue
 				'ignore_sticky_posts' => true,
 			) 
 		);
@@ -166,6 +166,16 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @return bool
 	 */
 	public function do_index_loop() {
+		/**
+		 * Action hook that fires before the index loop starts.
+		 *
+		 * Provides an opportunity to unhook actions that are incompatible with
+		 * the index loop.
+		 *
+		 * @since 0.3.0
+		 */
+		do_action( 'sp_pre_index_loop' );
+
 		$sync_meta = SP_Sync_Meta();
 
 		$start = $sync_meta->page * $sync_meta->bulk;
@@ -216,7 +226,7 @@ class SP_Sync_Manager extends SP_Singleton {
 		$total_pages = ceil( $this->published_posts / $sync_meta->bulk );
 		$sync_meta->page++;
 
-		if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
+		if ( wp_doing_cron() || ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 			if ( $sync_meta->processed >= $sync_meta->total || $sync_meta->page > $total_pages ) {
 				SP_Config()->update_settings( array( 'active' => true ) );
 				$this->cancel_reindex();
