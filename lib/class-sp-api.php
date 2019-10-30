@@ -141,7 +141,7 @@ class SP_API extends SP_Singleton {
 				'body'   => $body,
 			)
 		);
-		$result         = wp_remote_request( $url, $request_params );
+		$result         = sp_remote_request( $url, $request_params );
 
 		if ( ! is_wp_error( $result ) ) {
 			$this->last_request = array(
@@ -161,7 +161,7 @@ class SP_API extends SP_Singleton {
 					'message' => $result->get_error_message(),
 					'data'    => $result->get_error_data(),
 				),
-			) 
+			)
 		);
 	}
 
@@ -265,7 +265,7 @@ class SP_API extends SP_Singleton {
 			$args,
 			array(
 				'output' => OBJECT,
-			) 
+			)
 		);
 		return $this->post( 'post/_search', $query, $args['output'] );
 	}

@@ -66,4 +66,31 @@ class Tests_Api extends SearchPress_UnitTestCase {
 	public function test_version() {
 		$this->assertRegExp( '/^\d+\.\d+\.\d+/', SP_API()->version() );
 	}
+
+	function test_wrapping_sp_remote_request() {
+		$pre          = '';
+		$post         = '';
+		$method       = null;
+		$request_time = 0;
+		add_filter( 'sp_remote_request', function( $callable ) use ( &$pre, &$post, &$method, &$request_time ) {
+			return function( $url, $request_args ) use ( $callable, &$pre, &$post, &$method, &$request_time ) {
+				$start    = microtime( true );
+
+				$pre      = 'before request';
+				$method   = $request_args['method'];
+				$response = call_user_func( $callable, $url, $request_args );
+				$post     = 'after request';
+
+				$request_time = microtime( true ) - $start;
+				return $response;
+			};
+		} );
+
+		SP_API()->put( 'post/123456', '{"post_id":123456}' );
+
+		$this->assertSame( 'PUT', $method );
+		$this->assertSame( 'before request', $pre );
+		$this->assertSame( 'after request', $post );
+		$this->assertGreaterThan( 0, $request_time );
+	}
 }
