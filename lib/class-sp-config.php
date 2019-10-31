@@ -422,6 +422,9 @@ class SP_Config extends SP_Singleton {
 		}
 		$old_settings   = $this->settings;
 		$this->settings = wp_parse_args( $new_settings, $this->settings );
+		
+		$new_settings['host'] = untrailingslashit( $new_settings['host'] );
+
 		update_option( 'sp_settings', $this->settings );
 
 		if ( ! empty( $new_settings['host'] ) ) {
