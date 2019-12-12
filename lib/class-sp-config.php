@@ -88,8 +88,8 @@ class SP_Config extends SP_Singleton {
 						'exclude_from_search' => false,
 					),
 					'names',
-					'or' 
-				) 
+					'or'
+				)
 			);
 
 			/**
@@ -352,7 +352,7 @@ class SP_Config extends SP_Singleton {
 		$this->update_settings(
 			array(
 				'map_version' => apply_filters( 'sp_map_version', SP_MAP_VERSION ),
-			) 
+			)
 		);
 
 		return SP_API()->put( '', wp_json_encode( $mapping ) );
@@ -382,7 +382,7 @@ class SP_Config extends SP_Singleton {
 				'active'      => false,
 				'map_version' => 0,
 				'es_version'  => -1,
-			) 
+			)
 		);
 		return $this->settings;
 	}
@@ -420,10 +420,15 @@ class SP_Config extends SP_Singleton {
 		if ( ! $this->settings ) {
 			$this->get_settings();
 		}
+
+		if ( ! empty( $new_settings['host'] ) ) {
+			$new_settings['host'] = untrailingslashit( $new_settings['host'] );
+		}
+
 		$old_settings   = $this->settings;
 		$this->settings = wp_parse_args( $new_settings, $this->settings );
-		update_option( 'sp_settings', $this->settings );
 
+		update_option( 'sp_settings', $this->settings );
 		if ( ! empty( $new_settings['host'] ) ) {
 			SP_API()->host = $this->get_setting( 'host' );
 		}
@@ -447,7 +452,7 @@ class SP_Config extends SP_Singleton {
 			$this->update_settings(
 				array(
 					'es_version' => $version,
-				) 
+				)
 			);
 		}
 	}
