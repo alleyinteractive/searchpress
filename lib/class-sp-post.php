@@ -74,7 +74,7 @@ class SP_Post extends SP_Indexable {
 	 */
 	public function fill( $post ) {
 		do_action( 'sp_debug', '[SP_Post] Populating Post' );
-		$apply_filters = apply_filters( 'sp_post_index_filtered_data', false );
+		$apply_filters = apply_filters( 'sp_post_index_filtered_data', true );
 
 		$this->data['post_id'] = intval( $post->ID );
 		// We're storing the login here instead of user ID, as that's more flexible.
@@ -138,7 +138,7 @@ class SP_Post extends SP_Indexable {
 				'_wpas_done_all',
 				'_encloseme',
 				'_pingme',
-			) 
+			)
 		);
 		foreach ( $ignored_meta as $key ) {
 			unset( $meta[ $key ] );
