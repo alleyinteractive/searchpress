@@ -152,7 +152,15 @@ class SP_API extends SP_Singleton {
 				'body'   => $body,
 			)
 		);
-		$result         = wp_remote_request( $url, $request_params );
+		/**
+		 * Filters the API URL directly before the request is made.
+		 *
+		 * @param string $url The URL of the request.
+		 * @param array $request_params The request params.
+		 */
+		$url = apply_filters( 'sp_api_request_url' $url, $request_params );
+		
+		$result = wp_remote_request( $url, $request_params );
 
 		if ( ! is_wp_error( $result ) ) {
 			$this->last_request = array(
