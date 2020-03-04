@@ -242,21 +242,25 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 			$total_pages_ceil = ceil( $total_pages );
 			$start_page = $sync_meta->page;
 
-			do {
-				$lap = microtime( true );
-				SP_Sync_Manager()->do_index_loop();
+			try {
+				do {
+					$lap = microtime( true );
+					SP_Sync_Manager()->do_index_loop();
 
-				if ( 0 < ( $sync_meta->page - $start_page ) ) {
-					$seconds_per_page = ( microtime( true ) - $timestamp_start ) / ( $sync_meta->page - $start_page );
-					WP_CLI::line( "Completed page {$sync_meta->page}/{$total_pages_ceil} (" . number_format( ( microtime( true ) - $lap), 2 ) . 's / ' . round( memory_get_usage() / 1024 / 1024, 2 ) . 'M current / ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'M max), ' . $this->time_format( ( $total_pages - $sync_meta->page ) * $seconds_per_page ) . ' remaining' );
-				}
+					if ( 0 < ( $sync_meta->page - $start_page ) ) {
+						$seconds_per_page = ( microtime( true ) - $timestamp_start ) / ( $sync_meta->page - $start_page );
+						WP_CLI::line( "Completed page {$sync_meta->page}/{$total_pages_ceil} (" . number_format( ( microtime( true ) - $lap), 2 ) . 's / ' . round( memory_get_usage() / 1024 / 1024, 2 ) . 'M current / ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'M max), ' . $this->time_format( ( $total_pages - $sync_meta->page ) * $seconds_per_page ) . ' remaining' );
+					}
 
-				$this->contain_memory_leaks();
+					$this->contain_memory_leaks();
 
-				if ( $assoc_args['limit'] > 0 && $sync_meta->processed >= $assoc_args['limit'] ) {
-					break;
-				}
-			} while ( $sync_meta->page < $total_pages_ceil );
+					if ( $assoc_args['limit'] > 0 && $sync_meta->processed >= $assoc_args['limit'] ) {
+						break;
+					}
+				} while ( $sync_meta->page < $total_pages_ceil );
+			} catch (\Exception $e) {
+				\WP_CLI::error( $e->getMessage() );
+			}
 
 			$errors = ! empty( $sync_meta->messages['error'] ) ? count( $sync_meta->messages['error'] ) : 0;
 			$errors += ! empty( $sync_meta->messages['warning'] ) ? count( $sync_meta->messages['warning'] ) : 0;
