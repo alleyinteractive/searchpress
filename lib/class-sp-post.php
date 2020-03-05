@@ -119,6 +119,7 @@ class SP_Post extends SP_Indexable {
 	 * @return array 'meta_key' => array( value 1, value 2... )
 	 */
 	public static function get_meta( $post_id ) {
+		do_action( 'sp_debug', '[SP_Post] Preparing to query meta for post ID ' . $post_id );
 		$meta = (array) get_post_meta( $post_id );
 
 		// Remove a filtered set of meta that we don't want indexed
@@ -210,6 +211,7 @@ class SP_Post extends SP_Indexable {
 	 */
 	private static function get_terms_efficiently( $post ) {
 		global $wpdb;
+		do_action( 'sp_debug', '[SP_Post] Preparing to compile terms for post ID ' . $post->ID );
 
 		$taxonomies = get_object_taxonomies( $post->post_type );
 		if ( empty( $taxonomies ) ) {
@@ -221,6 +223,7 @@ class SP_Post extends SP_Indexable {
 		$params = array_merge( array( $query ), $taxonomies, array( $post->ID ) );
 
 		$object_terms = $wpdb->get_results( call_user_func_array( array( $wpdb, 'prepare' ), $params ) ); // WPCS: db call ok. WPCS: cache ok. WPCS: unprepared SQL ok.
+		do_action( 'sp_debug', '[SP_Post] Queried the database for terms' );
 
 		if ( ! $object_terms || is_wp_error( $object_terms ) ) {
 			return array();
