@@ -70,7 +70,7 @@ class SP_Post extends SP_Indexable {
 	 * @return void
 	 */
 	public function fill( $post ) {
-		do_action( 'sp_debug', '[SP_Post] Populating Post' );
+		do_action( 'sp_debug', '[SP_Post] Populating Post ' . $post->ID );
 		$apply_filters = apply_filters( 'sp_post_index_filtered_data', false );
 
 		$this->data['post_id']           = intval( $post->ID );
@@ -251,9 +251,13 @@ class SP_Post extends SP_Indexable {
 	 * @return array
 	 */
 	public function get_user( $user_id ) {
+		do_action( 'sp_debug', '[SP_Post] Querying for user ' . $user_id );
+
 		if ( ! empty( SP_Sync_Manager()->users[ $user_id ] ) ) {
 			return SP_Sync_Manager()->users[ $user_id ];
 		}
+
+		do_action( 'sp_debug', '[SP_Post] Loading uncached userdata for ' . $user_id );
 
 		$user = get_userdata( $user_id );
 		if ( $user instanceof WP_User ) {
