@@ -172,7 +172,7 @@ class SP_API extends SP_Singleton {
 					'message' => $result->get_error_message(),
 					'data'    => $result->get_error_data(),
 				),
-			) 
+			)
 		);
 	}
 
@@ -227,7 +227,7 @@ class SP_API extends SP_Singleton {
 		if ( empty( $json ) ) {
 			return new WP_Error( 'invalid-json', __( 'Invalid JSON', 'searchpress' ) );
 		}
-		return $this->put( 'post/' . $post->post_id, $json );
+		return $this->put( '_doc/' . $post->post_id, $json );
 	}
 
 	/**
@@ -249,7 +249,7 @@ class SP_API extends SP_Singleton {
 				$body[] = addcslashes( $json, "\n" );
 			}
 		}
-		return $this->put( 'post/_bulk', wp_check_invalid_utf8( implode( "\n", $body ), true ) . "\n" );
+		return $this->put( '_doc/_bulk', wp_check_invalid_utf8( implode( "\n", $body ), true ) . "\n" );
 	}
 
 	/**
@@ -260,7 +260,7 @@ class SP_API extends SP_Singleton {
 	 * @return object The response from the API.
 	 */
 	public function delete_post( $post_id ) {
-		return $this->delete( "post/{$post_id}" );
+		return $this->delete( "_doc/{$post_id}" );
 	}
 
 	/**
@@ -276,9 +276,9 @@ class SP_API extends SP_Singleton {
 			$args,
 			array(
 				'output' => OBJECT,
-			) 
+			)
 		);
-		return $this->post( 'post/_search', $query, $args['output'] );
+		return $this->post( '_doc/_search', $query, $args['output'] );
 	}
 
 	/**

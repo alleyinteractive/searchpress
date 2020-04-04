@@ -110,7 +110,7 @@ class SP_Sync_Manager extends SP_Singleton {
 			array(
 				'offset'         => $start,
 				'posts_per_page' => $limit,
-			) 
+			)
 		);
 	}
 
@@ -131,7 +131,7 @@ class SP_Sync_Manager extends SP_Singleton {
 				'order'               => 'ASC',
 				'suppress_filters'    => true, // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFiltersTrue
 				'ignore_sticky_posts' => true,
-			) 
+			)
 		);
 
 		if ( empty( $args['post_type'] ) ) {
@@ -268,7 +268,7 @@ class SP_Sync_Manager extends SP_Singleton {
 					'post_type'      => null,
 					'post_status'    => null,
 					'posts_per_page' => 1,
-				) 
+				)
 			);
 			if ( empty( $args['post_type'] ) ) {
 				$args['post_type'] = SP_Config()->sync_post_types();
@@ -291,7 +291,7 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @return int
 	 */
 	public function count_posts_indexed() {
-		$count = SP_API()->get( 'post/_count' );
+		$count = SP_API()->get( '_doc/_count' );
 		return ! empty( $count->count ) ? intval( $count->count ) : 0;
 	}
 }
