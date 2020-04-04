@@ -216,7 +216,7 @@ class SP_Config extends SP_Singleton {
 						'properties' => array(
 							'date'              => array(
 								'type'   => 'date',
-								'format' => 'YYYY-MM-dd HH:mm:ss||YYYY-MM-dd',
+								'format' => 'yyyy-MM-dd HH:mm:ss||yyyy-MM-dd',
 							),
 							'year'              => array( 'type' => 'short' ),
 							'month'             => array( 'type' => 'byte' ),
@@ -236,7 +236,7 @@ class SP_Config extends SP_Singleton {
 						'properties' => array(
 							'date'              => array(
 								'type'   => 'date',
-								'format' => 'YYYY-MM-dd HH:mm:ss||YYYY-MM-dd',
+								'format' => 'yyyy-MM-dd HH:mm:ss||yyyy-MM-dd',
 							),
 							'year'              => array( 'type' => 'short' ),
 							'month'             => array( 'type' => 'byte' ),
@@ -256,7 +256,7 @@ class SP_Config extends SP_Singleton {
 						'properties' => array(
 							'date'              => array(
 								'type'   => 'date',
-								'format' => 'YYYY-MM-dd HH:mm:ss||YYYY-MM-dd',
+								'format' => 'yyyy-MM-dd HH:mm:ss||yyyy-MM-dd',
 							),
 							'year'              => array( 'type' => 'short' ),
 							'month'             => array( 'type' => 'byte' ),
@@ -276,7 +276,7 @@ class SP_Config extends SP_Singleton {
 						'properties' => array(
 							'date'              => array(
 								'type'   => 'date',
-								'format' => 'YYYY-MM-dd HH:mm:ss||YYYY-MM-dd',
+								'format' => 'yyyy-MM-dd HH:mm:ss||yyyy-MM-dd',
 							),
 							'year'              => array( 'type' => 'short' ),
 							'month'             => array( 'type' => 'byte' ),
