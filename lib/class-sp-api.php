@@ -300,7 +300,7 @@ class SP_API extends SP_Singleton {
 		 *
 		 * @param string  $url  URI or URL to hit to query the cluster health.
 		 */
-		$health_uri = apply_filters( 'sp_cluster_health_uri', "/_cluster/health/{$this->index}?wait_for_status=yellow&timeout=200ms" ); // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
+		$health_uri = apply_filters( 'sp_cluster_health_uri', "/_cluster/health?wait_for_status=yellow&timeout=200ms" ); // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 		return $this->get( $health_uri );
 	}
 
