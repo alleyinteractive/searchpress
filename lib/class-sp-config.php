@@ -324,6 +324,17 @@ class SP_Config extends SP_Singleton {
 			),
 		);
 
+		/*
+		 * ES < 7.0 require mapping types.
+		 * See https://www.elastic.co/guide/en/elasticsearch/reference/7.0/removal-of-types.html.
+		 */
+		if ( sp_es_version_compare( '7.0', '<' ) ) {
+			$post_mapping = $mapping['mappings'];
+			$mapping['mappings'] = array(
+				'_doc' => $post_mapping,
+			);
+		}
+
 		/**
 		 * Filter the mappings. Plugins and themes can customize the mappings
 		 * however they need by manipulating this array.
