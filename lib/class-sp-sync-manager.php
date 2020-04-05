@@ -77,21 +77,21 @@ class SP_Sync_Manager extends SP_Singleton {
 	 */
 	protected function parse_error( $response, $allowed_codes = array( 200 ) ) {
 		if ( is_wp_error( $response ) ) {
-			SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . $response->get_error_message(), $response->get_error_data() ) );
+			SP_Sync_Meta()->log( new WP_Error( 'error', gmdate( '[Y-m-d H:i:s] ' ) . $response->get_error_message(), $response->get_error_data() ) );
 		} elseif ( ! empty( $response->error ) ) {
 			if ( isset( $response->error->message, $response->error->data ) ) {
-				SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . $response->error->message, $response->error->data ) );
+				SP_Sync_Meta()->log( new WP_Error( 'error', gmdate( '[Y-m-d H:i:s] ' ) . $response->error->message, $response->error->data ) );
 			} elseif ( isset( $response->error->reason ) ) {
-				SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . $response->error->reason ) );
+				SP_Sync_Meta()->log( new WP_Error( 'error', gmdate( '[Y-m-d H:i:s] ' ) . $response->error->reason ) );
 			} else {
-				SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . wp_json_encode( $response->error ) ) );
+				SP_Sync_Meta()->log( new WP_Error( 'error', gmdate( '[Y-m-d H:i:s] ' ) . wp_json_encode( $response->error ) ) );
 			}
 		} elseif ( ! in_array( intval( SP_API()->last_request['response_code'] ), $allowed_codes, true ) ) {
 			// translators: date, status code, JSON-encoded last request object.
-			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%1$s] Elasticsearch response failed! Status code %2$d; %3$s', 'searchpress' ), date( 'Y-m-d H:i:s' ), SP_API()->last_request['response_code'], wp_json_encode( SP_API()->last_request ) ) ) );
+			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%1$s] Elasticsearch response failed! Status code %2$d; %3$s', 'searchpress' ), gmdate( 'Y-m-d H:i:s' ), SP_API()->last_request['response_code'], wp_json_encode( SP_API()->last_request ) ) ) );
 		} elseif ( ! is_object( $response ) ) {
 			// translators: date, JSON-encoded API response.
-			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%1$s] Unexpected response from Elasticsearch: %2$s', 'searchpress' ), date( 'Y-m-d H:i:s' ), wp_json_encode( $response ) ) ) );
+			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%1$s] Unexpected response from Elasticsearch: %2$s', 'searchpress' ), gmdate( 'Y-m-d H:i:s' ), wp_json_encode( $response ) ) ) );
 		} else {
 			return false;
 		}

@@ -240,10 +240,7 @@ class SP_WP_Search extends SP_Search {
 			$es_query_args['query']['bool']['must'] = array_merge( $es_query_args['query']['bool']['must'], $filters );
 		}
 
-		// Fill in the query
-		// todo: add auto phrase searching.
-		// todo: add fuzzy searching to correct for spelling mistakes.
-		// todo: boost title, tag, and category matches.
+		// Fill in the query.
 		if ( ! empty( $args['query'] ) ) {
 			$multi_match = array(
 				array(
@@ -493,26 +490,26 @@ class SP_WP_Search extends SP_Search {
 							switch ( $this->facets[ $label ]['interval'] ) {
 								case 'year':
 									$query_vars = array(
-										'year' => date( 'Y', $timestamp ),
+										'year' => gmdate( 'Y', $timestamp ),
 									);
-									$name       = date( 'Y', $timestamp );
+									$name       = gmdate( 'Y', $timestamp );
 									break;
 
 								case 'month':
 									$query_vars = array(
-										'year'     => date( 'Y', $timestamp ),
-										'monthnum' => date( 'n', $timestamp ),
+										'year'     => gmdate( 'Y', $timestamp ),
+										'monthnum' => gmdate( 'n', $timestamp ),
 									);
-									$name       = date( 'F Y', $timestamp );
+									$name       = gmdate( 'F Y', $timestamp );
 									break;
 
 								case 'day':
 									$query_vars = array(
-										'year'     => date( 'Y', $timestamp ),
-										'monthnum' => date( 'n', $timestamp ),
-										'day'      => date( 'j', $timestamp ),
+										'year'     => gmdate( 'Y', $timestamp ),
+										'monthnum' => gmdate( 'n', $timestamp ),
+										'day'      => gmdate( 'j', $timestamp ),
 									);
-									$name       = date( 'F j, Y', $timestamp );
+									$name       = gmdate( 'F j, Y', $timestamp );
 									break;
 
 								default:

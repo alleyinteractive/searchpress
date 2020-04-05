@@ -201,8 +201,8 @@ class SP_Config extends SP_Singleton {
 					),
 				),
 				'properties'        => array(
-					'post_id'     => array( 'type' => 'long' ),
-					'post_author' => array(
+					'post_id'           => array( 'type' => 'long' ),
+					'post_author'       => array(
 						'type'       => 'object',
 						'properties' => array(
 							'user_id'       => array( 'type' => 'long' ),
@@ -329,7 +329,7 @@ class SP_Config extends SP_Singleton {
 		 * See https://www.elastic.co/guide/en/elasticsearch/reference/7.0/removal-of-types.html.
 		 */
 		if ( sp_es_version_compare( '7.0', '<' ) ) {
-			$post_mapping = $mapping['mappings'];
+			$post_mapping        = $mapping['mappings'];
 			$mapping['mappings'] = array(
 				SP_API()->get_doc_type() => $post_mapping,
 			);
