@@ -291,7 +291,7 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @return int
 	 */
 	public function count_posts_indexed() {
-		$count = SP_API()->get( '_doc/_count' );
+		$count = SP_API()->get( SP_API()->get_doc_type() . '/_count' );
 		return ! empty( $count->count ) ? intval( $count->count ) : 0;
 	}
 }

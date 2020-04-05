@@ -331,7 +331,7 @@ class SP_Config extends SP_Singleton {
 		if ( sp_es_version_compare( '7.0', '<' ) ) {
 			$post_mapping = $mapping['mappings'];
 			$mapping['mappings'] = array(
-				'_doc' => $post_mapping,
+				SP_API()->get_doc_type() => $post_mapping,
 			);
 		}
 
