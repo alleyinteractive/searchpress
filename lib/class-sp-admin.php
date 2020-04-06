@@ -243,13 +243,13 @@ class SP_Admin extends SP_Singleton {
 	 */
 	protected function error_type( $type ) {
 		switch ( $type ) {
-			case 'error': 
+			case 'error':
 				return __( 'Errors', 'searchpress' );
-			case 'warning': 
+			case 'warning':
 				return __( 'Warnings', 'searchpress' );
-			case 'line': 
+			case 'line':
 				return __( 'Messages', 'searchpress' );
-			case 'success': 
+			case 'success':
 				return __( 'Success', 'searchpress' );
 			default:
 				return '';
@@ -344,7 +344,7 @@ class SP_Admin extends SP_Singleton {
 				'must_init' => false,
 				'active'    => false,
 				'last_beat' => false,
-			) 
+			)
 		);
 
 		// The index may not exist yet, so use the global cluster health to check the heartbeat.
@@ -434,13 +434,13 @@ class SP_Admin extends SP_Singleton {
 				array(
 					'processed' => SP_Sync_Meta()->processed,
 					'page'      => SP_Sync_Meta()->page,
-				) 
+				)
 			);
 		} else {
 			echo wp_json_encode(
 				array(
 					'processed' => 'complete',
-				) 
+				)
 			);
 		}
 
@@ -456,14 +456,14 @@ class SP_Admin extends SP_Singleton {
 	 */
 	public function assets() {
 		if ( current_user_can( $this->capability ) && $this->is_settings_page() ) {
-			wp_enqueue_style( 'searchpress-admin-css', SP_PLUGIN_URL . '/assets/admin.css', array(), '0.3' );
-			wp_enqueue_script( 'searchpress-admin-js', SP_PLUGIN_URL . '/assets/admin.js', array( 'jquery' ), '0.3', true );
+			wp_enqueue_style( 'searchpress-admin-css', SP_PLUGIN_URL . '/assets/admin.css', array(), '0.4' );
+			wp_enqueue_script( 'searchpress-admin-js', SP_PLUGIN_URL . '/assets/admin.js', array( 'jquery' ), '0.4', true );
 			wp_localize_script(
 				'searchpress-admin-js',
 				'searchpress',
 				array(
 					'admin_url' => esc_url_raw( admin_url( 'tools.php?page=searchpress' ) ),
-				) 
+				)
 			);
 		}
 	}
@@ -477,9 +477,9 @@ class SP_Admin extends SP_Singleton {
 	 */
 	public function get_error( $code ) {
 		switch ( $code ) {
-			case SP_ERROR_FLUSH_FAIL: 
+			case SP_ERROR_FLUSH_FAIL:
 				return __( 'SearchPress could not flush the old data', 'searchpress' );
-			case SP_ERROR_NO_BEAT: 
+			case SP_ERROR_NO_BEAT:
 				return __( 'SearchPress cannot reach the Elasticsearch server', 'searchpress' );
 		}
 		return __( 'Unknown error', 'searchpress' );
