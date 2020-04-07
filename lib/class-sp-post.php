@@ -138,7 +138,7 @@ class SP_Post extends SP_Indexable {
 				'_wpas_done_all',
 				'_encloseme',
 				'_pingme',
-			) 
+			)
 		);
 		foreach ( $ignored_meta as $key ) {
 			unset( $meta[ $key ] );
@@ -229,7 +229,8 @@ class SP_Post extends SP_Indexable {
 
 		$params = array_merge( array( $query ), $taxonomies, array( $post->ID ) );
 
-		$object_terms = $wpdb->get_results( call_user_func_array( array( $wpdb, 'prepare' ), $params ) ); // WPCS: db call ok. WPCS: cache ok. WPCS: unprepared SQL ok.
+		// phpcs:ignore WordPress.DB
+		$object_terms = $wpdb->get_results( call_user_func_array( array( $wpdb, 'prepare' ), $params ) );
 
 		if ( ! $object_terms || is_wp_error( $object_terms ) ) {
 			return array();

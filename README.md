@@ -16,7 +16,7 @@ Each stable release will be tagged and you'll be able to [download that release 
 Prerequisites
 -------------
 
-* [elasticsearch](https://www.elastic.co/products/elasticsearch) 1.3+; 5.0 recommended.
+* [elasticsearch](https://www.elastic.co/products/elasticsearch) 1.7+; 5.0+ recommended.
 * PHP 5.3+; PHP 7 recommended.
 
 

@@ -476,14 +476,14 @@ class Tests_Searching extends SearchPress_UnitTestCase {
 		$sp_posts = sp_wp_search( array( 'terms' => array( 'post_tag' => 'tag-a' ), 'orderby' => 'id', 'order' => 'asc' ) );
 
 		$this->assertEquals( $db_posts, $sp_posts );
-		$this->assertTrue( is_a( reset( $sp_posts ), 'WP_Post' ) );
-		$this->assertEquals( reset( $sp_posts )->post_title, 'tags-a-b-c' );
+		$this->assertInstanceOf( '\WP_Post', reset( $sp_posts ) );
+		$this->assertEquals( 'tags-a-b-c', reset( $sp_posts )->post_title );
 	}
 
 	function test_raw_es() {
 		$posts = sp_search( array(
 			'query' => array(
-				'match_all' => new stdClass,
+				'match_all' => new stdClass(),
 			),
 			'_source' => array( 'post_id' ),
 			'size' => 1,
@@ -517,7 +517,7 @@ class Tests_Searching extends SearchPress_UnitTestCase {
 			'query' => array(
 				'term' => array(
 					'post_name.raw' => array(
-						'value' => 'cucumbers'
+						'value' => 'cucumbers',
 					)
 				)
 			),
@@ -525,7 +525,7 @@ class Tests_Searching extends SearchPress_UnitTestCase {
 			'size' => 1,
 			'from' => 0,
 			'sort' => array(
-				'post_name.raw' => 'asc'
+				'post_name.raw' => 'asc',
 			)
 		) );
 		$this->assertEmpty( $s->get_posts() );

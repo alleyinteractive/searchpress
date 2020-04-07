@@ -129,7 +129,7 @@ function sp_searchable_post_statuses( $reload = false ) {
 				),
 				'names',
 				'or'
-			) 
+			)
 		);
 		$post_statuses = array_values( array_diff( $post_statuses, $exclude ) );
 

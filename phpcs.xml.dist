@@ -29,7 +29,10 @@
 	<exclude-pattern>bin/</exclude-pattern>
 	<exclude-pattern>tests/</exclude-pattern>
 
-	<rule ref="WordPress" />
+	<rule ref="WordPress">
+		<!-- Tweak or disable some rules. -->
+		<exclude name="WordPress.NamingConventions.PrefixAllGlobals.ShortPrefixPassed" />
+	</rule>
 	<rule ref="WordPressVIPMinimum" />
 	<rule ref="WordPress-VIP-Go" />
 
@@ -48,7 +51,7 @@
 
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
-			<property name="prefixes" type="array" value="sp,searchpress" />
+			<property name="prefixes" type="array" value="sp_,searchpress,SP_" />
 		</properties>
 	</rule>
 

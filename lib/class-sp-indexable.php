@@ -64,7 +64,7 @@ abstract class SP_Indexable {
 			 * it is a valid timestamp.
 			 */
 			if ( (string) $int === (string) $value ) {
-				$year = intval( date( 'Y', $int ) );
+				$year = intval( gmdate( 'Y', $int ) );
 				// Ensure that the year is between 1-2038. Technically, the year
 				// range ES allows is 1-292278993, but PHP ints limit us to 2038.
 				if ( $year > 0 && $year < 2039 ) {
@@ -87,9 +87,9 @@ abstract class SP_Indexable {
 		}
 
 		if ( false !== $time ) {
-			$return['date']     = date( 'Y-m-d', $time );
-			$return['datetime'] = date( 'Y-m-d H:i:s', $time );
-			$return['time']     = date( 'H:i:s', $time );
+			$return['date']     = gmdate( 'Y-m-d', $time );
+			$return['datetime'] = gmdate( 'Y-m-d H:i:s', $time );
+			$return['time']     = gmdate( 'H:i:s', $time );
 		}
 
 		return $return;
@@ -109,17 +109,17 @@ abstract class SP_Indexable {
 		$ts = strtotime( $date );
 		return array(
 			'date'              => strval( $date ),
-			'year'              => intval( date( 'Y', $ts ) ),
-			'month'             => intval( date( 'm', $ts ) ),
-			'day'               => intval( date( 'd', $ts ) ),
-			'hour'              => intval( date( 'H', $ts ) ),
-			'minute'            => intval( date( 'i', $ts ) ),
-			'second'            => intval( date( 's', $ts ) ),
-			'week'              => intval( date( 'W', $ts ) ),
-			'day_of_week'       => intval( date( 'N', $ts ) ),
-			'day_of_year'       => intval( date( 'z', $ts ) ),
-			'seconds_from_day'  => intval( mktime( date( 'H', $ts ), date( 'i', $ts ), date( 's', $ts ), 1, 1, 1970 ) ),
-			'seconds_from_hour' => intval( mktime( 0, date( 'i', $ts ), date( 's', $ts ), 1, 1, 1970 ) ),
+			'year'              => intval( gmdate( 'Y', $ts ) ),
+			'month'             => intval( gmdate( 'm', $ts ) ),
+			'day'               => intval( gmdate( 'd', $ts ) ),
+			'hour'              => intval( gmdate( 'H', $ts ) ),
+			'minute'            => intval( gmdate( 'i', $ts ) ),
+			'second'            => intval( gmdate( 's', $ts ) ),
+			'week'              => intval( gmdate( 'W', $ts ) ),
+			'day_of_week'       => intval( gmdate( 'N', $ts ) ),
+			'day_of_year'       => intval( gmdate( 'z', $ts ) ),
+			'seconds_from_day'  => intval( mktime( gmdate( 'H', $ts ), gmdate( 'i', $ts ), gmdate( 's', $ts ), 1, 1, 1970 ) ),
+			'seconds_from_hour' => intval( mktime( 0, gmdate( 'i', $ts ), gmdate( 's', $ts ), 1, 1, 1970 ) ),
 		);
 	}
 
