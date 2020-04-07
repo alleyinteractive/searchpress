@@ -200,3 +200,41 @@ function sp_global_cluster_health() {
 function sp_es_version_compare( $version, $compare = '>=' ) {
 	return version_compare( SP_Config()->get_es_version(), $version, $compare );
 }
+
+/**
+ * Make a remote request.
+ *
+ * This is separated out as its own function in order to filter the callable
+ * which is used to make the request. This pattern allows you to replace or
+ * wrap the request to wp_remote_request() as needed. The filtered callable is
+ * immediately invoked.
+ *
+ * @param string $url            ES endpoint URL.
+ * @param array  $request_params Optional. Request arguments. Default empty
+ *                               array.
+ * @return WP_Error|array The response or WP_Error on failure.
+ */
+function sp_remote_request( $url, $request_params = array() ) {
+	/**
+	 * Filter the callable used to make API requests to ES.
+	 *
+	 * @param callable $callable       Request callable. Should be compatible
+	 *                                 with wp_remote_request.
+	 * @param string   $url            ES endpoint URL.
+	 * @param array    $request_params Optional. Request arguments. Default
+	 *                                 empty array.
+	 */
+	$callable = apply_filters(
+		'sp_remote_request',
+		'wp_remote_request',
+		$url,
+		$request_params
+	);
+
+	// Revert back to wp_remote_request if something went awry.
+	if ( ! is_callable( $callable ) ) {
+		$callable = 'wp_remote_request';
+	}
+
+	return call_user_func( $callable, $url, $request_params );
+}

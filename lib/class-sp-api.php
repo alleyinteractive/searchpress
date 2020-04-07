@@ -183,7 +183,7 @@ class SP_API extends SP_Singleton {
 				'body'   => $body,
 			)
 		);
-		$result         = wp_remote_request( $url, $request_params );
+		$result         = sp_remote_request( $url, $request_params );
 
 		if ( ! is_wp_error( $result ) ) {
 			$this->last_request = array(
