@@ -11,7 +11,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 		SP_Heartbeat()->record_pulse();
-		
+
 		// is_admin returns false, so this file doesn't get loaded with the rest of the plugin
 		require_once dirname( __FILE__ ) . '/../lib/class-sp-admin.php';
 		$this->current_user = get_current_user_id();
