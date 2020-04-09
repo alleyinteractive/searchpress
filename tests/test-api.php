@@ -4,22 +4,20 @@
  * @group api
  */
 class Tests_Api extends SearchPress_UnitTestCase {
-	var $post_id;
+	protected static $post_id;
 
-	function setUp() {
-		parent::setUp();
+	public static function setUpBeforeClass() {
+		parent::setUpBeforeClass();
 
-		$this->post_id = $this->factory->post->create( array( 'post_title' => 'lorem-ipsum', 'post_date' => '2009-07-01 00:00:00' ) );
-
-		// Force refresh the index so the data is available immediately
-		SP_API()->post( '_refresh' );
+		self::$post_id = self::factory()->post->create( array( 'post_title' => 'lorem-ipsum', 'post_date' => '2009-07-01 00:00:00' ) );
+		self::index( self::$post_id );
 	}
 
 	function test_api_get() {
-		$response = SP_API()->get( SP_API()->get_doc_type() . "/{$this->post_id}" );
+		$response = SP_API()->get( SP_API()->get_doc_type() . '/' . self::$post_id );
 		$this->assertEquals( 'GET', SP_API()->last_request['params']['method'] );
 		$this->assertEquals( '200', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
-		$this->assertEquals( $this->post_id, $response->_source->post_id );
+		$this->assertEquals( self::$post_id, $response->_source->post_id );
 
 		SP_API()->get( SP_API()->get_doc_type() . "/foo" );
 		$this->assertEquals( 'GET', SP_API()->last_request['params']['method'] );
@@ -30,14 +28,14 @@ class Tests_Api extends SearchPress_UnitTestCase {
 		$response = SP_API()->post( SP_API()->get_doc_type() . '/_search', '{"query":{"match_all":{}}}' );
 		$this->assertEquals( 'POST', SP_API()->last_request['params']['method'] );
 		$this->assertEquals( '200', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
-		$this->assertEquals( $this->post_id, $response->hits->hits[0]->_source->post_id );
+		$this->assertEquals( self::$post_id, $response->hits->hits[0]->_source->post_id );
 	}
 
 	function test_api_put() {
 		SP_API()->get( SP_API()->get_doc_type() . '/123456' );
 		$this->assertEquals( '404', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
 
-		$response = SP_API()->put( SP_API()->get_doc_type() . '/123456', '{"post_id":123456}' );
+		SP_API()->put( SP_API()->get_doc_type() . '/123456', '{"post_id":123456}' );
 		$this->assertEquals( 'PUT', SP_API()->last_request['params']['method'] );
 		$this->assertEquals( '201', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
 
@@ -46,15 +44,15 @@ class Tests_Api extends SearchPress_UnitTestCase {
 	}
 
 	function test_api_delete() {
-		SP_API()->put( SP_API()->get_doc_type() . '/123456', '{"post_id":123456}' );
+		SP_API()->put( SP_API()->get_doc_type() . '/223456', '{"post_id":223456}' );
 		$this->assertEquals( '201', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
-		$response = SP_API()->get( SP_API()->get_doc_type() . "/123456" );
-		$this->assertEquals( 123456, $response->_source->post_id );
+		$response = SP_API()->get( SP_API()->get_doc_type() . "/223456" );
+		$this->assertEquals( 223456, $response->_source->post_id );
 
-		SP_API()->delete( SP_API()->get_doc_type() . '/123456' );
+		SP_API()->delete( SP_API()->get_doc_type() . '/223456' );
 		$this->assertEquals( '200', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
 
-		SP_API()->delete( SP_API()->get_doc_type() . '/123456' );
+		SP_API()->delete( SP_API()->get_doc_type() . '/223456' );
 		$this->assertEquals( '404', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
 	}
 

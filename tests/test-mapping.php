@@ -4,62 +4,62 @@
  * @group mapping
  */
 class Tests_Mapping extends SearchPress_UnitTestCase {
-	var $demo_user;
-	var $demo_user_id;
-	var $demo_term;
-	var $demo_term_id;
-	var $demo_post;
-	var $demo_post_id;
-	var $demo_dates = array();
+	protected static $demo_user;
+	protected static $demo_user_id;
+	protected static $demo_term;
+	protected static $demo_term_id;
+	protected static $demo_post;
+	protected static $demo_post_id;
+	protected static $demo_dates = array();
 
-	function setUp() {
-		parent::setUp();
+	public static function setUpBeforeClass() {
+		parent::setUpBeforeClass();
 
-		$this->demo_user = array(
-			'user_login' => 'author1',
+		self::$demo_user = array(
+			'user_login'    => 'author1',
 			'user_nicename' => 'author-nicename',
-			'user_pass' => rand_str(),
-			'role' => 'author',
-			'display_name' => 'Michael Scott',
+			'user_pass'     => rand_str(),
+			'role'          => 'author',
+			'display_name'  => 'Michael Scott',
 		);
-		$this->demo_user_id = $this->factory->user->create( $this->demo_user );
+		self::$demo_user_id = self::factory()->user->create( self::$demo_user );
 
-		$this->demo_term = array(
+		self::$demo_term = array(
 			'taxonomy' => 'category',
-			'name' => 'cat-a',
-			'slug' => 'cat-a',
+			'name'     => 'cat-a',
+			'slug'     => 'cat-a',
 		);
-		$this->demo_term_id = $this->factory->term->create( $this->demo_term );
+		self::$demo_term_id = self::factory()->term->create( self::$demo_term );
 
 		$post_date = '';
-		$this->demo_dates = array(
-			'post_date' => array( 'date' => '2013-02-28 01:23:45' ),
-			'post_date_gmt' => array( 'date' => '2013-02-28 05:23:45' ),
-			'post_modified' => array( 'date' => '2013-02-28 01:23:45' ),
+		self::$demo_dates = array(
+			'post_date'         => array( 'date' => '2013-02-28 01:23:45' ),
+			'post_date_gmt'     => array( 'date' => '2013-02-28 05:23:45' ),
+			'post_modified'     => array( 'date' => '2013-02-28 01:23:45' ),
 			'post_modified_gmt' => array( 'date' => '2013-02-28 05:23:45' ),
 		);
-		foreach ( $this->demo_dates as &$date ) {
+		foreach ( self::$demo_dates as &$date ) {
 			$ts = strtotime( $date['date'] );
 			$date = array(
 				'date'              => strval( $date['date'] ),
-				'year'              => intval( date( 'Y', $ts ) ),
-				'month'             => intval( date( 'm', $ts ) ),
-				'day'               => intval( date( 'd', $ts ) ),
-				'hour'              => intval( date( 'H', $ts ) ),
-				'minute'            => intval( date( 'i', $ts ) ),
-				'second'            => intval( date( 's', $ts ) ),
-				'week'              => intval( date( 'W', $ts ) ),
-				'day_of_week'       => intval( date( 'N', $ts ) ),
-				'day_of_year'       => intval( date( 'z', $ts ) ),
-				'seconds_from_day'  => intval( mktime( date( 'H', $ts ), date( 'i', $ts ), date( 's', $ts ), 1, 1, 1970 ) ),
-				'seconds_from_hour' => intval( mktime( 0, date( 'i', $ts ), date( 's', $ts ), 1, 1, 1970 ) ),
+				'year'              => intval( gmdate( 'Y', $ts ) ),
+				'month'             => intval( gmdate( 'm', $ts ) ),
+				'day'               => intval( gmdate( 'd', $ts ) ),
+				'hour'              => intval( gmdate( 'H', $ts ) ),
+				'minute'            => intval( gmdate( 'i', $ts ) ),
+				'second'            => intval( gmdate( 's', $ts ) ),
+				'week'              => intval( gmdate( 'W', $ts ) ),
+				'day_of_week'       => intval( gmdate( 'N', $ts ) ),
+				'day_of_year'       => intval( gmdate( 'z', $ts ) ),
+				'seconds_from_day'  => intval( mktime( gmdate( 'H', $ts ), gmdate( 'i', $ts ), gmdate( 's', $ts ), 1, 1, 1970 ) ),
+				'seconds_from_hour' => intval( mktime( 0, gmdate( 'i', $ts ), gmdate( 's', $ts ), 1, 1, 1970 ) ),
 			);
 		}
 
-		$this->demo_post = array(
-			'post_author'       => $this->demo_user_id,
-			'post_date'         => $this->demo_dates['post_date']['date'],
-			'post_date_gmt'     => $this->demo_dates['post_date_gmt']['date'],
+		self::$demo_post = array(
+			'post_author'       => self::$demo_user_id,
+			'post_date'         => self::$demo_dates['post_date']['date'],
+			'post_date_gmt'     => self::$demo_dates['post_date_gmt']['date'],
 			'post_content'      => 'Welcome to <a href="http://wp.dev/">Local WordPress Dev Sites</a>. This is your first post. Edit or delete it, then start blogging!',
 			'post_title'        => 'Hello world!',
 			'post_excerpt'      => 'Lorem ipsum dolor sit amet',
@@ -70,86 +70,83 @@ class Tests_Mapping extends SearchPress_UnitTestCase {
 			'menu_order'        => 456,
 			'post_type'         => 'post',
 			'post_mime_type'    => 'image/jpeg',
-			'post_category'     => array( $this->demo_term_id ),
+			'post_category'     => array( self::$demo_term_id ),
 		);
-		$this->demo_post_id = $this->factory->post->create( $this->demo_post );
-		add_post_meta( $this->demo_post_id, 'test_string', 'foo' );
-		add_post_meta( $this->demo_post_id, 'test_long', '123' );
-		add_post_meta( $this->demo_post_id, 'test_double', '123.456' );
-		add_post_meta( $this->demo_post_id, 'test_boolean_true', 'true' );
-		add_post_meta( $this->demo_post_id, 'test_boolean_false', 'false' );
-		add_post_meta( $this->demo_post_id, 'test_date', '2012-03-14 03:14:15' );
-		SP_Sync_Manager()->sync_post( $this->demo_post_id );
-
-		// Force refresh the index so the data is available immediately
-		SP_API()->post( '_refresh' );
+		self::$demo_post_id = self::factory()->post->create( self::$demo_post );
+		add_post_meta( self::$demo_post_id, 'test_string', 'foo' );
+		add_post_meta( self::$demo_post_id, 'test_long', '123' );
+		add_post_meta( self::$demo_post_id, 'test_double', '123.456' );
+		add_post_meta( self::$demo_post_id, 'test_boolean_true', 'true' );
+		add_post_meta( self::$demo_post_id, 'test_boolean_false', 'false' );
+		add_post_meta( self::$demo_post_id, 'test_date', '2012-03-14 03:14:15' );
+		self::index( self::$demo_post_id );
 	}
 
 	function _field_mapping_test( $field ) {
 		$this->assertSame(
-			array( $this->demo_post[ $field ] ),
+			array( self::$demo_post[ $field ] ),
 			$this->search_and_get_field( array(), $field )
 		);
 	}
 
 	function _date_field_mapping_test( $field ) {
 		$this->assertSame(
-			array( $this->demo_dates[ $field ]['date'] ),
+			array( self::$demo_dates[ $field ]['date'] ),
 			$this->search_and_get_field( array(), $field . '.date' )
 		);
 
 		$this->assertSame(
-			array( $this->demo_dates[ $field ]['year'] ),
+			array( self::$demo_dates[ $field ]['year'] ),
 			$this->search_and_get_field( array(), $field . '.year' )
 		);
 
 		$this->assertSame(
-			array( $this->demo_dates[ $field ]['month'] ),
+			array( self::$demo_dates[ $field ]['month'] ),
 			$this->search_and_get_field( array(), $field . '.month' )
 		);
 
 		$this->assertSame(
-			array( $this->demo_dates[ $field ]['day'] ),
+			array( self::$demo_dates[ $field ]['day'] ),
 			$this->search_and_get_field( array(), $field . '.day' )
 		);
 
 		$this->assertSame(
-			array( $this->demo_dates[ $field ]['hour'] ),
+			array( self::$demo_dates[ $field ]['hour'] ),
 			$this->search_and_get_field( array(), $field . '.hour' )
 		);
 
 		$this->assertSame(
-			array( $this->demo_dates[ $field ]['minute'] ),
+			array( self::$demo_dates[ $field ]['minute'] ),
 			$this->search_and_get_field( array(), $field . '.minute' )
 		);
 
 		$this->assertSame(
-			array( $this->demo_dates[ $field ]['second'] ),
+			array( self::$demo_dates[ $field ]['second'] ),
 			$this->search_and_get_field( array(), $field . '.second' )
 		);
 
 		$this->assertSame(
-			array( $this->demo_dates[ $field ]['week'] ),
+			array( self::$demo_dates[ $field ]['week'] ),
 			$this->search_and_get_field( array(), $field . '.week' )
 		);
 
 		$this->assertSame(
-			array( $this->demo_dates[ $field ]['day_of_week'] ),
+			array( self::$demo_dates[ $field ]['day_of_week'] ),
 			$this->search_and_get_field( array(), $field . '.day_of_week' )
 		);
 
 		$this->assertSame(
-			array( $this->demo_dates[ $field ]['day_of_year'] ),
+			array( self::$demo_dates[ $field ]['day_of_year'] ),
 			$this->search_and_get_field( array(), $field . '.day_of_year' )
 		);
 
 		$this->assertSame(
-			array( $this->demo_dates[ $field ]['seconds_from_day'] ),
+			array( self::$demo_dates[ $field ]['seconds_from_day'] ),
 			$this->search_and_get_field( array(), $field . '.seconds_from_day' )
 		);
 
 		$this->assertSame(
-			array( $this->demo_dates[ $field ]['seconds_from_hour'] ),
+			array( self::$demo_dates[ $field ]['seconds_from_hour'] ),
 			$this->search_and_get_field( array(), $field . '.seconds_from_hour' )
 		);
 	}
@@ -215,36 +212,36 @@ class Tests_Mapping extends SearchPress_UnitTestCase {
 
 	function test_mapped_field_permalink() {
 		$this->assertSame(
-			array( get_permalink( $this->demo_post_id ) ),
+			array( get_permalink( self::$demo_post_id ) ),
 			$this->search_and_get_field( array(), 'permalink' )
 		);
 	}
 
 	function test_mapped_field_post_id() {
 		$this->assertSame(
-			array( $this->demo_post_id ),
+			array( self::$demo_post_id ),
 			$this->search_and_get_field( array(), 'post_id' )
 		);
 	}
 
 	function test_mapping_field_post_author() {
 		$this->assertSame(
-			array( $this->demo_user_id ),
+			array( self::$demo_user_id ),
 			$this->search_and_get_field( array(), 'post_author.user_id' )
 		);
 
 		$this->assertSame(
-			array( $this->demo_user['user_login'] ),
+			array( self::$demo_user['user_login'] ),
 			$this->search_and_get_field( array(), 'post_author.login' )
 		);
 
 		$this->assertSame(
-			array( $this->demo_user['display_name'] ),
+			array( self::$demo_user['display_name'] ),
 			$this->search_and_get_field( array(), 'post_author.display_name' )
 		);
 
 		$this->assertSame(
-			array( $this->demo_user['user_nicename'] ),
+			array( self::$demo_user['user_nicename'] ),
 			$this->search_and_get_field( array(), 'post_author.user_nicename' )
 		);
 	}
@@ -294,12 +291,12 @@ class Tests_Mapping extends SearchPress_UnitTestCase {
 
 	function test_mapping_field_terms() {
 		$this->assertSame(
-			array( $this->demo_term['name'] ),
+			array( self::$demo_term['name'] ),
 			$this->search_and_get_field( array(), 'terms.category.name' )
 		);
 
 		$this->assertSame(
-			array( $this->demo_term['slug'] ),
+			array( self::$demo_term['slug'] ),
 			$this->search_and_get_field( array(), 'terms.category.slug' )
 		);
 
@@ -309,7 +306,7 @@ class Tests_Mapping extends SearchPress_UnitTestCase {
 		);
 
 		$this->assertSame(
-			array( $this->demo_term_id ),
+			array( self::$demo_term_id ),
 			$this->search_and_get_field( array(), 'terms.category.term_id' )
 		);
 	}
