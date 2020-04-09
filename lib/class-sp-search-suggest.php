@@ -123,42 +123,51 @@ class SP_Search_Suggest extends SP_Singleton {
 					'callback'            => array( $this, 'rest_response' ),
 					'permission_callback' => '__return_true',
 				),
-				'schema' => array(
-					'$schema' => 'http://json-schema.org/draft-04/schema#',
-					'title'   => __( 'Search suggestions', 'searchpress' ),
-					'type'    => 'array',
-					'items'   => array(
+				'schema' => array( $this, 'rest_schema' ),
+			)
+		);
+	}
+
+	/**
+	 * Generate the REST schema for the search suggestions endpoint.
+	 *
+	 * @return array Endpoint schema data.
+	 */
+	public function rest_schema() {
+		return array(
+			'$schema' => 'http://json-schema.org/draft-04/schema#',
+			'title'   => __( 'Search suggestions', 'searchpress' ),
+			'type'    => 'array',
+			'items'   => array(
+				'type'       => 'object',
+				'properties' => array(
+					'text'    => array(
+						'type'        => 'string',
+						'description' => __( 'Matching text excerpt.', 'searchpress' ),
+					),
+					'_score'  => array(
+						'type'        => 'number',
+						'description' => __( 'Calculated match score of the search result.', 'searchpress' ),
+					),
+					'_source' => array(
 						'type'       => 'object',
 						'properties' => array(
-							'text'    => array(
+							'post_title' => array(
 								'type'        => 'string',
-								'description' => __( 'Matching text excerpt.', 'searchpress' ),
+								'description' => __( 'Title of the search result.', 'searchpress' ),
 							),
-							'_score'  => array(
-								'type'        => 'number',
-								'description' => __( 'Calculated match score of the search result.', 'searchpress' ),
+							'post_id'    => array(
+								'type'        => 'integer',
+								'description' => __( 'ID of the search result.', 'searchpress' ),
 							),
-							'_source' => array(
-								'type'       => 'object',
-								'properties' => array(
-									'post_title' => array(
-										'type'        => 'string',
-										'description' => __( 'Title of the search result.', 'searchpress' ),
-									),
-									'post_id'    => array(
-										'type'        => 'integer',
-										'description' => __( 'ID of the search result.', 'searchpress' ),
-									),
-									'permalink'  => array(
-										'type'        => 'string',
-										'description' => __( 'Permalink to the search result.', 'searchpress' ),
-									),
-								),
+							'permalink'  => array(
+								'type'        => 'string',
+								'description' => __( 'Permalink to the search result.', 'searchpress' ),
 							),
 						),
 					),
 				),
-			)
+			),
 		);
 	}
 

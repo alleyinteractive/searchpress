@@ -53,7 +53,6 @@ class SP_API extends SP_Singleton {
 	 * Initializes class variables.
 	 *
 	 * @codeCoverageIgnore
-	 *
 	 */
 	public function setup() {
 		$url         = get_site_url();
