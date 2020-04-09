@@ -13,7 +13,6 @@ class SP_API extends SP_Singleton {
 	/**
 	 * The Elasticsearch host URL.
 	 *
-	 * @access public
 	 * @var string
 	 */
 	public $host;
@@ -21,7 +20,6 @@ class SP_API extends SP_Singleton {
 	/**
 	 * The slug for the index.
 	 *
-	 * @access public
 	 * @var string
 	 */
 	public $index = '';
@@ -33,7 +31,6 @@ class SP_API extends SP_Singleton {
 	 * favor of _doc and 7.0 killed support for custom mapping types. This will
 	 * eventually be removed in Elasticsearch.
 	 *
-	 * @access public
 	 * @var string
 	 */
 	public $doc_type;
@@ -41,7 +38,6 @@ class SP_API extends SP_Singleton {
 	/**
 	 * Default options for requests.
 	 *
-	 * @access public
 	 * @var array
 	 */
 	public $request_defaults = array();
@@ -49,7 +45,6 @@ class SP_API extends SP_Singleton {
 	/**
 	 * Stores information about the last request made.
 	 *
-	 * @access public
 	 * @var array
 	 */
 	public $last_request;
@@ -59,7 +54,6 @@ class SP_API extends SP_Singleton {
 	 *
 	 * @codeCoverageIgnore
 	 *
-	 * @access public
 	 */
 	public function setup() {
 		$url         = get_site_url();
@@ -117,7 +111,6 @@ class SP_API extends SP_Singleton {
 	 * @param string $url    The URL to send the request to.
 	 * @param string $body   The body of the request.
 	 * @param string $output The return format. Defaults to OBJECT.
-	 * @access public
 	 * @return object|array JSON-encoded response from the API.
 	 */
 	public function get( $url = '', $body = '', $output = OBJECT ) {
@@ -130,7 +123,6 @@ class SP_API extends SP_Singleton {
 	 * @param string $url    The URL to send the request to.
 	 * @param string $body   The body of the request.
 	 * @param string $output The return format. Defaults to OBJECT.
-	 * @access public
 	 * @return object|array JSON-encoded response from the API.
 	 */
 	public function post( $url = '', $body = '', $output = OBJECT ) {
@@ -143,7 +135,6 @@ class SP_API extends SP_Singleton {
 	 * @param string $url    The URL to send the request to.
 	 * @param string $body   The body of the request.
 	 * @param string $output The return format. Defaults to OBJECT.
-	 * @access public
 	 * @return object|array JSON-encoded response from the API.
 	 */
 	public function delete( $url = '', $body = '', $output = OBJECT ) {
@@ -156,7 +147,6 @@ class SP_API extends SP_Singleton {
 	 * @param string $url    The URL to send the request to.
 	 * @param string $body   The body of the request.
 	 * @param string $output The return format. Defaults to OBJECT.
-	 * @access public
 	 * @return object|array JSON-encoded response from the API.
 	 */
 	public function put( $url = '', $body = '', $output = OBJECT ) {
@@ -170,7 +160,6 @@ class SP_API extends SP_Singleton {
 	 * @param string $method         The method for the request. Defaults to GET.
 	 * @param string $body           The body of the request.
 	 * @param array  $request_params Additional parameters to send with wp_remote_request.
-	 * @access public
 	 * @return string The JSON-encoded result of wp_remote_request.
 	 */
 	public function request( $url = '', $method = 'GET', $body = '', $request_params = array() ) {
@@ -211,7 +200,6 @@ class SP_API extends SP_Singleton {
 	 * Normalizes various formats of URLs.
 	 *
 	 * @param string|array $url The URL to normalize.
-	 * @access public
 	 * @return string The normalized URL.
 	 */
 	public function parse_url( $url = '' ) {
@@ -249,11 +237,18 @@ class SP_API extends SP_Singleton {
 	/**
 	 * Indexes an individual post.
 	 *
-	 * @param SP_Post $post The post object to add to the index.
-	 * @access public
-	 * @return object|WP_Error The API response, or a WP_Error on invalid JSON.
+	 * @param SP_Post|WP_Post|int $post The post to add to the index.
+	 * @return object|WP_Error The API response, or a WP_Error on error.
 	 */
 	public function index_post( $post ) {
+		// Ensure $post is a valid object and should be indexed.
+		if ( ! $post instanceof SP_Post ) {
+			$post = new SP_Post( $post );
+		}
+		if ( ! $post->should_be_indexed() ) {
+			return new WP_Error( 'unindexable-post', __( 'Post should not be indexed', 'searchpress' ) );
+		}
+
 		$json = $post->to_json();
 		if ( empty( $json ) ) {
 			return new WP_Error( 'invalid-json', __( 'Invalid JSON', 'searchpress' ) );
@@ -264,13 +259,21 @@ class SP_API extends SP_Singleton {
 	/**
 	 * Indexes an array of posts.
 	 *
-	 * @param array $posts An array of posts to index.
-	 * @access public
+	 * @param array $posts An array of posts to index. May either be post IDs,
+	 *                     WP_Post objects, or SP_Post objects.
 	 * @return object The API response.
 	 */
 	public function index_posts( $posts ) {
 		$body = array();
 		foreach ( $posts as $post ) {
+			// Ensure $post is a valid object and should be indexed.
+			if ( ! $post instanceof SP_Post ) {
+				$post = new SP_Post( $post );
+			}
+			if ( ! $post->should_be_indexed() ) {
+				continue;
+			}
+
 			$json = $post->to_json();
 			if ( empty( $json ) ) {
 				// Translators: post ID.
@@ -290,7 +293,6 @@ class SP_API extends SP_Singleton {
 	 * Executes a post deletion.
 	 *
 	 * @param int $post_id The post ID to delete.
-	 * @access public
 	 * @return object The response from the API.
 	 */
 	public function delete_post( $post_id ) {

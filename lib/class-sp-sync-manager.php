@@ -37,17 +37,19 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @access public
 	 */
 	public function sync_post( $post_id ) {
-		$post = new SP_Post( get_post( $post_id ) );
-		if ( $post->should_be_indexed() ) {
-			$response = SP_API()->index_post( $post );
-			if ( ! $this->parse_error( $response, array( 200, 201 ) ) ) {
-				do_action( 'sp_debug', '[SP_Sync_Manager] Indexed Post', $response );
-			} else {
-				do_action( 'sp_debug', '[SP_Sync_Manager] Error Indexing Post', $response );
-			}
-		} else {
-			// TODO: This is excessive, figure out a better way around it.
+		$post     = new SP_Post( get_post( $post_id ) );
+		$response = SP_API()->index_post( $post );
+
+		if ( is_wp_error( $response ) && 'unindexable-post' === $response->get_error_code() ) {
+			// If the post should not be indexed, ensure it's not in the index already.
+			// @todo This is excessive, figure out a better way around it.
 			$this->delete_post( $post_id );
+		}
+
+		if ( ! $this->parse_error( $response, array( 200, 201 ) ) ) {
+			do_action( 'sp_debug', '[SP_Sync_Manager] Indexed Post', $response );
+		} else {
+			do_action( 'sp_debug', '[SP_Sync_Manager] Error Indexing Post', $response );
 		}
 	}
 
