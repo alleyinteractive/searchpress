@@ -300,10 +300,10 @@ class SP_API extends SP_Singleton {
 	/**
 	 * Executes a search.
 	 *
-	 * @param array $query Query arguments for the search.
-	 * @param array $args  Additional arguments for the post function.
-	 * @access public
-	 * @return object|array Return format according to $args['output']. Defaults to object.
+	 * @param string $query Query arguments for the search as encoded JSON.
+	 * @param array  $args  Additional arguments for the post function.
+	 * @return object|array Return format according to $args['output']. Defaults
+	 *                      to object.
 	 */
 	public function search( $query, $args = array() ) {
 		$args = wp_parse_args(
