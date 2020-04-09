@@ -41,6 +41,16 @@ class SearchPress_UnitTestCase extends WP_UnitTestCase {
 		return sp_results_pluck( $posts, $field );
 	}
 
+	protected function refresh_index() {
+		SP_API()->post( '_refresh' );
+	}
+
+	protected function index( $posts ) {
+		$posts = is_array( $posts ) ? $posts : [ $posts ];
+		SP_API()->index_posts( $posts );
+		$this->refresh_index();
+	}
+
 	/**
 	 * Fakes a cron job
 	 */

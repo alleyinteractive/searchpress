@@ -27,9 +27,15 @@ class SP_Search_Suggest extends SP_Singleton {
 	 * @return array
 	 */
 	public function sp_config_mapping( $mapping ) {
-		$mapping['mappings']['post']['properties']['search_suggest'] = array(
-			'type'     => 'completion',
-			'analyzer' => 'standard',
+		$doc_type = SP_API()->get_doc_type();
+		if ( isset( $mapping['mappings'][ $doc_type ] ) ) {
+			$props =& $mapping['mappings'][ $doc_type ]['properties'];
+		} else {
+			$props =& $mapping['mappings']['properties'];
+		}
+
+		$props['search_suggest'] = array(
+			'type' => 'completion',
 		);
 
 		return $mapping;
@@ -112,8 +118,46 @@ class SP_Search_Suggest extends SP_Singleton {
 			SP_Config()->namespace,
 			'/suggest/(?P<fragment>.+)',
 			array(
-				'methods'  => WP_REST_Server::READABLE,
-				'callback' => array( $this, 'rest_response' ),
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'rest_response' ),
+					'permission_callback' => '__return_true',
+				),
+				'schema' => array(
+					'$schema' => 'http://json-schema.org/draft-04/schema#',
+					'title'   => __( 'Search suggestions', 'searchpress' ),
+					'type'    => 'array',
+					'items'   => array(
+						'type'       => 'object',
+						'properties' => array(
+							'text'    => array(
+								'type'        => 'string',
+								'description' => __( 'Matching text excerpt.', 'searchpress' ),
+							),
+							'_score'  => array(
+								'type'        => 'number',
+								'description' => __( 'Calculated match score of the search result.', 'searchpress' ),
+							),
+							'_source' => array(
+								'type'       => 'object',
+								'properties' => array(
+									'post_title' => array(
+										'type'        => 'string',
+										'description' => __( 'Title of the search result.', 'searchpress' ),
+									),
+									'post_id'    => array(
+										'type'        => 'integer',
+										'description' => __( 'ID of the search result.', 'searchpress' ),
+									),
+									'permalink'  => array(
+										'type'        => 'string',
+										'description' => __( 'Permalink to the search result.', 'searchpress' ),
+									),
+								),
+							),
+						),
+					),
+				),
 			)
 		);
 	}
@@ -171,6 +215,15 @@ class SP_Search_Suggest extends SP_Singleton {
 			? $results['suggest']['search_suggestions'][0]['options']
 			: array();
 
+		// Remove some data that could be considered sensitive.
+		$options = array_map(
+			function( $option ) {
+				unset( $option['_index'], $option['_type'], $option['_id'] );
+				return $option;
+			},
+			$options
+		);
+
 		/**
 		 * Filter the raw search suggest options.
 		 *
@@ -197,7 +250,7 @@ function sp_maybe_enable_search_suggest() {
 	 * the mapping. If you'd like to edit it, use the `sp_config_mapping`
 	 * filter.
 	 *
-	 * @see https://www.elastic.co/guide/en/elasticsearch/reference/2.4/search-suggesters-completion.html
+	 * @see https://www.elastic.co/guide/en/elasticsearch/reference/7.6/search-suggesters.html#completion-suggester
 	 *
 	 * @param  boolean $enabled Enabled if true, disabled if false. Defaults
 	 *                          to false.
