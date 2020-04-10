@@ -46,7 +46,7 @@ class Tests_Mapping_Postmeta extends SearchPress_UnitTestCase {
 			array( '1442600000', true, 1442600000, 1442600000, '2015-09-18 18:13:20' ),
 			array( 1442600000.0001, true, 1442600000, 1442600000.0001, null ),
 			array( '2015-01-04T15:19:21-05:00', true, null, null, '2015-01-04 20:19:21' ), // Note the timezone
-			array( '18:13:20', true, null, null, date( 'Y-m-d' ) . ' 18:13:20' ),
+			array( '18:13:20', true, null, null, gmdate( 'Y-m-d' ) . ' 18:13:20' ),
 			array( '14e7647469', true, null, null, null ),
 		);
 	}

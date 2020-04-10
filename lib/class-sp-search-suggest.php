@@ -14,10 +14,12 @@ class SP_Search_Suggest extends SP_Singleton {
 	 * Setup the singleton.
 	 */
 	public function setup() {
-		add_filter( 'sp_config_mapping', array( $this, 'sp_config_mapping' ), 5 );
-		add_filter( 'sp_map_version', array( $this, 'sp_map_version' ), 5 );
-		add_filter( 'sp_post_pre_index', array( $this, 'sp_post_pre_index' ), 5, 2 );
-		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
+		if ( sp_es_version_compare( '5.0' ) ) {
+			add_filter( 'sp_config_mapping', array( $this, 'sp_config_mapping' ), 5 );
+			add_filter( 'sp_map_version', array( $this, 'sp_map_version' ), 5 );
+			add_filter( 'sp_post_pre_index', array( $this, 'sp_post_pre_index' ), 5, 2 );
+			add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
+		}
 	}
 
 	/**
@@ -258,6 +260,8 @@ function sp_maybe_enable_search_suggest() {
 	 * Checks if search suggestions are enabled. If true, adds the config to
 	 * the mapping. If you'd like to edit it, use the `sp_config_mapping`
 	 * filter.
+	 *
+	 * Note that this will only work on ES 5.0 or later.
 	 *
 	 * @see https://www.elastic.co/guide/en/elasticsearch/reference/7.6/search-suggesters.html#completion-suggester
 	 *
