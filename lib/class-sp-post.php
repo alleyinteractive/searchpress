@@ -123,47 +123,37 @@ class SP_Post extends SP_Indexable {
 	 * @return array 'meta_key' => array( value 1, value 2... ).
 	 */
 	public static function get_meta( $post_id ) {
-		$meta = (array) get_post_meta( $post_id );
-
-		// Remove a filtered set of meta that we don't want indexed.
-		$ignored_meta = apply_filters(
-			'sp_post_ignored_postmeta',
-			array(
-				'_edit_lock',
-				'_edit_last',
-				'_wp_old_slug',
-				'_wp_trash_meta_time',
-				'_wp_trash_meta_status',
-				'_previous_revision',
-				'_wpas_done_all',
-				'_encloseme',
-				'_pingme',
-			)
-		);
-		foreach ( $ignored_meta as $key ) {
-			unset( $meta[ $key ] );
-		}
-
 		/**
-		 * Filter the post meta to be indexed before type casting.
+		 * Whitelist which post meta should be indexed.
 		 *
-		 * @param array $meta The meta to be indexed.
-		 * @param int $post_id The post ID.
+		 * @param array $meta_whitelist Array of whitelisted meta keys.
+		 * @param int   $post_id        ID of post currently being indexed.
 		 */
-		$meta = apply_filters( 'sp_post_indexable_meta', $meta, $post_id );
+		$meta_whitelist = apply_filters(
+			'sp_post_meta_whitelist',
+			array(),
+			$post_id
+		);
 
-		foreach ( $meta as $key => &$values ) {
-			// Ignore oembed meta, which continuously expands the mapping.
-			if ( '_oembed_' === substr( $key, 0, 8 ) ) {
-				unset( $meta[ $key ] );
-				continue;
-			}
+		$meta = array_intersect_key(
+			(array) get_post_meta( $post_id ),
+			array_flip( (array) $meta_whitelist )
+		);
+
+		foreach ( $meta as &$values ) {
 			$values = array_map( array( 'SP_Post', 'cast_meta_types' ), $values );
 		}
 
 		do_action( 'sp_debug', '[SP_Post] Compiled Meta', $meta );
 
-		return $meta;
+		/**
+		 * Filter the final array of processed meta to be indexed. This includes
+		 * all the tokenized values.
+		 *
+		 * @param array $meta    Processed meta to be index.
+		 * @param int   $post_id ID of post currently being indexed.
+		 */
+		return apply_filters( 'sp_post_indexed_meta', $meta, $post_id );
 	}
 
 

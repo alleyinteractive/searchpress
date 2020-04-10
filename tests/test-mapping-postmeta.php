@@ -14,6 +14,20 @@ class Tests_Mapping_Postmeta extends SearchPress_UnitTestCase {
 		self::$demo_post_id = self::factory()->post->create();
 	}
 
+	public function setUp() {
+		parent::setUp();
+
+		add_filter(
+			'sp_post_meta_whitelist',
+			function( $meta_whitelist ) {
+				return array(
+					'mapping_postmeta_test',
+					'long_string_test',
+				);
+			}
+		);
+	}
+
 	public function tearDown() {
 		delete_post_meta( self::$demo_post_id, 'mapping_postmeta_test' );
 		delete_post_meta( self::$demo_post_id, 'long_string_test' );
@@ -87,12 +101,8 @@ class Tests_Mapping_Postmeta extends SearchPress_UnitTestCase {
 		if ( isset( $datetime ) ) {
 			list( $date, $time ) = explode( ' ', $datetime );
 			$this->assertSame( array( $datetime ), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.datetime' ), 'Checking meta.datetime' );
-			$this->assertSame( array( $date ), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.date' ), 'Checking meta.date' );
-			$this->assertSame( array( $time ), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.time' ), 'Checking meta.time' );
 		} else {
 			$this->assertSame( array(), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.datetime' ), 'Checking that meta.datetime is missing' );
-			$this->assertSame( array(), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.date' ), 'Checking that meta.date is missing' );
-			$this->assertSame( array(), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.time' ), 'Checking that meta.time is missing' );
 		}
 	}
 

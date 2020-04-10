@@ -87,9 +87,7 @@ abstract class SP_Indexable {
 		}
 
 		if ( false !== $time ) {
-			$return['date']     = gmdate( 'Y-m-d', $time );
 			$return['datetime'] = gmdate( 'Y-m-d H:i:s', $time );
-			$return['time']     = gmdate( 'H:i:s', $time );
 		}
 
 		return $return;

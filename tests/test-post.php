@@ -9,6 +9,16 @@ class Tests_Post extends WP_UnitTestCase {
 	public static function setUpBeforeClass() {
 		parent::setUpBeforeClass();
 
+		add_filter(
+			'sp_post_meta_whitelist',
+			function( $meta_whitelist ) {
+				return array(
+					'_test_key_1',
+					'_test_key_2',
+				);
+			}
+		);
+
 		$cat_a = self::factory()->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-a' ) );
 		$cat_b = self::factory()->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-b' ) );
 
@@ -30,6 +40,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertEquals( 'lorem-ipsum', self::$sp_post->post_name );
 		$this->assertEquals( 'test meta string', self::$sp_post->post_meta['_test_key_1'][0]['raw'] );
 		$this->assertEquals( 721, self::$sp_post->post_meta['_test_key_2'][0]['long'] );
+		$this->assertArrayNotHasKey( '_test_key_3', self::$sp_post->post_meta );
 		$this->assertEquals( 'cat-a', self::$sp_post->terms['category'][0]['slug'] );
 	}
 
