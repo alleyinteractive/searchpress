@@ -85,7 +85,7 @@ class Tests_Mapping_Postmeta extends SearchPress_UnitTestCase {
 		}
 
 		if ( isset( $datetime ) ) {
-			[ $date, $time ] = explode( ' ', $datetime );
+			list( $date, $time ) = explode( ' ', $datetime );
 			$this->assertSame( array( $datetime ), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.datetime' ), 'Checking meta.datetime' );
 			$this->assertSame( array( $date ), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.date' ), 'Checking meta.date' );
 			$this->assertSame( array( $time ), $this->search_and_get_field( array(), 'post_meta.mapping_postmeta_test.time' ), 'Checking meta.time' );
