@@ -189,9 +189,17 @@ class SP_Config extends SP_Singleton {
 									'long'     => array( 'type' => 'long' ),
 									'double'   => array( 'type' => 'double' ),
 									'boolean'  => array( 'type' => 'boolean' ),
+									'date'     => array(
+										'type'   => 'date',
+										'format' => 'YYYY-MM-dd',
+									),
 									'datetime' => array(
 										'type'   => 'date',
 										'format' => 'YYYY-MM-dd HH:mm:ss',
+									),
+									'time'     => array(
+										'type'   => 'date',
+										'format' => 'HH:mm:ss',
 									),
 								),
 							),

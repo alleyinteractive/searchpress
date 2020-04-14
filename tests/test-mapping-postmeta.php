@@ -18,11 +18,11 @@ class Tests_Mapping_Postmeta extends SearchPress_UnitTestCase {
 		parent::setUp();
 
 		add_filter(
-			'sp_post_meta_whitelist',
-			function( $meta_whitelist ) {
+			'sp_post_allowed_meta',
+			function() {
 				return array(
-					'mapping_postmeta_test',
-					'long_string_test',
+					'mapping_postmeta_test' => array( 'value', 'raw', 'boolean', 'long', 'double', 'date', 'datetime', 'time' ),
+					'long_string_test'      => array( 'value', 'raw' ),
 				);
 			}
 		);

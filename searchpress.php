@@ -26,9 +26,6 @@
 	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-// Whitelist the SP_PLUGIN_DIR constant for use in file inclusion.
-// phpcs:disable WordPressVIPMinimum.Files.IncludingFile.UsingCustomConstant
-
 if ( ! defined( 'SP_PLUGIN_URL' ) ) {
 	define( 'SP_PLUGIN_URL', plugins_url( '/', __FILE__ ) );
 }

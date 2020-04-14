@@ -124,24 +124,49 @@ class SP_Post extends SP_Indexable {
 	 */
 	public static function get_meta( $post_id ) {
 		/**
-		 * Whitelist which post meta should be indexed.
+		 * List which post meta should be indexed and the data types it should
+		 * be cast to. Example:
 		 *
-		 * @param array $meta_whitelist Array of whitelisted meta keys.
-		 * @param int   $post_id        ID of post currently being indexed.
+		 * [
+		 *     'my_meta_key' => [
+		 *         'value',
+		 *         'raw',
+		 *         'boolean',
+		 *         'long',
+		 *         'double',
+		 *         'date',
+		 *         'datetime',
+		 *         'time',
+		 *     ]
+		 * ]
+		 *
+		 * Indexing all meta, as well as unnecessarily indexing additional
+		 * properties of each key, can inflate an index mapping and create
+		 * significant performance issues in Elasticsearch. For further reading,
+		 * {@see https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping.html#mapping-limit-settings}.
+		 *
+		 * @param array $allowed_meta Array of allowed meta keys and data types.
+		 * @param int   $post_id      ID of post currently being indexed.
 		 */
-		$meta_whitelist = apply_filters(
-			'sp_post_meta_whitelist',
+		$allowed_meta = apply_filters(
+			'sp_post_allowed_meta',
 			array(),
 			$post_id
 		);
 
 		$meta = array_intersect_key(
 			(array) get_post_meta( $post_id ),
-			array_flip( (array) $meta_whitelist )
+			(array) $allowed_meta
 		);
 
-		foreach ( $meta as &$values ) {
-			$values = array_map( array( 'SP_Post', 'cast_meta_types' ), $values );
+		foreach ( $meta as $key => &$values ) {
+			foreach ( $values as &$value ) {
+				$value = self::cast_meta_types( $value, $allowed_meta[ $key ] );
+			}
+			$values = array_filter( $values );
+			if ( empty( $values ) ) {
+				unset( $meta[ $key ] );
+			}
 		}
 
 		do_action( 'sp_debug', '[SP_Post] Compiled Meta', $meta );

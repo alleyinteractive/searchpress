@@ -16,15 +16,15 @@ class Tests_Mapping extends SearchPress_UnitTestCase {
 		parent::setUpBeforeClass();
 
 		add_filter(
-			'sp_post_meta_whitelist',
-			function( $meta_whitelist ) {
+			'sp_post_allowed_meta',
+			function() {
 				return array(
-					'test_string',
-					'test_long',
-					'test_double',
-					'test_boolean_true',
-					'test_boolean_false',
-					'test_date',
+					'test_string'        => array( 'value', 'raw' ),
+					'test_long'          => array( 'long' ),
+					'test_double'        => array( 'double' ),
+					'test_boolean_true'  => array( 'boolean' ),
+					'test_boolean_false' => array( 'boolean' ),
+					'test_date'          => array( 'date', 'datetime', 'time' ),
 				);
 			}
 		);
