@@ -9,6 +9,17 @@ class Tests_Post extends WP_UnitTestCase {
 	public static function setUpBeforeClass() {
 		parent::setUpBeforeClass();
 
+		add_filter(
+			'sp_post_allowed_meta',
+			function( $allowed_meta ) {
+				return array(
+					'_test_key_1' => [ 'value' ],
+					'_test_key_2' => [ 'long', 'double' ],
+					'_test_key_3' => [ 'date', 'datetime' ], // Invalid.
+				);
+			}
+		);
+
 		$cat_a = self::factory()->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-a' ) );
 		$cat_b = self::factory()->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-b' ) );
 
@@ -19,7 +30,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_category' => array( $cat_a, $cat_b ),
 		) );
 		update_post_meta( $post_id, '_test_key_1', 'test meta string' );
-		update_post_meta( $post_id, '_test_key_2', 721 );
+		update_post_meta( $post_id, '_test_key_2', 721.8 );
 		update_post_meta( $post_id, '_test_key_3', array( 'foo' => array( 'bar' => array( 'bat' => true ) ) ) );
 
 		$post = get_post( $post_id );
@@ -28,8 +39,15 @@ class Tests_Post extends WP_UnitTestCase {
 
 	function test_getting_attributes() {
 		$this->assertEquals( 'lorem-ipsum', self::$sp_post->post_name );
-		$this->assertEquals( 'test meta string', self::$sp_post->post_meta['_test_key_1'][0]['raw'] );
-		$this->assertEquals( 721, self::$sp_post->post_meta['_test_key_2'][0]['long'] );
+		$meta = self::$sp_post->post_meta;
+		$this->assertCount( 1, $meta['_test_key_1'] );
+		$this->assertCount( 1, $meta['_test_key_1'][0] );
+		$this->assertCount( 1, $meta['_test_key_2'] );
+		$this->assertCount( 2, $meta['_test_key_2'][0] );
+		$this->assertEquals( 'test meta string', $meta['_test_key_1'][0]['value'] );
+		$this->assertEquals( 721, $meta['_test_key_2'][0]['long'] );
+		$this->assertEquals( 721.8, $meta['_test_key_2'][0]['double'] );
+		$this->assertArrayNotHasKey( '_test_key_3', $meta );
 		$this->assertEquals( 'cat-a', self::$sp_post->terms['category'][0]['slug'] );
 	}
 

@@ -66,4 +66,8 @@
 			</property>
 		</properties>
 	</rule>
+
+	<rule ref="WordPressVIPMinimum.Files.IncludingFile.UsingCustomConstant">
+		<exclude-pattern>./searchpress.php</exclude-pattern>
+	</rule>
 </ruleset>

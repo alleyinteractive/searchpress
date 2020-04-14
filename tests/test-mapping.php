@@ -56,6 +56,20 @@ class Tests_Mapping extends SearchPress_UnitTestCase {
 	public static function setUpBeforeClass() {
 		parent::setUpBeforeClass();
 
+		add_filter(
+			'sp_post_allowed_meta',
+			function() {
+				return array(
+					'test_string'        => array( 'value', 'raw' ),
+					'test_long'          => array( 'long' ),
+					'test_double'        => array( 'double' ),
+					'test_boolean_true'  => array( 'boolean' ),
+					'test_boolean_false' => array( 'boolean' ),
+					'test_date'          => array( 'date', 'datetime', 'time' ),
+				);
+			}
+		);
+
 		self::$demo_user = array(
 			'user_login'    => 'author1',
 			'user_nicename' => 'author-nicename',
@@ -314,18 +328,8 @@ class Tests_Mapping extends SearchPress_UnitTestCase {
 		);
 
 		$this->assertSame(
-			array( '2012-03-14' ),
-			$this->search_and_get_field( array(), 'post_meta.test_date.date' )
-		);
-
-		$this->assertSame(
 			array( '2012-03-14 03:14:15' ),
 			$this->search_and_get_field( array(), 'post_meta.test_date.datetime' )
-		);
-
-		$this->assertSame(
-			array( '03:14:15' ),
-			$this->search_and_get_field( array(), 'post_meta.test_date.time' )
 		);
 	}
 

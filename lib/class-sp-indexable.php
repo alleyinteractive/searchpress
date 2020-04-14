@@ -42,54 +42,74 @@ abstract class SP_Indexable {
 	/**
 	 * Split the meta values into different types for meta query casting.
 	 *
-	 * @param  string $value Meta value.
+	 * @param string $value Meta value.
+	 * @param array  $types Data types to cast to, e.g. ['value', 'raw'].
 	 * @return array
 	 */
-	public static function cast_meta_types( $value ) {
-		$return = array(
-			'value'   => $value,
-			'raw'     => $value,
-			'boolean' => (bool) $value,
-		);
-
-		$time   = false;
-		$double = floatval( $value );
-		if ( is_numeric( $value ) && is_finite( $double ) ) {
-			$int              = intval( $value );
-			$return['long']   = $int;
-			$return['double'] = $double;
-
-			/*
-			 * If this is an integer (represented as a string), check to see if
-			 * it is a valid timestamp.
-			 */
-			if ( (string) $int === (string) $value ) {
-				$year = intval( gmdate( 'Y', $int ) );
-				// Ensure that the year is between 1-2038. Technically, the year
-				// range ES allows is 1-292278993, but PHP ints limit us to 2038.
-				if ( $year > 0 && $year < 2039 ) {
-					$time = $int;
-				}
-			}
-		} elseif ( is_string( $value ) ) {
-			$return['value'] = self::limit_word_length( $value );
-			$return['raw']   = self::limit_string( $value );
-
-			// Correct boolean values.
-			if ( 'false' === strtolower( $value ) ) {
-				$return['boolean'] = false;
-			} elseif ( 'true' === strtolower( $value ) ) {
-				$return['boolean'] = true;
-			}
-
-			// add date/time if we have it.
-			$time = strtotime( $value );
+	public static function cast_meta_types( $value, $types = array() ) {
+		// Ensure value is scalar before attempting to type cast it.
+		if ( isset( $value ) && ! is_scalar( $value ) ) {
+			return array();
 		}
 
-		if ( false !== $time ) {
-			$return['date']     = gmdate( 'Y-m-d', $time );
-			$return['datetime'] = gmdate( 'Y-m-d H:i:s', $time );
-			$return['time']     = gmdate( 'H:i:s', $time );
+		$types  = array_fill_keys( $types, true );
+		$return = array();
+
+		if ( isset( $types['value'] ) ) {
+			$return['value'] = isset( $value )
+				? self::limit_word_length( (string) $value )
+				: null;
+		}
+		if ( isset( $types['raw'] ) ) {
+			$return['raw'] = isset( $value )
+				? self::limit_string( (string) $value )
+				: null;
+		}
+		if ( isset( $types['long'] ) && is_numeric( $value ) && $value <= PHP_INT_MAX ) {
+			$return['long'] = (int) $value;
+			if ( ! is_finite( $return['long'] ) ) {
+				unset( $return['long'] );
+			}
+		}
+		if ( isset( $types['double'] ) && is_numeric( $value ) ) {
+			$return['double'] = (float) $value;
+			if ( ! is_finite( $return['double'] ) ) {
+				unset( $return['double'] );
+			}
+		}
+		if ( isset( $types['boolean'] ) ) {
+			// Correct boolean values.
+			if ( is_string( $value ) && 'false' === strtolower( $value ) ) {
+				$return['boolean'] = false;
+			} else {
+				$return['boolean'] = (bool) $value;
+			}
+		}
+		if (
+			( isset( $types['date'] ) || isset( $types['datetime'] ) || isset( $types['time'] ) )
+			&& strlen( $value ) <= 255 // Limit date/time strings to 255 chars for performance.
+		) {
+			$time = false;
+			$int  = (int) $value;
+
+			// Check to see if this is a timestamp.
+			if ( (string) $int === (string) $value ) {
+				$time = $int;
+			} elseif ( ! is_numeric( $value ) ) {
+				$time = strtotime( $value );
+			}
+
+			if ( false !== $time ) {
+				if ( isset( $types['date'] ) ) {
+					$return['date'] = gmdate( 'Y-m-d', $time );
+				}
+				if ( isset( $types['datetime'] ) ) {
+					$return['datetime'] = gmdate( 'Y-m-d H:i:s', $time );
+				}
+				if ( isset( $types['time'] ) ) {
+					$return['time'] = gmdate( 'H:i:s', $time );
+				}
+			}
 		}
 
 		return $return;
