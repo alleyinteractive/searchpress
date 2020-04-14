@@ -309,12 +309,9 @@ function SP_Sync_Manager() { // phpcs:ignore WordPress.NamingConventions.ValidFu
 
 
 /**
- * SP_Sync_Manager only gets instantiated when necessary, so we register these hooks outside of the class
+ * SP_Sync_Manager only gets instantiated when necessary, so we register these
+ * hooks outside of the class.
  */
 if ( SP_Config()->active() ) {
-	add_action( 'save_post', array( SP_Sync_Manager(), 'sync_post' ) );
-	add_action( 'edit_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
-	add_action( 'add_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
-	add_action( 'deleted_post', array( SP_Sync_Manager(), 'delete_post' ) );
-	add_action( 'trashed_post', array( SP_Sync_Manager(), 'delete_post' ) );
+	sp_add_sync_hooks();
 }

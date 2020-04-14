@@ -256,3 +256,25 @@ function sp_remote_request( $url, $request_params = array() ) {
 
 	return call_user_func( $callable, $url, $request_params );
 }
+
+/**
+ * Add the syncing actions for post changes.
+ */
+function sp_add_sync_hooks() {
+	add_action( 'save_post', array( SP_Sync_Manager(), 'sync_post' ) );
+	add_action( 'edit_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
+	add_action( 'add_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
+	add_action( 'deleted_post', array( SP_Sync_Manager(), 'delete_post' ) );
+	add_action( 'trashed_post', array( SP_Sync_Manager(), 'delete_post' ) );
+}
+
+/**
+ * Remove the syncing actions for post changes.
+ */
+function sp_remove_sync_hooks() {
+	remove_action( 'save_post', array( SP_Sync_Manager(), 'sync_post' ) );
+	remove_action( 'edit_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
+	remove_action( 'add_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
+	remove_action( 'deleted_post', array( SP_Sync_Manager(), 'delete_post' ) );
+	remove_action( 'trashed_post', array( SP_Sync_Manager(), 'delete_post' ) );
+}
