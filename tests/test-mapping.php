@@ -4,12 +4,53 @@
  * @group mapping
  */
 class Tests_Mapping extends SearchPress_UnitTestCase {
+	/**
+	 * User attributes.
+	 *
+	 * @var array
+	 */
 	protected static $demo_user;
+
+	/**
+	 * ID of the user created using Tests_Mapping::$demo_user.
+	 *
+	 * @var int
+	 */
 	protected static $demo_user_id;
+
+	/**
+	 * Term attributes.
+	 *
+	 * @var array
+	 */
 	protected static $demo_term;
+
+	/**
+	 * ID of the term created using Tests_Mapping::$demo_term.
+	 *
+	 * @var int
+	 */
 	protected static $demo_term_id;
+
+	/**
+	 * Post attributes.
+	 *
+	 * @var array
+	 */
 	protected static $demo_post;
+
+	/**
+	 * ID of the post created using Tests_Mapping::$demo_post.
+	 *
+	 * @var int
+	 */
 	protected static $demo_post_id;
+
+	/**
+	 * Array of dates used in the demo post.
+	 *
+	 * @var array
+	 */
 	protected static $demo_dates = array();
 
 	public static function setUpBeforeClass() {
@@ -31,7 +72,6 @@ class Tests_Mapping extends SearchPress_UnitTestCase {
 		);
 		self::$demo_term_id = self::factory()->term->create( self::$demo_term );
 
-		$post_date = '';
 		self::$demo_dates = array(
 			'post_date'         => array( 'date' => '2013-02-28 01:23:45' ),
 			'post_date_gmt'     => array( 'date' => '2013-02-28 05:23:45' ),
