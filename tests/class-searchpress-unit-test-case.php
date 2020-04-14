@@ -44,6 +44,14 @@ class SearchPress_UnitTestCase extends WP_UnitTestCase {
 		parent::tearDown();
 	}
 
+	/**
+	 * Given a set of sp_wp_search arguments, execute a search and return only
+	 * the requested field's data for each result.
+	 *
+	 * @param array|string $args  {@see \SP_WP_Search::wp_to_es_args()}.
+	 * @param string       $field Field to return.
+	 * @return array
+	 */
 	function search_and_get_field( $args, $field = 'post_name' ) {
 		$args = wp_parse_args( $args, array(
 			'fields' => $field
@@ -52,16 +60,40 @@ class SearchPress_UnitTestCase extends WP_UnitTestCase {
 		return sp_results_pluck( $posts, $field );
 	}
 
+	/**
+	 * Force Elasticsearch to refresh its index to make content changes
+	 * available to search.
+	 *
+	 * Without refreshing the index, inserting content then immediately
+	 * searching for it might (and almost certainly will) not return the
+	 * content.
+	 *
+	 * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-refresh.html
+	 */
 	protected static function refresh_index() {
 		SP_API()->post( '_refresh' );
 	}
 
+	/**
+	 * Index one or more posts in Elasticsearch and refresh the index.
+	 *
+	 * @param mixed $posts Can be a post ID, WP_Post object, SP_Post object, or
+	 *                     an array of any of the above.
+	 */
 	protected static function index( $posts ) {
 		$posts = is_array( $posts ) ? $posts : [ $posts ];
 		SP_API()->index_posts( $posts );
 		self::refresh_index();
 	}
 
+	/**
+	 * Create an assortment of sample content.
+	 *
+	 * While some of this content may not be used, it adds enough noise to the
+	 * system to help catch issues that carefully crafted datasets can miss. At
+	 * least, that's the story I tell myself when it catches a false positive
+	 * for me.
+	 */
 	protected static function create_sample_content() {
 		$cat_a = self::factory()->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-a' ) );
 		$cat_b = self::factory()->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-b' ) );
@@ -114,6 +146,17 @@ class SearchPress_UnitTestCase extends WP_UnitTestCase {
 		self::index( $posts_to_index );
 	}
 
+	/**
+	 * Set a post's post_modified date.
+	 *
+	 * WordPress core doesn't provide a way to manually set a post's
+	 * post_modified date.
+	 *
+	 * @see https://core.trac.wordpress.org/ticket/36595
+	 *
+	 * @param int    $ID            Post ID.
+	 * @param string $post_modified Datetime string in the format Y-m-d H:i:s.
+	 */
 	protected static function set_post_modified_date( $ID, $post_modified ) {
 		global $wpdb;
 		$wpdb->update(
@@ -125,7 +168,7 @@ class SearchPress_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Fakes a cron job
+	 * Fakes a cron job.
 	 */
 	protected function fake_cron() {
 		$crons = _get_cron_array();
