@@ -71,7 +71,7 @@ abstract class SP_Indexable {
 				unset( $return['long'] );
 			}
 		}
-		if ( isset( $types['double'] ) && is_numeric( $value ) && $value <= PHP_FLOAT_MAX ) {
+		if ( isset( $types['double'] ) && is_numeric( $value ) ) {
 			$return['double'] = (float) $value;
 			if ( ! is_finite( $return['double'] ) ) {
 				unset( $return['double'] );
