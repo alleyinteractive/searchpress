@@ -5,6 +5,9 @@
  * @package SearchPress
  */
 
+// Core plugin version.
+define( 'SP_VERSION', '0.4' );
+
 // The map version. Represents the last time the mappings were changed.
 define( 'SP_MAP_VERSION', 2020040401 );
 

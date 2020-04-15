@@ -32,6 +32,38 @@ Setup
 Changelog
 ---------
 
+### 0.4
+
+* Adds support for ES 5.x, 6.x, 7.x
+* Fixes indexing bug with parentless attachments
+* Fixes a bug with bulk syncing attachments
+* Improves flexibility for custom indexing of posts
+* Improves facet lists to exclude current selections
+* Adds option in the admin to index content without flushing
+* Fixes bug with cached list of post types to sync
+* Fixes conflicts with Advanced Post Cache and CLI-based cron runners
+* Adds completion suggester API for search-as-you-type functionality
+* Fixes bug with SSL cert verification
+* Overhaul of phpunit testing environment for performance
+* General coding standards cleanup
+
+
+### 0.3
+
+* Adds heartbeat to monitor Elasticsearch
+* Improves capabilities handling for admin settings
+* Adds a status tab to admin page
+* Improves test coverage for heartbeat and admin settings
+* Fixes bug with post type facet field
+* Allows multiple post IDs to be passed to cli index command
+* Locally cache API host to improve external referencing to it
+* Fixes edge case bugs with indexing, e.g. with long meta strings
+* Improves indexed/searched post types and statuses handling
+* Tests across a wider range of ES versions using CI
+* Stores/checks mapping version
+* General code improvements
+
+
 ### 0.2
 
 * Adds unit testing
