@@ -130,7 +130,6 @@ class SP_Post extends SP_Indexable {
 		 * [
 		 *     'my_meta_key' => [
 		 *         'value',
-		 *         'raw',
 		 *         'boolean',
 		 *         'long',
 		 *         'double',
