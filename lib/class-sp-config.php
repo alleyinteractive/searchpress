@@ -191,11 +191,11 @@ class SP_Config extends SP_Singleton {
 									'boolean'  => array( 'type' => 'boolean' ),
 									'date'     => array(
 										'type'   => 'date',
-										'format' => 'YYYY-MM-dd',
+										'format' => 'yyyy-MM-dd',
 									),
 									'datetime' => array(
 										'type'   => 'date',
-										'format' => 'YYYY-MM-dd HH:mm:ss',
+										'format' => 'yyyy-MM-dd HH:mm:ss',
 									),
 									'time'     => array(
 										'type'   => 'date',
