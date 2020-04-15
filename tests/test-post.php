@@ -41,13 +41,16 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertEquals( 'lorem-ipsum', self::$sp_post->post_name );
 		$meta = self::$sp_post->post_meta;
 		$this->assertCount( 1, $meta['_test_key_1'] );
-		$this->assertCount( 1, $meta['_test_key_1'][0] );
+		$this->assertCount( 2, $meta['_test_key_1'][0] );
 		$this->assertCount( 1, $meta['_test_key_2'] );
-		$this->assertCount( 2, $meta['_test_key_2'][0] );
+		$this->assertCount( 3, $meta['_test_key_2'][0] );
+		$this->assertCount( 1, $meta['_test_key_3'] );
+		$this->assertCount( 1, $meta['_test_key_3'][0] );
 		$this->assertEquals( 'test meta string', $meta['_test_key_1'][0]['value'] );
 		$this->assertEquals( 721, $meta['_test_key_2'][0]['long'] );
 		$this->assertEquals( 721.8, $meta['_test_key_2'][0]['double'] );
-		$this->assertArrayNotHasKey( '_test_key_3', $meta );
+		$this->assertEquals( '721.8', $meta['_test_key_2'][0]['raw'] );
+		$this->assertEquals( 'a:1:{s:3:"foo";a:1:{s:3:"bar";a:1:{s:3:"bat";b:1;}}}', $meta['_test_key_3'][0]['raw'] );
 		$this->assertEquals( 'cat-a', self::$sp_post->terms['category'][0]['slug'] );
 	}
 
