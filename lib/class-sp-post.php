@@ -144,7 +144,8 @@ class SP_Post extends SP_Indexable {
 		 * significant performance issues in Elasticsearch. For further reading,
 		 * {@see https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping.html#mapping-limit-settings}.
 		 *
-		 * @param array $allowed_meta Array of allowed meta keys and data types.
+		 * @param array $allowed_meta Array of allowed meta keys => data types.
+		 *                            See above example.
 		 * @param int   $post_id      ID of post currently being indexed.
 		 */
 		$allowed_meta = apply_filters(

@@ -36,6 +36,8 @@ In early versions of SearchPress, SearchPress would index almost all post meta w
 
 Data type casting will only be attempted for a key if the opt-in callback specifies that type for the key in question (see example below for the full list of possible types). However, the data type will still only be indexed if the type casting is successful. For example, attempting to index the meta value `"WordPress"` as a `long` would fail, since it is not a numeric value. This failure is silent, for better or worse, but type casting is overall quite forgiving.
 
+If a meta key is allowed to be indexed, the meta value will _always_ be indexed as an unanalyzed string (`post_meta.*.raw`) and that type need not be specified. This is primarily for compatibility with [ES_WP_Query](https://github.com/alleyinteractive/es-wp-query), which depends on that key in `EXISTS` queries, among others.
+
 ### How to index post meta
 
 ```php
