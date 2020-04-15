@@ -29,11 +29,40 @@ Setup
 4. Once indexing is complete, you're good to go!
 
 
+Indexing Post Meta
+------------------
+
+In early versions of SearchPress, SearchPress would index almost all post meta with the post. Starting in the 0.4 release, SearchPress only indexes the post meta that it is explicitly told to index. Further, it only indexes post meta in the _data types_ that a site's developer plans to use. The principal reason behind this change is performance, and to prevent ["mappings explosion"](https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping.html#mapping-limit-settings).
+
+Data type casting will only be attempted for a key if the opt-in callback specifies that type for the key in question (see example below for the full list of possible types). However, the data type will still only be indexed if the type casting is successful. For example, attempting to index the meta value `"WordPress"` as a `long` would fail, since it is not a numeric value. This failure is silent, for better or worse, but type casting is overall quite forgiving.
+
+### How to index post meta
+
+```php
+add_filter(
+    'sp_post_allowed_meta',
+    function( $allowed_meta ) {
+        // Tell SearchPress to index 'some_meta_key' post meta when encountered.
+        $allowed_meta['some_meta_key'] = [
+            'value',    // Index as an analyzed string.
+            'boolean',  // Index as a boolean value.
+            'long',     // Index as a "long" (integer).
+            'double',   // Index as a "double" (floating point number).
+            'date',     // Index as a GMT date-only value in the format Y-m-d.
+            'datetime', // Index as a GMT datetime value in the format Y-m-d H:i:s.
+            'time',     // Index as a GMT time-only value in the format H:i:s.
+        ];
+        return $allowed_meta;
+    }
+);
+```
+
 Changelog
 ---------
 
 ### 0.4
 
+* **CRITICAL BREAKING CHANGE:** Post meta indexing is now opt-in. See README for more information.
 * Adds support for ES 5.x, 6.x, 7.x
 * Fixes indexing bug with parentless attachments
 * Fixes a bug with bulk syncing attachments
