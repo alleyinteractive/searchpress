@@ -112,8 +112,7 @@ class SP_Sync_Meta extends SP_Singleton {
 			return;
 		}
 
-		delete_option( 'sp_sync_meta' );
-		add_option( 'sp_sync_meta', $this->data, '', 'no' );
+		update_option( 'sp_sync_meta', $this->data, false );
 	}
 
 	/**

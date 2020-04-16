@@ -37,17 +37,21 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @access public
 	 */
 	public function sync_post( $post_id ) {
-		$post = new SP_Post( get_post( $post_id ) );
-		if ( $post->should_be_indexed() ) {
-			$response = SP_API()->index_post( $post );
-			if ( ! $this->parse_error( $response, array( 200, 201 ) ) ) {
-				do_action( 'sp_debug', '[SP_Sync_Manager] Indexed Post', $response );
-			} else {
-				do_action( 'sp_debug', '[SP_Sync_Manager] Error Indexing Post', $response );
-			}
-		} else {
-			// TODO: This is excessive, figure out a better way around it.
+		$post     = new SP_Post( get_post( $post_id ) );
+		$response = SP_API()->index_post( $post );
+
+		if ( is_wp_error( $response ) && 'unindexable-post' === $response->get_error_code() ) {
+			// If the post should not be indexed, ensure it's not in the index already.
+			// @todo This is excessive, figure out a better way around it.
 			$this->delete_post( $post_id );
+			do_action( 'sp_debug', "[SP_Sync_Manager] Post {$post_id} is not indexable", $response );
+			return;
+		}
+
+		if ( ! $this->parse_error( $response, array( 200, 201 ) ) ) {
+			do_action( 'sp_debug', "[SP_Sync_Manager] Indexed Post {$post_id}", $response );
+		} else {
+			do_action( 'sp_debug', "[SP_Sync_Manager] Error Indexing Post {$post_id}", $response );
 		}
 	}
 
@@ -77,21 +81,21 @@ class SP_Sync_Manager extends SP_Singleton {
 	 */
 	protected function parse_error( $response, $allowed_codes = array( 200 ) ) {
 		if ( is_wp_error( $response ) ) {
-			SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . $response->get_error_message(), $response->get_error_data() ) );
+			SP_Sync_Meta()->log( new WP_Error( 'error', gmdate( '[Y-m-d H:i:s] ' ) . $response->get_error_message(), $response->get_error_data() ) );
 		} elseif ( ! empty( $response->error ) ) {
 			if ( isset( $response->error->message, $response->error->data ) ) {
-				SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . $response->error->message, $response->error->data ) );
+				SP_Sync_Meta()->log( new WP_Error( 'error', gmdate( '[Y-m-d H:i:s] ' ) . $response->error->message, $response->error->data ) );
 			} elseif ( isset( $response->error->reason ) ) {
-				SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . $response->error->reason ) );
+				SP_Sync_Meta()->log( new WP_Error( 'error', gmdate( '[Y-m-d H:i:s] ' ) . $response->error->reason ) );
 			} else {
-				SP_Sync_Meta()->log( new WP_Error( 'error', date( '[Y-m-d H:i:s] ' ) . wp_json_encode( $response->error ) ) );
+				SP_Sync_Meta()->log( new WP_Error( 'error', gmdate( '[Y-m-d H:i:s] ' ) . wp_json_encode( $response->error ) ) );
 			}
 		} elseif ( ! in_array( intval( SP_API()->last_request['response_code'] ), $allowed_codes, true ) ) {
 			// translators: date, status code, JSON-encoded last request object.
-			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%1$s] Elasticsearch response failed! Status code %2$d; %3$s', 'searchpress' ), date( 'Y-m-d H:i:s' ), SP_API()->last_request['response_code'], wp_json_encode( SP_API()->last_request ) ) ) );
+			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%1$s] Elasticsearch response failed! Status code %2$d; %3$s', 'searchpress' ), gmdate( 'Y-m-d H:i:s' ), SP_API()->last_request['response_code'], wp_json_encode( SP_API()->last_request ) ) ) );
 		} elseif ( ! is_object( $response ) ) {
 			// translators: date, JSON-encoded API response.
-			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%1$s] Unexpected response from Elasticsearch: %2$s', 'searchpress' ), date( 'Y-m-d H:i:s' ), wp_json_encode( $response ) ) ) );
+			SP_Sync_Meta()->log( new WP_Error( 'error', sprintf( __( '[%1$s] Unexpected response from Elasticsearch: %2$s', 'searchpress' ), gmdate( 'Y-m-d H:i:s' ), wp_json_encode( $response ) ) ) );
 		} else {
 			return false;
 		}
@@ -110,7 +114,7 @@ class SP_Sync_Manager extends SP_Singleton {
 			array(
 				'offset'         => $start,
 				'posts_per_page' => $limit,
-			) 
+			)
 		);
 	}
 
@@ -131,7 +135,7 @@ class SP_Sync_Manager extends SP_Singleton {
 				'order'               => 'ASC',
 				'suppress_filters'    => true, // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFiltersTrue
 				'ignore_sticky_posts' => true,
-			) 
+			)
 		);
 
 		if ( empty( $args['post_type'] ) ) {
@@ -268,7 +272,7 @@ class SP_Sync_Manager extends SP_Singleton {
 					'post_type'      => null,
 					'post_status'    => null,
 					'posts_per_page' => 1,
-				) 
+				)
 			);
 			if ( empty( $args['post_type'] ) ) {
 				$args['post_type'] = SP_Config()->sync_post_types();
@@ -291,7 +295,7 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @return int
 	 */
 	public function count_posts_indexed() {
-		$count = SP_API()->get( 'post/_count' );
+		$count = SP_API()->get( SP_API()->get_doc_type() . '/_count' );
 		return ! empty( $count->count ) ? intval( $count->count ) : 0;
 	}
 }
@@ -307,12 +311,9 @@ function SP_Sync_Manager() { // phpcs:ignore WordPress.NamingConventions.ValidFu
 
 
 /**
- * SP_Sync_Manager only gets instantiated when necessary, so we register these hooks outside of the class
+ * SP_Sync_Manager only gets instantiated when necessary, so we register these
+ * hooks outside of the class.
  */
 if ( SP_Config()->active() ) {
-	add_action( 'save_post', array( SP_Sync_Manager(), 'sync_post' ) );
-	add_action( 'edit_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
-	add_action( 'add_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
-	add_action( 'deleted_post', array( SP_Sync_Manager(), 'delete_post' ) );
-	add_action( 'trashed_post', array( SP_Sync_Manager(), 'delete_post' ) );
+	sp_add_sync_hooks();
 }
