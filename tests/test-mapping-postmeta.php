@@ -21,8 +21,8 @@ class Tests_Mapping_Postmeta extends SearchPress_UnitTestCase {
 			'sp_post_allowed_meta',
 			function() {
 				return array(
-					'mapping_postmeta_test' => array( 'value', 'raw', 'boolean', 'long', 'double', 'date', 'datetime', 'time' ),
-					'long_string_test'      => array( 'value', 'raw' ),
+					'mapping_postmeta_test' => array( 'value', 'boolean', 'long', 'double', 'date', 'datetime', 'time' ),
+					'long_string_test'      => array( 'value' ),
 				);
 			}
 		);

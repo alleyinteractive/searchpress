@@ -43,7 +43,7 @@ abstract class SP_Indexable {
 	 * Split the meta values into different types for meta query casting.
 	 *
 	 * @param string $value Meta value.
-	 * @param array  $types Data types to cast to, e.g. ['value', 'raw'].
+	 * @param array  $types Data types to cast to, e.g. ['value', 'long'].
 	 * @return array
 	 */
 	public static function cast_meta_types( $value, $types = array() ) {
@@ -53,16 +53,13 @@ abstract class SP_Indexable {
 		}
 
 		$types  = array_fill_keys( $types, true );
-		$return = array();
+		$return = array(
+			'raw' => isset( $value ) ? self::limit_string( (string) $value ) : null,
+		);
 
 		if ( isset( $types['value'] ) ) {
 			$return['value'] = isset( $value )
 				? self::limit_word_length( (string) $value )
-				: null;
-		}
-		if ( isset( $types['raw'] ) ) {
-			$return['raw'] = isset( $value )
-				? self::limit_string( (string) $value )
 				: null;
 		}
 		if ( isset( $types['long'] ) && is_numeric( $value ) && $value <= PHP_INT_MAX ) {

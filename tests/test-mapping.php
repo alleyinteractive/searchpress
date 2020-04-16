@@ -60,7 +60,7 @@ class Tests_Mapping extends SearchPress_UnitTestCase {
 			'sp_post_allowed_meta',
 			function() {
 				return array(
-					'test_string'        => array( 'value', 'raw' ),
+					'test_string'        => array( 'value' ),
 					'test_long'          => array( 'long' ),
 					'test_double'        => array( 'double' ),
 					'test_boolean_true'  => array( 'boolean' ),

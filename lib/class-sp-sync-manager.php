@@ -44,12 +44,14 @@ class SP_Sync_Manager extends SP_Singleton {
 			// If the post should not be indexed, ensure it's not in the index already.
 			// @todo This is excessive, figure out a better way around it.
 			$this->delete_post( $post_id );
+			do_action( 'sp_debug', "[SP_Sync_Manager] Post {$post_id} is not indexable", $response );
+			return;
 		}
 
 		if ( ! $this->parse_error( $response, array( 200, 201 ) ) ) {
-			do_action( 'sp_debug', '[SP_Sync_Manager] Indexed Post', $response );
+			do_action( 'sp_debug', "[SP_Sync_Manager] Indexed Post {$post_id}", $response );
 		} else {
-			do_action( 'sp_debug', '[SP_Sync_Manager] Error Indexing Post', $response );
+			do_action( 'sp_debug', "[SP_Sync_Manager] Error Indexing Post {$post_id}", $response );
 		}
 	}
 

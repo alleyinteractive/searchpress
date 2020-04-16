@@ -4,7 +4,6 @@
 # Xenial does not start mysql by default
 services:
   - mysql
-  - memcached
 
 # Declare project language.
 # @link http://about.travis-ci.org/docs/user/languages/php/

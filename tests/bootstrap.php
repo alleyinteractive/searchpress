@@ -28,7 +28,7 @@ function sp_manually_load_plugin() {
 	$tries = 5;
 	$sleep = 3;
 	do {
-		$response = wp_remote_get( 'http://localhost:9200/' );
+		$response = wp_remote_get( $host );
 		if ( 200 === wp_remote_retrieve_response_code( $response ) ) {
 			$body = json_decode( wp_remote_retrieve_body( $response ), true );
 			if ( ! empty( $body['version']['number'] ) ) {
