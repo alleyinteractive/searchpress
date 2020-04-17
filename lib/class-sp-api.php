@@ -69,10 +69,12 @@ class SP_API extends SP_Singleton {
 	 * @codeCoverageIgnore
 	 */
 	public function setup() {
-		$url         = get_site_url();
-		$this->index = ! empty( SP_Config()->get_setting( 'index' ) ) ? SP_Config()->get_setting( 'index' ) : preg_replace( '#^.*?//(.*?)/?$#', '$1', $url );
-		$this->host  = SP_Config()->get_setting( 'host' );
-		$host_parts  = wp_parse_url( $this->host );
+		$url               = get_site_url();
+		$this->index       = ! empty( SP_Config()->get_setting( 'index' ) ) ? SP_Config()->get_setting( 'index' ) : preg_replace( '#^.*?//(.*?)/?$#', '$1', $url );
+		$this->host        = SP_Config()->get_setting( 'host' );
+		$this->basic_auth  = SP_Config()->get_setting( 'basic_auth' );
+		$this->auth_header = SP_Config()->get_setting( 'auth_header' );
+		$host_parts        = wp_parse_url( $this->host );
 
 		/**
 		 * Override SSL verification for API requests
