@@ -185,8 +185,7 @@ class SP_Admin extends SP_Singleton {
 					</p>
 					<p>
 						<label for="sp_password"><?php esc_html_e( 'Password (optional):', 'searchpress' ); ?></label>
-						<input type="password" name="sp_password" id="sp_password" style="width:100%;max-width:500px" />
-						<br /><?php esc_html_e( 'Stored password is encoded and will not load back into this form.', 'searchpress' ); ?>
+						<input type="password" name="sp_password" id="sp_password" value="<?php echo esc_attr( SP_Config()->get_hashed_password() ); ?>" style="width:100%;max-width:500px" />
 					</p>
 					<p>
 						<label for="sp_index"><?php esc_html_e( 'Authorization Header (optional):', 'searchpress' ); ?></label>
@@ -365,14 +364,19 @@ class SP_Admin extends SP_Singleton {
 			SP_Config()->update_settings( array( 'host' => esc_url_raw( wp_unslash( $_POST['sp_host'] ) ) ) ); // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
 		}
 		if ( isset( $_POST['sp_username'] ) && isset( $_POST['sp_password'] ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
-			$basic_auth = base64_encode(
-				sprintf(
-					'%1$s:%2$s',
-					sanitize_text_field( $_POST['sp_username'] ), // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
-					sanitize_text_field( $_POST['sp_password'] ) // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
-				)
-			);
-			SP_Config()->update_settings( array( 'basic_auth' => $basic_auth ) );
+			$existing_value = SP_Config()->get_hashed_password();
+			$new_value      = sanitize_text_field( $_POST['sp_password'] ); // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
+
+			if ( $new_value !== $existing_value ) {
+				$basic_auth = base64_encode(
+					sprintf(
+						'%1$s:%2$s',
+						sanitize_text_field( $_POST['sp_username'] ), // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
+						sanitize_text_field( $_POST['sp_password'] ) // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
+					)
+				);
+				SP_Config()->update_settings( array( 'basic_auth' => $basic_auth ) );
+			}
 		}
 		if ( isset( $_POST['sp_username'] ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
 			SP_Config()->update_settings( array( 'username' => sanitize_text_field( $_POST['sp_username'] ) ) ); // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification

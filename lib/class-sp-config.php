@@ -506,6 +506,18 @@ class SP_Config extends SP_Singleton {
 		$version = $this->get_setting( 'es_version' );
 		return -1 !== $version ? $version : SP_API()->version();
 	}
+
+	/**
+	 * Get the ES password hashed.
+	 *
+	 * @return string Hashed password.
+	 */
+	public function get_hashed_password() {
+		$basic_auth = $this->get_setting( 'basic_auth' );
+		$user_pass  = ! empty( $basic_auth ) ? base64_decode( $basic_auth ) : '';
+		$password   = strpos( $user_pass, ':' ) ? explode( ':', $user_pass )[1] : '';
+		return ! empty( $password ) ? hash( 'ripemd160', $password ) : '';
+	}
 }
 
 /**
