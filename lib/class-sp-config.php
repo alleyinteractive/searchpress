@@ -411,6 +411,10 @@ class SP_Config extends SP_Singleton {
 				'active'      => false,
 				'map_version' => 0,
 				'es_version'  => -1,
+				'username'    => '',
+				'basic_auth'  => '',
+				'index'       => '',
+				'auth_header' => '',
 			)
 		);
 		return $this->settings;
