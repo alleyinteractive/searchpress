@@ -25,6 +25,20 @@ class SP_API extends SP_Singleton {
 	public $index = '';
 
 	/**
+	 * The encoded basic auth (username:password).
+	 *
+	 * @var string
+	 */
+	public $basic_auth = '';
+
+	/**
+	 * The auth header.
+	 *
+	 * @var string
+	 */
+	public $auth_header = '';
+
+	/**
 	 * The document type.
 	 *
 	 * In ES < 6.0, this was like a database table. ES 6.0 deprecated this in
@@ -56,7 +70,7 @@ class SP_API extends SP_Singleton {
 	 */
 	public function setup() {
 		$url         = get_site_url();
-		$this->index = preg_replace( '#^.*?//(.*?)/?$#', '$1', $url );
+		$this->index = ! empty( SP_Config()->get_setting( 'index' ) ) ? SP_Config()->get_setting( 'index' ) : preg_replace( '#^.*?//(.*?)/?$#', '$1', $url );
 		$this->host  = SP_Config()->get_setting( 'host' );
 		$host_parts  = wp_parse_url( $this->host );
 
@@ -72,12 +86,18 @@ class SP_API extends SP_Singleton {
 		$this->request_defaults = array(
 			'sslverify'          => $verify_ssl,
 			'timeout'            => 10, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
-			'user-agent'         => 'SearchPress 0.1 for WordPress',
+			'user-agent'         => 'SearchPress 0.4 for WordPress',
 			'reject_unsafe_urls' => false,
 			'headers'            => array(
 				'Content-Type' => 'application/json',
 			),
 		);
+		if ( ! empty( $this->basic_auth ) ) {
+			$this->request_defaults['headers']['Authorization'] = 'Basic ' . $this->basic_auth;
+		}
+		if ( ! empty( $this->auth_header ) ) {
+			$this->request_defaults['headers']['Authorization'] = $this->auth_header;
+		}
 
 		// Increase the timeout for bulk indexing.
 		if ( wp_doing_cron() || defined( 'WP_CLI' ) && WP_CLI ) {

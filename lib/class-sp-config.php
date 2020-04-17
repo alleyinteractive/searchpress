@@ -457,6 +457,18 @@ class SP_Config extends SP_Singleton {
 			SP_API()->host = $this->get_setting( 'host' );
 		}
 
+		if ( ! empty( $new_settings['basic_auth'] ) ) {
+			SP_API()->basic_auth = $this->get_setting( 'basic_auth' );
+		}
+
+		if ( ! empty( $new_settings['auth_header'] ) ) {
+			SP_API()->auth_header = $this->get_setting( 'auth_header' );
+		}
+
+		if ( ! empty( $new_settings['index'] ) ) {
+			SP_API()->index = $this->get_setting( 'index' );
+		}
+
 		/**
 		 * Fires after the settings have been updated.
 		 *

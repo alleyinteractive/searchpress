@@ -172,7 +172,25 @@ class SP_Admin extends SP_Singleton {
 					<input type="hidden" name="action" value="sp_settings" />
 					<?php wp_nonce_field( 'sp_settings', 'sp_settings_nonce' ); ?>
 					<p>
-						<input type="text" name="sp_host" value="<?php echo esc_url( SP_Config()->get_setting( 'host' ) ); ?>" style="width:100%;max-width:500px" />
+						<label for="sp_host"><?php esc_html_e( 'Host:', 'searchpress' ); ?></label>
+						<input type="text" name="sp_host" id="sp_host" value="<?php echo esc_url( SP_Config()->get_setting( 'host' ) ); ?>" style="width:100%;max-width:500px" />
+					</p>
+					<p>
+						<label for="sp_index"><?php esc_html_e( 'Index (optional):', 'searchpress' ); ?></label>
+						<input type="text" name="sp_index" id="sp_index" value="<?php echo esc_attr( SP_Config()->get_setting( 'index' ) ); ?>" style="width:100%;max-width:500px" />
+					</p>
+					<p>
+						<label for="sp_username"><?php esc_html_e( 'Username (optional):', 'searchpress' ); ?></label>
+						<input type="text" name="sp_username" id="sp_username" value="<?php echo esc_attr( SP_Config()->get_setting( 'username' ) ); ?>" style="width:100%;max-width:500px" />
+					</p>
+					<p>
+						<label for="sp_password"><?php esc_html_e( 'Password (optional):', 'searchpress' ); ?></label>
+						<input type="password" name="sp_password" id="sp_password" style="width:100%;max-width:500px" />
+						<br /><?php esc_html_e( 'Stored password is encoded and will not load back into this form.', 'searchpress' ); ?>
+					</p>
+					<p>
+						<label for="sp_index"><?php esc_html_e( 'Authorization Header (optional):', 'searchpress' ); ?></label>
+						<input type="text" name="sp_auth_header" id="sp_auth_header" value="<?php echo esc_attr( SP_Config()->get_setting( 'auth_header' ) ); ?>" style="width:100%;max-width:500px" />
 					</p>
 					<p>
 						<label for="sp_reindex"><input type="checkbox" name="sp_reindex" id="sp_reindex" value="1" /> <?php esc_html_e( 'Immediately initiate a full sync', 'searchpress' ); ?></label>
@@ -346,6 +364,37 @@ class SP_Admin extends SP_Singleton {
 		if ( isset( $_POST['sp_host'] ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
 			SP_Config()->update_settings( array( 'host' => esc_url_raw( wp_unslash( $_POST['sp_host'] ) ) ) ); // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
 		}
+		if ( isset( $_POST['sp_username'] ) && isset( $_POST['sp_password'] ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
+			$basic_auth = base64_encode(
+				sprintf(
+					'%1$s:%2$s',
+					sanitize_text_field( $_POST['sp_username'] ), // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
+					sanitize_text_field( $_POST['sp_password'] ) // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
+				)
+			);
+			SP_Config()->update_settings( array( 'basic_auth' => $basic_auth ) );
+		}
+		if ( isset( $_POST['sp_username'] ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
+			SP_Config()->update_settings( array( 'username' => sanitize_text_field( $_POST['sp_username'] ) ) ); // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
+		} else {
+			SP_Config()->update_settings(
+				array(
+					'username'   => '',
+					'basic_auth' => '',
+				)
+			);
+		}
+		if ( isset( $_POST['sp_index'] ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
+			SP_Config()->update_settings( array( 'index' => sanitize_text_field( $_POST['sp_index'] ) ) ); // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
+		} else {
+			SP_Config()->update_settings( array( 'index' => '' ) );
+		}
+		if ( isset( $_POST['sp_auth_header'] ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
+			SP_Config()->update_settings( array( 'auth_header' => sanitize_text_field( $_POST['sp_auth_header'] ) ) ); // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
+		} else {
+			SP_Config()->update_settings( array( 'auth_header' => '' ) );
+		}
+
 		if ( isset( $_POST['sp_reindex'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['sp_reindex'] ) ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
 			// The full sync process checks the nonce, so we have to insert it into the postdata.
 			$_POST['sp_sync_nonce'] = wp_create_nonce( 'sp_sync' );
