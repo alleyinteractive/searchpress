@@ -1,9 +1,9 @@
 === SearchPress ===
 Contributors: mboynes, alleyinteractive
 Tags: search, elasticsearch, faceted search, performance
-Requires at least: 3.8
-Tested up to: 3.8
-Stable tag: 0.3
+Requires at least: 4.8.0
+Tested up to: 5.4
+Stable tag: 0.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,7 +17,7 @@ server.
 
 == Prerequisites ==
 
-* PHP 5.3+
+* PHP 5.6+
 * Elasticsearch
 
 == Installation ==

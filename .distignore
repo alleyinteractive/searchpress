@@ -12,11 +12,11 @@ composer.json
 composer.lock
 Gruntfile.js
 package.json
-phpunit.xml
 multisite.xml
+phpunit.xml
 phpunit.xml.dist
-phpcs.ruleset.xml
-codesniffer.ruleset.xml
+phpcs.xml
+phpcs.xml.dist
 README.md
 wp-cli.local.yml
 tests

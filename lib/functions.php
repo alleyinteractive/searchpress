@@ -1,11 +1,18 @@
 <?php
+/**
+ * SearchPress library: helper functions
+ *
+ * @package SearchPress
+ */
 
 /**
  * Pluck a certain field out of an ES response.
  *
- * @param array $results Elasticsearch results.
- * @param int|string $field A field from the retuls to place instead of the entire object.
- * @param bool $as_single Return as single (true) or an array (false). Defaults to true.
+ * @param array      $results Elasticsearch results.
+ * @param int|string $field A field from the results to place instead of the
+ *                          entire object.
+ * @param bool       $as_single Optional. Return as single (true) or an array
+ *                              (false). Defaults to true.
  * @return array
  */
 function sp_results_pluck( $results, $field, $as_single = true ) {
@@ -15,16 +22,62 @@ function sp_results_pluck( $results, $field, $as_single = true ) {
 		return array();
 	}
 
+	$parts = explode( '.', $field );
 	foreach ( $results['hits']['hits'] as $key => $value ) {
-		if ( ! empty( $value['fields'][ $field ] ) ) {
-			$return[ $key ] = (array) $value['fields'][ $field ];
-			if ( $as_single ) {
-				$return[ $key ] = reset( $return[ $key ] );
+		if ( empty( $value['_source'] ) ) {
+			$return[ $key ] = array();
+		} elseif ( 1 === count( $parts ) ) {
+			if ( array_key_exists( $field, $value['_source'] ) ) {
+				$return[ $key ] = (array) $value['_source'][ $field ];
 			}
+		} else {
+			$return[ $key ] = (array) sp_get_array_value_by_path( $value['_source'], $parts );
+		}
+
+		// If the result was empty, remove it.
+		if ( array() === $return[ $key ] ) {
+			unset( $return[ $key ] );
+		} elseif ( $as_single ) {
+			$return[ $key ] = reset( $return[ $key ] );
 		}
 	}
 
 	return $return;
+}
+
+/**
+ * Recursively get an deep array value by a "path" (array of keys). This helper
+ * function helps to collect values from an ES _source response.
+ *
+ * This function is easier to illustrate than explain. Given an array
+ * `[ 'grand' => [ 'parent' => [ 'child' => 1 ] ] ]`, passing the `$path`...
+ *
+ * `[ 'grand' ]`                    yields `[ 'parent' => [ 'child' => 1 ] ]`
+ * `[ 'grand', 'parent' ]`          yields `[ 'child' => 1 ]`
+ * `[ 'grand', 'parent', 'child' ]` yields `1`
+ *
+ * If one of the depths is a numeric array, it will be mapped for the remaining
+ * path components. In other words, given the an array
+ * `[ 'parent' => [ [ 'child' => 1 ], [ 'child' => 2 ] ] ]`, passing the `$path`
+ * `[ 'parent', 'child' ]` yields `[ 1, 2 ]`. This feature does not work with
+ * multiple depths of numeric arrays.
+ *
+ * @param  array $array Multi-dimensional array.
+ * @param  array $path Single-dimensional array of array keys.
+ * @return mixed
+ */
+function sp_get_array_value_by_path( $array, $path = array() ) {
+	if ( isset( $array[0] ) ) {
+		return array_map( 'sp_get_array_value_by_path', $array, array_fill( 0, count( $array ), $path ) );
+	} elseif ( ! empty( $path ) ) {
+		$part = array_shift( $path );
+		if ( array_key_exists( $part, $array ) ) {
+			$array = $array[ $part ];
+		} else {
+			return array();
+		}
+	}
+	return empty( $path ) ? $array : sp_get_array_value_by_path( $array, $path );
 }
 
 /**
@@ -47,6 +100,15 @@ function sp_searchable_post_types( $reload = false ) {
 		 * @param array $post_types Post type slugs.
 		 */
 		$post_types = apply_filters( 'sp_searchable_post_types', $post_types );
+
+		// If we haven't hit `wp_loaded` yet, we don't want to cache the post
+		// types in the static variable, since not all post types may have been
+		// registered yet.
+		if ( ! did_action( 'wp_loaded' ) ) {
+			$uncached_post_types = $post_types;
+			$post_types          = null;
+			return $uncached_post_types;
+		}
 	}
 	return $post_types;
 }
@@ -66,15 +128,18 @@ function sp_searchable_post_statuses( $reload = false ) {
 		$post_statuses = SP_Config()->sync_statuses();
 
 		// Collect post statuses we don't want to search and exclude them.
-		$exclude = array_values( get_post_stati(
-			array(
-				'exclude_from_search' => true,
-				'private'             => true,
-				'protected'           => true,
-			),
-			'names',
-			'or'
-		) );
+		$exclude       = array_values(
+			get_post_stati(
+				array(
+					'internal'            => true,
+					'exclude_from_search' => true,
+					'private'             => true,
+					'protected'           => true,
+				),
+				'names',
+				'or'
+			)
+		);
 		$post_statuses = array_values( array_diff( $post_statuses, $exclude ) );
 
 		/**
@@ -85,6 +150,15 @@ function sp_searchable_post_statuses( $reload = false ) {
 		 * @param array $post_statuses Post statuses.
 		 */
 		$post_statuses = apply_filters( 'sp_searchable_post_statuses', $post_statuses );
+
+		// If we haven't hit `wp_loaded` yet, we don't want to cache the post
+		// statuses in the static variable, since not all post statuses may have
+		// been registered yet.
+		if ( ! did_action( 'wp_loaded' ) ) {
+			$uncached_post_statuses = $post_statuses;
+			$post_statuses          = null;
+			return $uncached_post_statuses;
+		}
 	}
 	return $post_statuses;
 }
@@ -94,7 +168,8 @@ function sp_searchable_post_statuses( $reload = false ) {
  *
  * @see SP_Search::search()
  *
- * @param  array $es_args PHP array of ES arguments.
+ * @param array $es_args    PHP array of ES arguments.
+ * @param bool  $raw_result Whether to return the raw result or a post list.
  * @return array Search results.
  */
 function sp_search( $es_args, $raw_result = false ) {
@@ -107,7 +182,8 @@ function sp_search( $es_args, $raw_result = false ) {
  *
  * @see SP_WP_Search
  *
- * @param  array $wp_args PHP array of search arguments.
+ * @param array $wp_args    PHP array of search arguments.
+ * @param bool  $raw_result Whether to return the raw result or a post list.
  * @return array Search results.
  */
 function sp_wp_search( $wp_args, $raw_result = false ) {
@@ -124,4 +200,81 @@ function sp_wp_search( $wp_args, $raw_result = false ) {
  */
 function sp_global_cluster_health() {
 	return '/_cluster/health';
+}
+
+/**
+ * Compare an Elasticsearch version against the one in use. This is a convenient
+ * wrapper for `version_compare()`, setting the second argument to the current
+ * version of Elasticsearch.
+ *
+ * For example, to see if the current version of Elasticsearch is 5.x, you would
+ * call `sp_es_version_compare( '5.0' )`.
+ *
+ * @param  string $version Version number.
+ * @param  string $compare Optional. Test for a particular relationship. Default
+ *                         is `>=`.
+ * @return bool|null Null on failure, bool on success.
+ */
+function sp_es_version_compare( $version, $compare = '>=' ) {
+	return version_compare( SP_Config()->get_es_version(), $version, $compare );
+}
+
+/**
+ * Make a remote request.
+ *
+ * This is separated out as its own function in order to filter the callable
+ * which is used to make the request. This pattern allows you to replace or
+ * wrap the request to wp_remote_request() as needed. The filtered callable is
+ * immediately invoked.
+ *
+ * @param string $url            ES endpoint URL.
+ * @param array  $request_params Optional. Request arguments. Default empty
+ *                               array.
+ * @return WP_Error|array The response or WP_Error on failure.
+ */
+function sp_remote_request( $url, $request_params = array() ) {
+	/**
+	 * Filter the callable used to make API requests to ES.
+	 *
+	 * @param callable $callable       Request callable. Should be compatible
+	 *                                 with wp_remote_request.
+	 * @param string   $url            ES endpoint URL.
+	 * @param array    $request_params Optional. Request arguments. Default
+	 *                                 empty array.
+	 */
+	$callable = apply_filters(
+		'sp_remote_request',
+		'wp_remote_request',
+		$url,
+		$request_params
+	);
+
+	// Revert back to wp_remote_request if something went awry.
+	if ( ! is_callable( $callable ) ) {
+		$callable = 'wp_remote_request';
+	}
+
+	return call_user_func( $callable, $url, $request_params );
+}
+
+/**
+ * Add the syncing actions for post changes.
+ */
+function sp_add_sync_hooks() {
+	add_action( 'save_post', array( SP_Sync_Manager(), 'sync_post' ) );
+	add_action( 'edit_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
+	add_action( 'add_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
+	add_action( 'deleted_post', array( SP_Sync_Manager(), 'delete_post' ) );
+	add_action( 'trashed_post', array( SP_Sync_Manager(), 'delete_post' ) );
+}
+
+/**
+ * Remove the syncing actions for post changes.
+ */
+function sp_remove_sync_hooks() {
+	remove_action( 'save_post', array( SP_Sync_Manager(), 'sync_post' ) );
+	remove_action( 'edit_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
+	remove_action( 'add_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
+	remove_action( 'deleted_post', array( SP_Sync_Manager(), 'delete_post' ) );
+	remove_action( 'trashed_post', array( SP_Sync_Manager(), 'delete_post' ) );
 }

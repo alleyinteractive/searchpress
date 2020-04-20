@@ -28,9 +28,12 @@ function sp_manually_load_plugin() {
 	$tries = 5;
 	$sleep = 3;
 	do {
-		$response = wp_remote_get( 'http://localhost:9200/' );
-		if ( '200' == wp_remote_retrieve_response_code( $response ) ) {
-			// Looks good!
+		$response = wp_remote_get( $host );
+		if ( 200 === wp_remote_retrieve_response_code( $response ) ) {
+			$body = json_decode( wp_remote_retrieve_body( $response ), true );
+			if ( ! empty( $body['version']['number'] ) ) {
+				printf( "Elasticsearch is up and running, using version %s.\n", $body['version']['number'] );
+			}
 			break;
 		} else {
 			printf( "\nInvalid response from ES (%s), sleeping %d seconds and trying again...\n", wp_remote_retrieve_response_code( $response ), $sleep );
@@ -62,7 +65,27 @@ tests_add_filter( 'shutdown', 'sp_remove_index' );
 
 function sp_index_flush_data() {
 	SP_Config()->flush();
-	SP_Config()->create_mapping();
+
+	// Attempt to create the mapping.
+	$response = SP_Config()->create_mapping();
+
+	if ( ! empty( $response->error ) ) {
+		echo "Could not create the mapping!\n";
+
+		// Output error data.
+		if ( ! empty( $response->error->code ) ) {
+			printf( "Error code `%d`\n", $response->error->code );
+		} elseif ( ! empty( $response->status ) ) {
+			printf( "Error code `%d`\n", $response->status );
+		}
+		if ( ! empty( $response->error->message ) ) {
+			printf( "Error message `%s`\n", $response->error->message );
+		} elseif ( ! empty( $response->error->reason ) && ! empty( $response->error->type ) ) {
+			printf( "Error: %s\n%s\n", $response->error->type, $response->error->reason );
+		}
+		exit( 1 );
+	}
+
 	SP_API()->post( '_refresh' );
 }
 
@@ -74,44 +97,6 @@ function sp_tests_verify_response_code( $response ) {
 		}
 		exit( 1 );
 	}
-}
-
-
-/**
- * Fakes a cron job
- */
-function sp_tests_fake_cron() {
-	$crons = _get_cron_array();
-	foreach ( $crons as $timestamp => $cronhooks ) {
-		foreach ( $cronhooks as $hook => $keys ) {
-			if ( substr( $hook, 0, 3 ) !== 'sp_' ) {
-				continue; // only run our own jobs.
-			}
-
-			foreach ( $keys as $k => $v ) {
-				$schedule = $v['schedule'];
-
-				if ( $schedule != false ) {
-					$new_args = array( $timestamp, $schedule, $hook, $v['args'] );
-					call_user_func_array( 'wp_reschedule_event', $new_args );
-				}
-
-				wp_unschedule_event( $timestamp, $hook, $v['args'] );
-				do_action_ref_array( $hook, $v['args'] );
-			}
-		}
-	}
-}
-
-/**
- * Is the current version of WordPress at least ... ?
- *
- * @param  float $min_version Minimum version required, e.g. 3.9.
- * @return bool True if it is, false if it isn't.
- */
-function sp_phpunit_is_wp_at_least( $min_version ) {
-	global $wp_version;
-	return floatval( $wp_version ) >= $min_version;
 }
 
 require $_tests_dir . '/includes/bootstrap.php';

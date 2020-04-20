@@ -4,9 +4,15 @@
  * @group indexing
  */
 class Tests_Indexing extends SearchPress_UnitTestCase {
+	public function setUp() {
+		parent::setUp();
+
+		sp_index_flush_data();
+		sp_add_sync_hooks();
+	}
 
 	function test_new_post() {
-		$this->factory->post->create( array( 'post_title' => 'test post' ) );
+		self::factory()->post->create( array( 'post_title' => 'test post' ) );
 		SP_API()->post( '_refresh' );
 
 		$this->assertEquals(
@@ -27,7 +33,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 			array( 'private',    true,  false ),
 			array( 'trash',      false, false ),
 			array( 'auto-draft', false, false ),
-			array( 'inherit',    false, false ), // 'inherit' without a parent
+			array( 'inherit',    true,  true ), // 'inherit' without a parent
 
 			// custom post statuses
 			array( 'cps-1',      false, false, array() ), // Assumed to be internal
@@ -75,7 +81,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		if ( 'future' === $status ) {
 			$args['post_date'] = date( 'Y-m-d H:i:s', time() + YEAR_IN_SECONDS );
 		}
-		$post_id = $this->factory->post->create( $args );
+		$post_id = self::factory()->post->create( $args );
 		SP_API()->post( '_refresh' );
 
 		// Test the indexability of this status
@@ -95,21 +101,56 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		);
 	}
 
-	public function test_post_status_inherit() {
-		$post_id = $this->factory->post->create();
-		$attachment_id = $this->factory->attachment->create_object( 'image.jpg', $post_id, array(
+	public function test_post_status_inherit_publish() {
+		$post_id = self::factory()->post->create();
+		$attachment_id = self::factory()->attachment->create_object( 'image.jpg', $post_id, array(
 			'post_mime_type' => 'image/jpeg',
 			'post_type'      => 'attachment',
 			'post_title'     => 'test attachment',
-			'post_name'      => 'test-attachment',
+			'post_name'      => 'test-attachment-1',
 		) );
 		SP_API()->post( '_refresh' );
 
 		// Test the searchability (and inherent indexability) of this status
 		$this->assertSame(
-			array( 'test-attachment' ),
+			array( 'test-attachment-1' ),
 			$this->search_and_get_field( array( 'query' => 'test attachment' ) ),
-			'Inherit status should be searchable'
+			'Inherit publish status should be searchable'
+		);
+	}
+
+	public function test_post_status_inherit_draft() {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		$attachment_id = self::factory()->attachment->create_object( 'image.jpg', $post_id, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_type'      => 'attachment',
+			'post_title'     => 'test attachment',
+			'post_name'      => 'test-attachment-2',
+		) );
+		SP_API()->post( '_refresh' );
+
+		// Test the searchability (and inherent indexability) of this status
+		$this->assertSame(
+			array(),
+			$this->search_and_get_field( array( 'query' => 'test attachment' ) ),
+			'Inherit draft status should not be searchable'
+		);
+	}
+
+	public function test_orphan_post_status_inherit() {
+		$attachment_id = self::factory()->attachment->create_object( 'image.jpg', 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_type'      => 'attachment',
+			'post_title'     => 'test attachment',
+			'post_name'      => 'test-attachment-3',
+		) );
+		SP_API()->post( '_refresh' );
+
+		// Test the searchability (and inherent indexability) of this status
+		$this->assertSame(
+			array( 'test-attachment-3' ),
+			$this->search_and_get_field( array( 'query' => 'test attachment' ) ),
+			'Inherit status without parent should be searchable'
 		);
 	}
 
@@ -159,14 +200,14 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 
 		// Build the post.
 		if ( 'attachment' === $type ) {
-			$parent_id = $this->factory->post->create();
-			$post_id = $this->factory->attachment->create_object( 'image.jpg', $parent_id, array(
+			$parent_id = self::factory()->post->create();
+			$post_id = self::factory()->attachment->create_object( 'image.jpg', $parent_id, array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 				'post_title'     => 'test post',
 			) );
 		} else {
-			$post_id = $this->factory->post->create( array( 'post_title' => 'test post', 'post_type' => $type ) );
+			$post_id = self::factory()->post->create( array( 'post_title' => 'test post', 'post_type' => $type ) );
 		}
 		SP_API()->post( '_refresh' );
 
@@ -189,7 +230,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 	}
 
 	function test_updated_post() {
-		$post_id = $this->factory->post->create( array( 'post_title' => 'test post' ) );
+		$post_id = self::factory()->post->create( array( 'post_title' => 'test post' ) );
 		$post = array(
 			'ID' => $post_id,
 			'post_title' => 'lorem ipsum'
@@ -208,7 +249,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 	}
 
 	function test_trashed_post() {
-		$post_id = $this->factory->post->create( array( 'post_title' => 'test post' ) );
+		$post_id = self::factory()->post->create( array( 'post_title' => 'test post' ) );
 		SP_API()->post( '_refresh' );
 
 		$this->assertEquals(
@@ -225,7 +266,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 	}
 
 	function test_deleted_post() {
-		$post_id = $this->factory->post->create( array( 'post_title' => 'test post' ) );
+		$post_id = self::factory()->post->create( array( 'post_title' => 'test post' ) );
 		SP_API()->post( '_refresh' );
 
 		$this->assertEquals(
@@ -242,7 +283,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 	}
 
 	function test_publishing_and_unpublishing_posts() {
-		$post_id = $this->factory->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'draft' ) );
+		$post_id = self::factory()->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'draft' ) );
 		SP_API()->post( '_refresh' );
 		$this->assertEmpty(
 			$this->search_and_get_field( array( 'query' => 'test post' ) )
@@ -279,15 +320,15 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 
 	function test_cron_indexing() {
 		$posts = array(
-			$this->factory->post->create( array( 'post_title' => 'test one' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test two' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test three' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test four' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test five' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test six' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test seven' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test eight' ) ),
-			$this->factory->post->create( array( 'post_title' => 'searchpress' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test one' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test two' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test three' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test four' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test five' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test six' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test seven' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test eight' ) ),
+			self::factory()->post->create( array( 'post_title' => 'searchpress' ) ),
 		);
 
 		SP_API()->post( '_refresh' );
@@ -309,13 +350,13 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
-		sp_tests_fake_cron();
+		$this->fake_cron();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
-		sp_tests_fake_cron();
+		$this->fake_cron();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
-		sp_tests_fake_cron();
+		$this->fake_cron();
 		$this->assertEmpty( wp_next_scheduled( 'sp_reindex' ) );
 
 		SP_API()->post( '_refresh' );
@@ -327,15 +368,15 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 
 	function test_cron_index_invalid_response() {
 		$posts = array(
-			$this->factory->post->create( array( 'post_title' => 'test one' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test two' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test three' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test four' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test five' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test six' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test seven' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test eight' ) ),
-			$this->factory->post->create( array( 'post_title' => 'searchpress' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test one' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test two' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test three' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test four' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test five' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test six' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test seven' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test eight' ) ),
+			self::factory()->post->create( array( 'post_title' => 'searchpress' ) ),
 		);
 
 		sp_index_flush_data();
@@ -347,22 +388,22 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		SP_Sync_Meta()->save();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
 		$this->assertTrue( empty( SP_Sync_Meta()->messages['error'] ) );
-		sp_tests_fake_cron();
+		$this->fake_cron();
 
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
 	}
 
 	function test_cron_index_non_200() {
 		$posts = array(
-			$this->factory->post->create( array( 'post_title' => 'test one' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test two' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test three' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test four' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test five' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test six' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test seven' ) ),
-			$this->factory->post->create( array( 'post_title' => 'test eight' ) ),
-			$this->factory->post->create( array( 'post_title' => 'searchpress' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test one' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test two' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test three' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test four' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test five' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test six' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test seven' ) ),
+			self::factory()->post->create( array( 'post_title' => 'test eight' ) ),
+			self::factory()->post->create( array( 'post_title' => 'searchpress' ) ),
 		);
 
 		sp_index_flush_data();
@@ -374,7 +415,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		SP_Sync_Meta()->bulk = 3;
 		SP_Sync_Meta()->save();
 		$this->assertNotEmpty( wp_next_scheduled( 'sp_reindex' ) );
-		sp_tests_fake_cron();
+		$this->fake_cron();
 
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
 	}
@@ -383,7 +424,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		SP_Config()->update_settings( array( 'host' => 'http://localhost', 'active' => true ) );
 
 		$posts = array(
-			$this->factory->post->create( array( 'post_title' => 'searchpress' ) ),
+			self::factory()->post->create( array( 'post_title' => 'searchpress' ) ),
 		);
 
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
@@ -395,7 +436,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		SP_Config()->update_settings( array( 'host' => 'http://asdftestblog1.files.wordpress.com', 'active' => true ) );
 
 		$posts = array(
-			$this->factory->post->create( array( 'post_title' => 'searchpress' ) ),
+			self::factory()->post->create( array( 'post_title' => 'searchpress' ) ),
 		);
 
 		$this->assertNotEmpty( SP_Sync_Meta()->messages['error'] );
@@ -410,7 +451,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 			return $data;
 		} );
 		$this->assertFalse( SP_Sync_Meta()->has_errors() );
-		$post_id = $this->factory->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'publish' ) );
+		$post_id = self::factory()->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'publish' ) );
 		$this->assertTrue( SP_Sync_Meta()->has_errors() );
 	}
 
@@ -418,12 +459,12 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		// Send ES empty data
 		add_filter( 'sp_post_pre_index', '__return_empty_array' );
 		$this->assertFalse( SP_Sync_Meta()->has_errors() );
-		$post_id = $this->factory->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'publish' ) );
+		$post_id = self::factory()->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'publish' ) );
 		$this->assertTrue( SP_Sync_Meta()->has_errors() );
 	}
 
 	public function test_oembed_meta_keys() {
-		$post_id = $this->factory->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'publish' ) );
+		$post_id = self::factory()->post->create( array( 'post_title' => 'test post', 'post_name' => 'test-post', 'post_status' => 'publish' ) );
 		add_post_meta( $post_id, '_oembed_test', rand_str() );
 		SP_Sync_Manager()->sync_post( $post_id );
 		SP_API()->post( '_refresh' );
@@ -439,9 +480,9 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		$this->assertSame( 0, SP_Sync_Manager()->count_posts() );
 		$this->assertSame( 0, SP_Sync_Manager()->count_posts_indexed() );
 
-		$this->factory->post->create( array( 'post_title' => 'test post 1', 'post_name' => 'test-post-1', 'post_status' => 'publish' ) );
-		$this->factory->post->create( array( 'post_title' => 'test post 2', 'post_name' => 'test-post-2', 'post_status' => 'publish' ) );
-		$this->factory->post->create( array( 'post_title' => 'test post 3', 'post_name' => 'test-post-3', 'post_status' => 'publish' ) );
+		self::factory()->post->create( array( 'post_title' => 'test post 1', 'post_name' => 'test-post-1', 'post_status' => 'publish' ) );
+		self::factory()->post->create( array( 'post_title' => 'test post 2', 'post_name' => 'test-post-2', 'post_status' => 'publish' ) );
+		self::factory()->post->create( array( 'post_title' => 'test post 3', 'post_name' => 'test-post-3', 'post_status' => 'publish' ) );
 		SP_API()->post( '_refresh' );
 
 		SP_Sync_Manager()->published_posts = false;
@@ -449,4 +490,26 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		$this->assertSame( 3, SP_Sync_Manager()->count_posts_indexed() );
 	}
 
+	public function test_counts_mixed_types_and_statuses() {
+		SP_Sync_Manager()->published_posts = false;
+		$this->assertSame( 0, SP_Sync_Manager()->count_posts() );
+		$this->assertSame( 0, SP_Sync_Manager()->count_posts_indexed() );
+
+		// These should be indexed:
+		self::factory()->post->create( array( 'post_title' => 'test count 1', 'post_type' => 'attachment',    'post_status' => 'inherit' ) );
+		self::factory()->post->create( array( 'post_title' => 'test count 2', 'post_type' => 'page',          'post_status' => 'publish' ) );
+		self::factory()->post->create( array( 'post_title' => 'test count 3', 'post_type' => 'post',          'post_status' => 'draft' ) );
+		self::factory()->post->create( array( 'post_title' => 'test count 4', 'post_type' => 'post',          'post_status' => 'future' ) );
+		self::factory()->post->create( array( 'post_title' => 'test count 5', 'post_type' => 'post',          'post_status' => 'publish' ) );
+
+		// These should not be indexed:
+		self::factory()->post->create( array( 'post_title' => 'test count 6', 'post_type' => 'nav_menu_item', 'post_status' => 'publish' ) );
+		self::factory()->post->create( array( 'post_title' => 'test count 7', 'post_type' => 'post',          'post_status' => 'auto-draft' ) );
+		self::factory()->post->create( array( 'post_title' => 'test count 8', 'post_type' => 'revision',      'post_status' => 'inherit' ) );
+		SP_API()->post( '_refresh' );
+		SP_Sync_Manager()->published_posts = false;
+
+		$this->assertSame( 5, SP_Sync_Manager()->count_posts() );
+		$this->assertSame( 5, SP_Sync_Manager()->count_posts_indexed() );
+	}
 }
