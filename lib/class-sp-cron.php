@@ -50,7 +50,7 @@ class SP_Cron extends SP_Singleton {
 		if ( empty( $schedules['weekly'] ) ) {
 			$schedules['weekly'] = array(
 				'interval' => 7 * DAY_IN_SECONDS,
-				'display' => __( 'Weekly', 'searchpress' ),
+				'display'  => __( 'Weekly', 'searchpress' ),
 			);
 		}
 
