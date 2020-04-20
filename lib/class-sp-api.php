@@ -88,7 +88,7 @@ class SP_API extends SP_Singleton {
 		$this->request_defaults = array(
 			'sslverify'          => $verify_ssl,
 			'timeout'            => 10, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
-			'user-agent'         => 'SearchPress 0.4 for WordPress',
+			'user-agent'         => sprintf( 'SearchPress %s for WordPress', SP_VERSION ),
 			'reject_unsafe_urls' => false,
 			'headers'            => array(
 				'Content-Type' => 'application/json',
