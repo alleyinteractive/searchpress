@@ -34,18 +34,15 @@ class SP_Sync_Manager extends SP_Singleton {
 	public function setup() {
 		if ( SP_Config()->active() ) {
 			// When posts & attachments get_updated, queue up syncs.
-			add_action( 'save_post',       array( $this, 'sync_post' ) );
+			add_action( 'save_post', array( $this, 'sync_post' ) );
 			add_action( 'edit_attachment', array( $this, 'sync_post' ) );
-			add_action( 'add_attachment',  array( $this, 'sync_post' ) );
-			add_action( 'deleted_post',    array( $this, 'delete_post' ) );
-			add_action( 'trashed_post',    array( $this, 'delete_post' ) );
+			add_action( 'add_attachment', array( $this, 'sync_post' ) );
+			add_action( 'deleted_post', array( $this, 'delete_post' ) );
+			add_action( 'trashed_post', array( $this, 'delete_post' ) );
 
-			// When terms or term relationships get updated, queue up syncs.
-			// add_action( 'added_term_relationship',    array( $this, 'sync_post' ) );
-			// add_action( 'deleted_term_relationships', array( $this, 'sync_post' ) );
-
-			// When users get updated, queue up syncs for their posts.
-			// @TODO
+			// @TODO When terms or term relationships get updated, queue up syncs.
+			// @TODO When users get updated, queue up syncs for their posts.
+			// @TODO When post parents get updated, queue up syncs for their child posts.
 		}
 	}
 
@@ -314,18 +311,24 @@ class SP_Sync_Manager extends SP_Singleton {
 		global $wpdb;
 
 		$sync_meta = SP_Sync_Meta();
-		$post_ids  = $wpdb->get_col( "SELECT SQL_CALC_FOUND_ROWS `post_id` FROM {$wpdb->postmeta} WHERE `meta_key`='_sp_index' LIMIT 500" ); // WPCS: cache ok.
-		$total     = $wpdb->get_var( 'SELECT FOUND_ROWS()' ); // WPCS: cache ok.
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery
+		$post_ids = $wpdb->get_col( "SELECT SQL_CALC_FOUND_ROWS `post_id` FROM {$wpdb->postmeta} WHERE `meta_key`='_sp_index' LIMIT 500" ); // WPCS: cache ok.
+		$total    = $wpdb->get_var( 'SELECT FOUND_ROWS()' );
+		// phpcs:enable
+
 		if ( ! empty( $post_ids ) ) {
-			$posts = $this->get_posts( array(
-				'post__in' => $post_ids,
-				'posts_per_page' => count( $post_ids ),
-			) );
+			$posts    = $this->get_posts(
+				array(
+					'post__in'       => $post_ids,
+					'posts_per_page' => count( $post_ids ),
+				)
+			);
 			$response = SP_API()->index_posts( $posts );
 
 			do_action( 'sp_debug', sprintf( '[SP_Sync_Manager] Indexed %d Posts', count( $posts ) ), $response );
 
-			if ( '200' != SP_API()->last_request['response_code'] ) {
+			if ( 200 !== (int) SP_API()->last_request['response_code'] ) {
 				$sync_meta->log( new WP_Error( 'error', __( 'ES response failed', 'searchpress' ), SP_API()->last_request ) );
 				$sync_meta->save();
 			} elseif ( ! is_object( $response ) || ! isset( $response->items ) || ! is_array( $response->items ) ) {
@@ -333,11 +336,33 @@ class SP_Sync_Manager extends SP_Singleton {
 				$sync_meta->save();
 			} else {
 				foreach ( $response->items as $post ) {
-					// Status should be 200 or 201, depending on if we're updating or creating respectively
+					// Status should be 200 or 201, depending on if we're updating or creating respectively.
 					if ( ! isset( $post->index->status ) ) {
-						$sync_meta->log( new WP_Error( 'warning', sprintf( __( 'Error indexing post %1$s; Response: %2$s', 'searchpress' ), $post->index->_id, json_encode( $post ) ), $post ) );
-					} elseif ( ! in_array( $post->index->status, array( 200, 201 ) ) ) {
-						$sync_meta->log( new WP_Error( 'warning', sprintf( __( 'Error indexing post %1$s; HTTP response code: %2$s', 'searchpress' ), $post->index->_id, $post->index->status ), $post ) );
+						$sync_meta->log(
+							new WP_Error(
+								'warning',
+								sprintf(
+									// translators: 1: Post ID, 2: API response.
+									__( 'Error indexing post %1$s; Response: %2$s', 'searchpress' ),
+									$post->index->_id,
+									wp_json_encode( $post )
+								),
+								$post
+							)
+						);
+					} elseif ( ! in_array( $post->index->status, array( 200, 201 ), true ) ) {
+						$sync_meta->log(
+							new WP_Error(
+								'warning',
+								sprintf(
+									// translators: 1: Post ID, 2: response cpde.
+									__( 'Error indexing post %1$s; HTTP response code: %2$s', 'searchpress' ),
+									$post->index->_id,
+									$post->index->status
+								),
+								$post
+							)
+						);
 					} else { // Success!
 						delete_post_meta( $post->index->_id, '_sp_index', '1' );
 					}
@@ -357,7 +382,7 @@ class SP_Sync_Manager extends SP_Singleton {
 				// This is excessive, figure out a better way around it.
 				$response = SP_API()->delete_post( $delete_post_id );
 
-				// We're OK with 404 responses here because a post might not be in the index
+				// We're OK with 404 responses here because a post might not be in the index.
 				if ( ! $this->parse_error( $response, array( 200, 404 ) ) ) {
 					do_action( 'sp_debug', '[SP_Sync_Manager] Deleted Post', $response );
 				} else {
