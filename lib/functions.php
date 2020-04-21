@@ -1,4 +1,9 @@
 <?php
+/**
+ * SearchPress library: helper functions
+ *
+ * @package SearchPress
+ */
 
 /**
  * Pluck a certain field out of an ES response.
@@ -95,6 +100,15 @@ function sp_searchable_post_types( $reload = false ) {
 		 * @param array $post_types Post type slugs.
 		 */
 		$post_types = apply_filters( 'sp_searchable_post_types', $post_types );
+
+		// If we haven't hit `wp_loaded` yet, we don't want to cache the post
+		// types in the static variable, since not all post types may have been
+		// registered yet.
+		if ( ! did_action( 'wp_loaded' ) ) {
+			$uncached_post_types = $post_types;
+			$post_types          = null;
+			return $uncached_post_types;
+		}
 	}
 	return $post_types;
 }
@@ -114,16 +128,18 @@ function sp_searchable_post_statuses( $reload = false ) {
 		$post_statuses = SP_Config()->sync_statuses();
 
 		// Collect post statuses we don't want to search and exclude them.
-		$exclude = array_values( get_post_stati(
-			array(
-				'internal'            => true,
-				'exclude_from_search' => true,
-				'private'             => true,
-				'protected'           => true,
-			),
-			'names',
-			'or'
-		) );
+		$exclude       = array_values(
+			get_post_stati(
+				array(
+					'internal'            => true,
+					'exclude_from_search' => true,
+					'private'             => true,
+					'protected'           => true,
+				),
+				'names',
+				'or'
+			)
+		);
 		$post_statuses = array_values( array_diff( $post_statuses, $exclude ) );
 
 		/**
@@ -134,6 +150,15 @@ function sp_searchable_post_statuses( $reload = false ) {
 		 * @param array $post_statuses Post statuses.
 		 */
 		$post_statuses = apply_filters( 'sp_searchable_post_statuses', $post_statuses );
+
+		// If we haven't hit `wp_loaded` yet, we don't want to cache the post
+		// statuses in the static variable, since not all post statuses may have
+		// been registered yet.
+		if ( ! did_action( 'wp_loaded' ) ) {
+			$uncached_post_statuses = $post_statuses;
+			$post_statuses          = null;
+			return $uncached_post_statuses;
+		}
 	}
 	return $post_statuses;
 }
@@ -143,7 +168,8 @@ function sp_searchable_post_statuses( $reload = false ) {
  *
  * @see SP_Search::search()
  *
- * @param  array $es_args PHP array of ES arguments.
+ * @param array $es_args    PHP array of ES arguments.
+ * @param bool  $raw_result Whether to return the raw result or a post list.
  * @return array Search results.
  */
 function sp_search( $es_args, $raw_result = false ) {
@@ -156,7 +182,8 @@ function sp_search( $es_args, $raw_result = false ) {
  *
  * @see SP_WP_Search
  *
- * @param  array $wp_args PHP array of search arguments.
+ * @param array $wp_args    PHP array of search arguments.
+ * @param bool  $raw_result Whether to return the raw result or a post list.
  * @return array Search results.
  */
 function sp_wp_search( $wp_args, $raw_result = false ) {
@@ -189,5 +216,65 @@ function sp_global_cluster_health() {
  * @return bool|null Null on failure, bool on success.
  */
 function sp_es_version_compare( $version, $compare = '>=' ) {
-	return version_compare( $version, SP_Config()->get_es_version(), $compare );
+	return version_compare( SP_Config()->get_es_version(), $version, $compare );
+}
+
+/**
+ * Make a remote request.
+ *
+ * This is separated out as its own function in order to filter the callable
+ * which is used to make the request. This pattern allows you to replace or
+ * wrap the request to wp_remote_request() as needed. The filtered callable is
+ * immediately invoked.
+ *
+ * @param string $url            ES endpoint URL.
+ * @param array  $request_params Optional. Request arguments. Default empty
+ *                               array.
+ * @return WP_Error|array The response or WP_Error on failure.
+ */
+function sp_remote_request( $url, $request_params = array() ) {
+	/**
+	 * Filter the callable used to make API requests to ES.
+	 *
+	 * @param callable $callable       Request callable. Should be compatible
+	 *                                 with wp_remote_request.
+	 * @param string   $url            ES endpoint URL.
+	 * @param array    $request_params Optional. Request arguments. Default
+	 *                                 empty array.
+	 */
+	$callable = apply_filters(
+		'sp_remote_request',
+		'wp_remote_request',
+		$url,
+		$request_params
+	);
+
+	// Revert back to wp_remote_request if something went awry.
+	if ( ! is_callable( $callable ) ) {
+		$callable = 'wp_remote_request';
+	}
+
+	return call_user_func( $callable, $url, $request_params );
+}
+
+/**
+ * Add the syncing actions for post changes.
+ */
+function sp_add_sync_hooks() {
+	add_action( 'save_post', array( SP_Sync_Manager(), 'sync_post' ) );
+	add_action( 'edit_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
+	add_action( 'add_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
+	add_action( 'deleted_post', array( SP_Sync_Manager(), 'delete_post' ) );
+	add_action( 'trashed_post', array( SP_Sync_Manager(), 'delete_post' ) );
+}
+
+/**
+ * Remove the syncing actions for post changes.
+ */
+function sp_remove_sync_hooks() {
+	remove_action( 'save_post', array( SP_Sync_Manager(), 'sync_post' ) );
+	remove_action( 'edit_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
+	remove_action( 'add_attachment', array( SP_Sync_Manager(), 'sync_post' ) );
+	remove_action( 'deleted_post', array( SP_Sync_Manager(), 'delete_post' ) );
+	remove_action( 'trashed_post', array( SP_Sync_Manager(), 'delete_post' ) );
 }

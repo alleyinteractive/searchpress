@@ -176,7 +176,9 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [--after-date=<date>] [--before-date=<date>] [<post-id>...]
 	 */
 	public function index( $args, $assoc_args ) {
-		ob_end_clean();
+		if ( false !== ob_get_length() ) {
+			ob_end_clean();
+		}
 
 		$timestamp_start = microtime( true );
 

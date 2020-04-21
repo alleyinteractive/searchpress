@@ -1,4 +1,9 @@
 <?php
+/**
+ * SearchPress library: SP_Sync_Meta class
+ *
+ * @package SearchPress
+ */
 
 /**
  * Simple class for working with the meta information associated with ES Syncing.
@@ -7,11 +12,11 @@
  *
  * @author Matthew Boynes
  */
-
 class SP_Sync_Meta extends SP_Singleton {
 
 	/**
 	 * Stores information about the current or most recent bulk sync.
+	 *
 	 * @access protected
 	 * @var array $data {
 	 *     @type bool  $running   Is the sync currently running? Default false.
@@ -29,6 +34,7 @@ class SP_Sync_Meta extends SP_Singleton {
 
 	/**
 	 * Store errors from routine syncing.
+	 *
 	 * @access protected
 	 * @var string
 	 */
@@ -44,7 +50,8 @@ class SP_Sync_Meta extends SP_Singleton {
 			return;
 		}
 
-		if ( false != ( $sync_meta = get_option( 'sp_sync_meta' ) ) ) {
+		$sync_meta = get_option( 'sp_sync_meta' );
+		if ( ! empty( $sync_meta ) && is_array( $sync_meta ) ) {
 			foreach ( $sync_meta as $key => $value ) {
 				$this->data[ $key ] = $value;
 			}
@@ -56,15 +63,15 @@ class SP_Sync_Meta extends SP_Singleton {
 	 */
 	private function init() {
 		$this->data = array(
-			'running'       => false,	// Is the sync currently running
-			'started'       => 0,
-			'finished'      => 0,
-			'bulk'          => 500,
-			'page'          => 0,
-			'total'         => 0,
-			'processed'     => 0,
-			'success'       => 0,
-			'messages'      => array(),
+			'running'   => false,   // Is the sync currently running?
+			'started'   => 0,
+			'finished'  => 0,
+			'bulk'      => 500,
+			'page'      => 0,
+			'total'     => 0,
+			'processed' => 0,
+			'success'   => 0,
+			'messages'  => array(),
 		);
 	}
 
@@ -78,7 +85,7 @@ class SP_Sync_Meta extends SP_Singleton {
 		$this->init();
 		$this->data['running'] = true;
 		$this->data['started'] = time();
-		if ( 'save' == $save ) {
+		if ( 'save' === $save ) {
 			$this->save();
 		}
 	}
@@ -90,9 +97,9 @@ class SP_Sync_Meta extends SP_Singleton {
 	 *                       Defaults to false.
 	 */
 	public function stop( $save = null ) {
-		$this->data['running'] = false;
+		$this->data['running']  = false;
 		$this->data['finished'] = time();
-		if ( 'save' == $save ) {
+		if ( 'save' === $save ) {
 			$this->save();
 		}
 	}
@@ -105,8 +112,7 @@ class SP_Sync_Meta extends SP_Singleton {
 			return;
 		}
 
-		delete_option( 'sp_sync_meta' );
-		add_option( 'sp_sync_meta', $this->data, '', 'no' );
+		update_option( 'sp_sync_meta', $this->data, false );
 	}
 
 	/**
@@ -132,11 +138,11 @@ class SP_Sync_Meta extends SP_Singleton {
 	/**
 	 * Reset the sync meta back to defaults.
 	 *
-	 * @param  string $save Should we save the reset data?
+	 * @param string $save Whether we should save the reset data.
 	 */
 	public function reset( $save = null ) {
 		$this->init();
-		if ( 'save' == $save ) {
+		if ( 'save' === $save ) {
 			$this->save();
 		}
 	}
@@ -148,9 +154,9 @@ class SP_Sync_Meta extends SP_Singleton {
 	 *                         this uses WP_Error to keep organized.
 	 */
 	public function log( WP_Error $error ) {
-		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		if ( ! wp_doing_cron() && defined( 'WP_CLI' ) && WP_CLI ) {
 			$method = $error->get_error_code();
-			if ( ! in_array( $method, array( 'success', 'warning', 'error' ) ) ) {
+			if ( ! in_array( $method, array( 'success', 'warning', 'error' ), true ) ) {
 				$method = 'line';
 			}
 			$message = $error->get_error_data() ? $error->get_error_message() . '; Data: ' . wp_json_encode( $error->get_error_data() ) : $error->get_error_message();
@@ -191,7 +197,7 @@ class SP_Sync_Meta extends SP_Singleton {
 	 * Set one of the sync meta properties.
 	 *
 	 * @param string $name Sync meta key.
-	 * @param mixed $value Sync meta value.
+	 * @param mixed  $value Sync meta value.
 	 */
 	public function __set( $name, $value ) {
 		if ( isset( $this->data[ $name ] ) ) {
@@ -202,7 +208,7 @@ class SP_Sync_Meta extends SP_Singleton {
 	/**
 	 * Overloaded isset.
 	 *
-	 * @param  string  $name Sync meta key.
+	 * @param  string $name Sync meta key.
 	 * @return boolean If the key exists or not.
 	 */
 	public function __isset( $name ) {
@@ -217,7 +223,7 @@ class SP_Sync_Meta extends SP_Singleton {
 	 * @return bool
 	 */
 	protected function is_cli() {
-		return ( defined( 'WP_CLI' ) && WP_CLI );
+		return ( defined( 'WP_CLI' ) && WP_CLI && ! wp_doing_cron() );
 	}
 
 	/**
@@ -237,6 +243,11 @@ class SP_Sync_Meta extends SP_Singleton {
 	}
 }
 
-function SP_Sync_Meta() {
+/**
+ * Returns an initialized instance of the SP_Sync_Meta class.
+ *
+ * @return SP_Sync_Meta An initialized instance of the SP_Sync_Meta class.
+ */
+function SP_Sync_Meta() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	return SP_Sync_Meta::instance();
 }
