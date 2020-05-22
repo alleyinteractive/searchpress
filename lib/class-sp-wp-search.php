@@ -203,7 +203,10 @@ class SP_WP_Search extends SP_Search {
 		// Taxonomy terms.
 		if ( ! empty( $args['terms'] ) ) {
 			foreach ( (array) $args['terms'] as $tax => $terms ) {
-				if ( strpos( $terms, ',' ) ) {
+				if ( is_array( $terms ) ) {
+					$terms = $terms;
+					$comp = 'or';
+				} elseif ( strpos( $terms, ',' ) ) {
 					$terms = explode( ',', $terms );
 					$comp  = 'or';
 				} else {
@@ -419,7 +422,7 @@ class SP_WP_Search extends SP_Search {
 				'exclude_current'     => true,
 				'join_existing_terms' => true,
 				'join_terms_logic'    => array(),
-			) 
+			)
 		);
 
 		$facet_data = array();
