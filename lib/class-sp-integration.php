@@ -81,18 +81,6 @@ class SP_Integration extends SP_Singleton {
 	public function init_hooks() {
 		add_filter( 'posts_pre_query', [ $this, 'filter__posts_pre_query' ], 10, 2 );
 
-		// Checks to see if we need to worry about found_posts.
-		// add_filter( 'post_limits_request', array( $this, 'filter__post_limits_request' ), 999, 2 );
-
-		// // Replaces the standard search query with one that fetches the posts based on post IDs supplied by ES.
-		// add_filter( 'posts_request', array( $this, 'filter__posts_request' ), 5, 2 );
-
-		// // Nukes the FOUND_ROWS() database query.
-		// add_filter( 'found_posts_query', array( $this, 'filter__found_posts_query' ), 5, 2 );
-
-		// // Since the FOUND_ROWS() query was nuked, we need to supply the total number of found posts.
-		// add_filter( 'found_posts', array( $this, 'filter__found_posts' ), 5, 2 );
-
 		// Add our custom query var for advanced searches.
 		add_filter( 'query_vars', array( $this, 'query_vars' ) );
 
@@ -106,10 +94,6 @@ class SP_Integration extends SP_Singleton {
 	 * @access public
 	 */
 	public function remove_hooks() {
-		// remove_filter( 'post_limits_request', array( $this, 'filter__post_limits_request' ), 999, 2 );
-		// remove_filter( 'posts_request', array( $this, 'filter__posts_request' ), 5, 2 );
-		// remove_filter( 'found_posts_query', array( $this, 'filter__found_posts_query' ), 5, 2 );
-		// remove_filter( 'found_posts', array( $this, 'filter__found_posts' ), 5, 2 );
 		remove_filter( 'query_vars', array( $this, 'query_vars' ) );
 		remove_action( 'parse_query', array( $this, 'force_search_template' ), 5 );
 	}
