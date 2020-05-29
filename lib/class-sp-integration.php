@@ -121,6 +121,9 @@ class SP_Integration extends SP_Singleton {
 		$this->found_posts  = $this->search_obj->get_results( 'total' );
 		$query->found_posts = $this->found_posts;
 
+		// Calculate the maximum number of pages.
+		$query->max_num_pages = ceil( $this->found_posts / (int) $query->get( 'posts_per_page' ) );
+
 		if ( empty( $results ) ) {
 			return [];
 		}
