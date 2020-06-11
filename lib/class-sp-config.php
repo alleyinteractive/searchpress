@@ -449,10 +449,15 @@ class SP_Config extends SP_Singleton {
 		if ( ! $this->settings ) {
 			$this->get_settings();
 		}
+
+		if ( ! empty( $new_settings['host'] ) ) {
+			$new_settings['host'] = untrailingslashit( $new_settings['host'] );
+		}
+
 		$old_settings   = $this->settings;
 		$this->settings = wp_parse_args( $new_settings, $this->settings );
-		update_option( 'sp_settings', $this->settings );
 
+		update_option( 'sp_settings', $this->settings );
 		if ( ! empty( $new_settings['host'] ) ) {
 			SP_API()->host = $this->get_setting( 'host' );
 		}
