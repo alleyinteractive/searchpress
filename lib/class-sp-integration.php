@@ -295,7 +295,7 @@ class SP_Integration extends SP_Singleton {
 					$date_start = $query->get( 'year' ) . '-' . $date_monthnum . '-' . $date_day . ' 00:00:00';
 					$date_end   = $query->get( 'year' ) . '-' . $date_monthnum . '-' . $date_day . ' 23:59:59';
 				} else {
-					$days_in_month = date( 't', mktime( 0, 0, 0, $query->get( 'monthnum' ), 14, $query->get( 'year' ) ) ); // 14 = middle of the month so no chance of DST issues
+					$days_in_month = gmdate( 't', mktime( 0, 0, 0, $query->get( 'monthnum' ), 14, $query->get( 'year' ) ) ); // 14 = middle of the month so no chance of DST issues
 
 					$date_start = $query->get( 'year' ) . '-' . $date_monthnum . '-01 00:00:00';
 					$date_end   = $query->get( 'year' ) . '-' . $date_monthnum . '-' . $days_in_month . ' 23:59:59';
@@ -317,13 +317,13 @@ class SP_Integration extends SP_Singleton {
 			if ( ! empty( $this->sp['f'] ) ) {
 				$gte = strtotime( $this->sp['f'] );
 				if ( false !== $gte ) {
-					$es_wp_query_args['date_range']['gte'] = date( 'Y-m-d 00:00:00', $gte );
+					$es_wp_query_args['date_range']['gte'] = gmdate( 'Y-m-d 00:00:00', $gte );
 				}
 			}
 			if ( ! empty( $this->sp['t'] ) ) {
 				$lte = strtotime( $this->sp['t'] );
 				if ( false !== $lte ) {
-					$es_wp_query_args['date_range']['lte'] = date( 'Y-m-d 23:59:59', $lte );
+					$es_wp_query_args['date_range']['lte'] = gmdate( 'Y-m-d 23:59:59', $lte );
 				}
 			}
 		}
@@ -402,13 +402,15 @@ class SP_Integration extends SP_Singleton {
 		// Post type filters.
 		$indexed_post_types = SP_Config()->sync_post_types();
 
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		if ( $query->get( 'post_type' ) && 'any' !== $query->get( 'post_type' ) ) {
 			$post_types = (array) $query->get( 'post_type' );
-		} elseif ( ! empty( $_GET['post_type'] ) ) { // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
-			$post_types = explode( ',', sanitize_text_field( wp_unslash( $_GET['post_type'] ) ) ); // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
+		} elseif ( ! empty( $_GET['post_type'] ) ) {
+			$post_types = explode( ',', sanitize_text_field( wp_unslash( $_GET['post_type'] ) ) );
 		} else {
 			$post_types = false;
 		}
+		// phpcs:enable
 
 		$vars['post_type'] = array();
 

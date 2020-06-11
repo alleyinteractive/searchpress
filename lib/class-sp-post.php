@@ -123,47 +123,62 @@ class SP_Post extends SP_Indexable {
 	 * @return array 'meta_key' => array( value 1, value 2... ).
 	 */
 	public static function get_meta( $post_id ) {
-		$meta = (array) get_post_meta( $post_id );
-
-		// Remove a filtered set of meta that we don't want indexed.
-		$ignored_meta = apply_filters(
-			'sp_post_ignored_postmeta',
-			array(
-				'_edit_lock',
-				'_edit_last',
-				'_wp_old_slug',
-				'_wp_trash_meta_time',
-				'_wp_trash_meta_status',
-				'_previous_revision',
-				'_wpas_done_all',
-				'_encloseme',
-				'_pingme',
-			) 
-		);
-		foreach ( $ignored_meta as $key ) {
-			unset( $meta[ $key ] );
-		}
-
 		/**
-		 * Filter the post meta to be indexed before type casting.
+		 * List which post meta should be indexed and the data types it should
+		 * be cast to. Example:
 		 *
-		 * @param array $meta The meta to be indexed.
-		 * @param int $post_id The post ID.
+		 * [
+		 *     'my_meta_key' => [
+		 *         'value',
+		 *         'boolean',
+		 *         'long',
+		 *         'double',
+		 *         'date',
+		 *         'datetime',
+		 *         'time',
+		 *     ]
+		 * ]
+		 *
+		 * Indexing all meta, as well as unnecessarily indexing additional
+		 * properties of each key, can inflate an index mapping and create
+		 * significant performance issues in Elasticsearch. For further reading,
+		 * {@see https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping.html#mapping-limit-settings}.
+		 *
+		 * @param array $allowed_meta Array of allowed meta keys => data types.
+		 *                            See above example.
+		 * @param int   $post_id      ID of post currently being indexed.
 		 */
-		$meta = apply_filters( 'sp_post_indexable_meta', $meta, $post_id );
+		$allowed_meta = apply_filters(
+			'sp_post_allowed_meta',
+			array(),
+			$post_id
+		);
+
+		$meta = array_intersect_key(
+			(array) get_post_meta( $post_id ),
+			(array) $allowed_meta
+		);
 
 		foreach ( $meta as $key => &$values ) {
-			// Ignore oembed meta, which continuously expands the mapping.
-			if ( '_oembed_' === substr( $key, 0, 8 ) ) {
-				unset( $meta[ $key ] );
-				continue;
+			foreach ( $values as &$value ) {
+				$value = self::cast_meta_types( $value, $allowed_meta[ $key ] );
 			}
-			$values = array_map( array( 'SP_Post', 'cast_meta_types' ), $values );
+			$values = array_filter( $values );
+			if ( empty( $values ) ) {
+				unset( $meta[ $key ] );
+			}
 		}
 
 		do_action( 'sp_debug', '[SP_Post] Compiled Meta', $meta );
 
-		return $meta;
+		/**
+		 * Filter the final array of processed meta to be indexed. This includes
+		 * all the tokenized values.
+		 *
+		 * @param array $meta    Processed meta to be index.
+		 * @param int   $post_id ID of post currently being indexed.
+		 */
+		return apply_filters( 'sp_post_indexed_meta', $meta, $post_id );
 	}
 
 
@@ -229,7 +244,8 @@ class SP_Post extends SP_Indexable {
 
 		$params = array_merge( array( $query ), $taxonomies, array( $post->ID ) );
 
-		$object_terms = $wpdb->get_results( call_user_func_array( array( $wpdb, 'prepare' ), $params ) ); // WPCS: db call ok. WPCS: cache ok. WPCS: unprepared SQL ok.
+		// phpcs:ignore WordPress.DB
+		$object_terms = $wpdb->get_results( call_user_func_array( array( $wpdb, 'prepare' ), $params ) );
 
 		if ( ! $object_terms || is_wp_error( $object_terms ) ) {
 			return array();
@@ -323,5 +339,19 @@ class SP_Post extends SP_Indexable {
 		}
 
 		return apply_filters( 'sp_post_should_be_indexed', true, $this );
+	}
+
+	/**
+	 * Helper to determine if this post is "searchable". That is, is its
+	 * `post_type` in `sp_searchable_post_types()` and is its `post_status` in
+	 * `sp_searchable_post_statuses()`.
+	 *
+	 * @return boolean true if yes, false if no.
+	 */
+	public function is_searchable() {
+		return (
+			in_array( $this->data['post_type'], sp_searchable_post_types(), true )
+			&& in_array( $this->data['post_status'], sp_searchable_post_statuses(), true )
+		);
 	}
 }

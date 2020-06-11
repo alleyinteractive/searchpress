@@ -29,11 +29,12 @@
 	<exclude-pattern>bin/</exclude-pattern>
 	<exclude-pattern>tests/</exclude-pattern>
 
-	<rule ref="WordPress" />
-	<rule ref="WordPressVIPMinimum" />
-	<rule ref="WordPress-VIP-Go" >
-		<exclude name="WordPress.DateTime.RestrictedFunctions.date_date" />
+	<rule ref="WordPress">
+		<!-- Tweak or disable some rules. -->
+		<exclude name="WordPress.NamingConventions.PrefixAllGlobals.ShortPrefixPassed" />
 	</rule>
+	<rule ref="WordPressVIPMinimum" />
+	<rule ref="WordPress-VIP-Go" />
 
 	<!-- The version set here matches the minimum version tested in .travis.yml.  -->
 	<config name="minimum_supported_wp_version" value="4.8.0" />
@@ -50,9 +51,8 @@
 
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
-			<property name="prefixes" type="array" value="sp_,searchpress" />
+			<property name="prefixes" type="array" value="sp_,searchpress,SP_" />
 		</properties>
-		<exclude name="WordPress.NamingConventions.PrefixAllGlobals.ShortPrefixPassed" />
 	</rule>
 
 	<rule ref="Generic.PHP.ForbiddenFunctions">
@@ -65,5 +65,9 @@
 				<element key="wp_cache_add" value="wp_cache_set"/>
 			</property>
 		</properties>
+	</rule>
+
+	<rule ref="WordPressVIPMinimum.Files.IncludingFile.UsingCustomConstant">
+		<exclude-pattern>./searchpress.php</exclude-pattern>
 	</rule>
 </ruleset>

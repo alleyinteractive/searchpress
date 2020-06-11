@@ -10,6 +10,8 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 
 	function setUp() {
 		parent::setUp();
+		SP_Heartbeat()->record_pulse();
+
 		// is_admin returns false, so this file doesn't get loaded with the rest of the plugin
 		require_once dirname( __FILE__ ) . '/../lib/class-sp-admin.php';
 		$this->current_user = get_current_user_id();
@@ -35,6 +37,9 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 
 	public function tearDown() {
 		wp_set_current_user( $this->current_user );
+
+		SP_Sync_Meta()->reset( 'save' );
+		SP_Sync_Manager()->published_posts = false;
 
 		// Restore current_screen.
 		$GLOBALS['current_screen'] = $this->old_screen;

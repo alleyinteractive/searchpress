@@ -13,7 +13,6 @@ class SP_API extends SP_Singleton {
 	/**
 	 * The Elasticsearch host URL.
 	 *
-	 * @access public
 	 * @var string
 	 */
 	public $host;
@@ -21,15 +20,24 @@ class SP_API extends SP_Singleton {
 	/**
 	 * The slug for the index.
 	 *
-	 * @access public
 	 * @var string
 	 */
 	public $index = '';
 
 	/**
+	 * The document type.
+	 *
+	 * In ES < 6.0, this was like a database table. ES 6.0 deprecated this in
+	 * favor of _doc and 7.0 killed support for custom mapping types. This will
+	 * eventually be removed in Elasticsearch.
+	 *
+	 * @var string
+	 */
+	public $doc_type;
+
+	/**
 	 * Default options for requests.
 	 *
-	 * @access public
 	 * @var array
 	 */
 	public $request_defaults = array();
@@ -37,7 +45,6 @@ class SP_API extends SP_Singleton {
 	/**
 	 * Stores information about the last request made.
 	 *
-	 * @access public
 	 * @var array
 	 */
 	public $last_request;
@@ -46,8 +53,6 @@ class SP_API extends SP_Singleton {
 	 * Initializes class variables.
 	 *
 	 * @codeCoverageIgnore
-	 *
-	 * @access public
 	 */
 	public function setup() {
 		$url         = get_site_url();
@@ -81,13 +86,31 @@ class SP_API extends SP_Singleton {
 	}
 
 	/**
+	 * Get the doc type (mapping type) for the index.
+	 *
+	 * @see SP_API::$doc_type for further explanation.
+	 *
+	 * @return string
+	 */
+	public function get_doc_type() {
+		if ( empty( $this->doc_type ) ) {
+			if ( sp_es_version_compare( '6.0', '<' ) ) {
+				$this->doc_type = 'post';
+			} else {
+				$this->doc_type = '_doc';
+			}
+		}
+
+		return $this->doc_type;
+	}
+
+	/**
 	 * Executes a GET request against the API.
 	 *
 	 * @param string $url    The URL to send the request to.
 	 * @param string $body   The body of the request.
 	 * @param string $output The return format. Defaults to OBJECT.
-	 * @access public
-	 * @return string JSON-encoded response from the API.
+	 * @return object|array JSON-encoded response from the API.
 	 */
 	public function get( $url = '', $body = '', $output = OBJECT ) {
 		return json_decode( $this->request( $url, 'GET', $body ), ( ARRAY_A === $output ) );
@@ -99,8 +122,7 @@ class SP_API extends SP_Singleton {
 	 * @param string $url    The URL to send the request to.
 	 * @param string $body   The body of the request.
 	 * @param string $output The return format. Defaults to OBJECT.
-	 * @access public
-	 * @return string JSON-encoded response from the API.
+	 * @return object|array JSON-encoded response from the API.
 	 */
 	public function post( $url = '', $body = '', $output = OBJECT ) {
 		return json_decode( $this->request( $url, 'POST', $body ), ( ARRAY_A === $output ) );
@@ -112,8 +134,7 @@ class SP_API extends SP_Singleton {
 	 * @param string $url    The URL to send the request to.
 	 * @param string $body   The body of the request.
 	 * @param string $output The return format. Defaults to OBJECT.
-	 * @access public
-	 * @return string JSON-encoded response from the API.
+	 * @return object|array JSON-encoded response from the API.
 	 */
 	public function delete( $url = '', $body = '', $output = OBJECT ) {
 		return json_decode( $this->request( $url, 'DELETE', $body ), ( ARRAY_A === $output ) );
@@ -125,8 +146,7 @@ class SP_API extends SP_Singleton {
 	 * @param string $url    The URL to send the request to.
 	 * @param string $body   The body of the request.
 	 * @param string $output The return format. Defaults to OBJECT.
-	 * @access public
-	 * @return string JSON-encoded response from the API.
+	 * @return object|array JSON-encoded response from the API.
 	 */
 	public function put( $url = '', $body = '', $output = OBJECT ) {
 		return json_decode( $this->request( $url, 'PUT', $body ), ( ARRAY_A === $output ) );
@@ -139,7 +159,6 @@ class SP_API extends SP_Singleton {
 	 * @param string $method         The method for the request. Defaults to GET.
 	 * @param string $body           The body of the request.
 	 * @param array  $request_params Additional parameters to send with wp_remote_request.
-	 * @access public
 	 * @return string The JSON-encoded result of wp_remote_request.
 	 */
 	public function request( $url = '', $method = 'GET', $body = '', $request_params = array() ) {
@@ -152,7 +171,7 @@ class SP_API extends SP_Singleton {
 				'body'   => $body,
 			)
 		);
-		$result         = wp_remote_request( $url, $request_params );
+		$result         = sp_remote_request( $url, $request_params );
 
 		if ( ! is_wp_error( $result ) ) {
 			$this->last_request = array(
@@ -172,7 +191,7 @@ class SP_API extends SP_Singleton {
 					'message' => $result->get_error_message(),
 					'data'    => $result->get_error_data(),
 				),
-			) 
+			)
 		);
 	}
 
@@ -180,7 +199,6 @@ class SP_API extends SP_Singleton {
 	 * Normalizes various formats of URLs.
 	 *
 	 * @param string|array $url The URL to normalize.
-	 * @access public
 	 * @return string The normalized URL.
 	 */
 	public function parse_url( $url = '' ) {
@@ -218,28 +236,43 @@ class SP_API extends SP_Singleton {
 	/**
 	 * Indexes an individual post.
 	 *
-	 * @param SP_Post $post The post object to add to the index.
-	 * @access public
-	 * @return object|WP_Error The API response, or a WP_Error on invalid JSON.
+	 * @param SP_Post|WP_Post|int $post The post to add to the index.
+	 * @return object|WP_Error The API response, or a WP_Error on error.
 	 */
 	public function index_post( $post ) {
+		// Ensure $post is a valid object and should be indexed.
+		if ( ! $post instanceof SP_Post ) {
+			$post = new SP_Post( $post );
+		}
+		if ( ! $post->should_be_indexed() ) {
+			return new WP_Error( 'unindexable-post', __( 'Post should not be indexed', 'searchpress' ) );
+		}
+
 		$json = $post->to_json();
 		if ( empty( $json ) ) {
 			return new WP_Error( 'invalid-json', __( 'Invalid JSON', 'searchpress' ) );
 		}
-		return $this->put( 'post/' . $post->post_id, $json );
+		return $this->put( "{$this->get_doc_type()}/{$post->post_id}", $json );
 	}
 
 	/**
 	 * Indexes an array of posts.
 	 *
-	 * @param array $posts An array of posts to index.
-	 * @access public
+	 * @param array $posts An array of posts to index. May either be post IDs,
+	 *                     WP_Post objects, or SP_Post objects.
 	 * @return object The API response.
 	 */
 	public function index_posts( $posts ) {
 		$body = array();
 		foreach ( $posts as $post ) {
+			// Ensure $post is a valid object and should be indexed.
+			if ( ! $post instanceof SP_Post ) {
+				$post = new SP_Post( $post );
+			}
+			if ( ! $post->should_be_indexed() ) {
+				continue;
+			}
+
 			$json = $post->to_json();
 			if ( empty( $json ) ) {
 				// Translators: post ID.
@@ -249,45 +282,47 @@ class SP_API extends SP_Singleton {
 				$body[] = addcslashes( $json, "\n" );
 			}
 		}
-		return $this->put( 'post/_bulk', wp_check_invalid_utf8( implode( "\n", $body ), true ) . "\n" );
+		return $this->put(
+			"{$this->get_doc_type()}/_bulk",
+			wp_check_invalid_utf8( implode( "\n", $body ), true ) . "\n"
+		);
 	}
 
 	/**
 	 * Executes a post deletion.
 	 *
 	 * @param int $post_id The post ID to delete.
-	 * @access public
 	 * @return object The response from the API.
 	 */
 	public function delete_post( $post_id ) {
-		return $this->delete( "post/{$post_id}" );
+		return $this->delete( "{$this->get_doc_type()}/{$post_id}" );
 	}
 
 	/**
 	 * Executes a search.
 	 *
-	 * @param array $query Query arguments for the search.
-	 * @param array $args  Additional arguments for the post function.
-	 * @access public
-	 * @return mixed Return format according to $args['output']. Defaults to object.
+	 * @param string $query Query arguments for the search as encoded JSON.
+	 * @param array  $args  Additional arguments for the post function.
+	 * @return object|array Return format according to $args['output']. Defaults
+	 *                      to object.
 	 */
 	public function search( $query, $args = array() ) {
 		$args = wp_parse_args(
 			$args,
 			array(
 				'output' => OBJECT,
-			) 
+			)
 		);
-		return $this->post( 'post/_search', $query, $args['output'] );
+		return $this->post( "{$this->get_doc_type()}/_search", $query, $args['output'] );
 	}
 
 	/**
 	 * Get the cluster health.
 	 *
-	 * @return object|null Response from the cluster health API on success or
-	 *                     null on error. The most important part of the
-	 *                     successful response is $health->status, which is the
-	 *                     "red", "yellow", or "green" status indicator.
+	 * @return object|array Response from the cluster health API. The most
+	 *                      important part of the successful response is
+	 *                      $health->status, which is the "red", "yellow", or
+	 *                      "green" status indicator.
 	 */
 	public function cluster_health() {
 		/**
@@ -298,9 +333,9 @@ class SP_API extends SP_Singleton {
 		 * yellow status. To change either value, filter the URI and
 		 * manipulate the string.
 		 *
-		 * @param string  $url  URI or URL to hit to query the cluster health.
+		 * @param string $url URI or URL to hit to query the cluster health.
 		 */
-		$health_uri = apply_filters( 'sp_cluster_health_uri', "/_cluster/health/{$this->index}?wait_for_status=yellow&timeout=200ms" ); // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
+		$health_uri = apply_filters( 'sp_cluster_health_uri', '/_cluster/health?wait_for_status=yellow&timeout=200ms' ); // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 		return $this->get( $health_uri );
 	}
 
