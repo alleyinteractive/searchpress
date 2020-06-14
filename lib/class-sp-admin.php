@@ -308,23 +308,35 @@ class SP_Admin extends SP_Singleton {
 							<strong><?php esc_html_e( 'Because this site has a large number of posts, this may take a long time to index.', 'searchpress' ); ?></strong>
 						<?php endif ?>
 						<?php esc_html_e( "Exactly how long indexing will take will vary on a number of factors, like the server's CPU and memory, connection speed, current traffic, average post size, and associated terms and post meta.", 'searchpress' ); ?>
-						<?php esc_html_e( 'SearchPress will be inactive during indexing if you choose to "Flush the data and update the mapping".', 'searchpress' ); ?>
+						<?php
+						/**
+						 * Whether to disable flushing the index via the admin screen.
+						 *
+						 * @param bool False.
+						 */
+						$allow_flushing = ! apply_filters( 'disable_flush_via_ui', false );
+						if ( $allow_flushing ) : ?>
+							<?php esc_html_e( 'SearchPress will be inactive during indexing if you choose to "Flush the data and update the mapping".', 'searchpress' ); ?>
+						<?php endif; ?>
 					</p>
 
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="sp_full_sync" />
-						<p>
-							<label for="sp_flush_data">
-								<input type="checkbox"
-									name="sp_flush_data"
-									id="sp_flush_data"
-									value="1"
-									<?php checked( 0 === SP_Sync_Manager()->count_posts_indexed() ); ?>
-								/>
-								<?php esc_html_e( 'Flush the data and update the mapping', 'searchpress' ); ?>
-							</label>
-							<span class="explanation"><?php esc_html_e( 'This will wipe the data currently in the Elasticsearch index and rebuild it from scratch. This is necessary in order to udpate the mapping.', 'searchpress' ); ?></span>
-						</p>
+						<?php
+						if ( $allow_flushing ) : ?>
+							<p>
+								<label for="sp_flush_data">
+									<input type="checkbox"
+										name="sp_flush_data"
+										id="sp_flush_data"
+										value="1"
+										<?php checked( 0 === SP_Sync_Manager()->count_posts_indexed() ); ?>
+									/>
+									<?php esc_html_e( 'Flush the data and update the mapping', 'searchpress' ); ?>
+								</label>
+								<span class="explanation"><?php esc_html_e( 'This will wipe the data currently in the Elasticsearch index and rebuild it from scratch. This is necessary in order to udpate the mapping.', 'searchpress' ); ?></span>
+							</p>
+						<?php endif; ?>
 						<?php wp_nonce_field( 'sp_sync', 'sp_sync_nonce' ); ?>
 						<?php submit_button( __( 'Run Full Sync', 'searchpress' ), 'delete' ); ?>
 					</form>
@@ -533,7 +545,16 @@ class SP_Admin extends SP_Singleton {
 			wp_die( 'You are not authorized to perform that action' );
 		}
 
-		$sp_flush_data = ! empty( $_POST['sp_flush_data'] );
+		/**
+		 * Whether to disable flushing the index via the admin screen.
+		 *
+		 * @param bool False.
+		 */
+		if ( apply_filters( 'disable_flush_via_ui', false ) ) {
+			$sp_flush_data = false;
+		} else {
+			$sp_flush_data = ! empty( $_POST['sp_flush_data'] );
+		}
 		SP_Config()->update_settings(
 			array(
 				'must_init' => false,
