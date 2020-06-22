@@ -183,6 +183,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 		$timestamp_start = microtime( true );
 
 		if ( ! empty( $assoc_args['flush'] ) ) {
+			WP_CLI::confirm( 'Are you sure you want to delete the Elasticsearch index?' );
 			$this->flush();
 		}
 
