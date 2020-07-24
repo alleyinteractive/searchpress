@@ -93,8 +93,12 @@ class SP_API extends SP_Singleton {
 	 * @return string
 	 */
 	public function get_doc_type() {
-		if ( empty( $this->doc_type ) && sp_es_version_compare( '7.0', '<' ) ) {
-			$this->doc_type = 'post';
+		if ( empty( $this->doc_type ) ) {
+			if ( sp_es_version_compare( '7.0', '<' ) ) {
+				$this->doc_type = 'post';
+			} else {
+				$this->doc_type = '_doc';
+			}
 		}
 
 		return $this->doc_type;
