@@ -343,7 +343,7 @@ class SP_Admin extends SP_Singleton {
 									/>
 									<?php esc_html_e( 'Flush the data and update the mapping', 'searchpress' ); ?>
 								</label>
-								<span class="explanation"><?php esc_html_e( 'This will wipe the data currently in the Elasticsearch index and rebuild it from scratch. This is necessary in order to udpate the mapping.', 'searchpress' ); ?></span>
+								<span class="explanation"><?php esc_html_e( 'This will wipe the data currently in the Elasticsearch index and rebuild it from scratch. This is necessary in order to update the mapping.', 'searchpress' ); ?></span>
 							</p>
 						<?php endif; ?>
 						<?php wp_nonce_field( 'sp_sync', 'sp_sync_nonce' ); ?>
