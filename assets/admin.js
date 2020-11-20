@@ -8,6 +8,17 @@ jQuery( function( $ ) {
 	} );
 	$( 'a.nav-tab-active' ).click();
 
+	$('.auth-options input').click( function () {
+		var show = $( this ).data( 'show' );
+		if ( show ) {
+			$( '.sp-auth-options:not(' + show + ')' ).hide();
+			$( show ).show();
+		} else {
+			$( '.sp-auth-options' ).hide();
+		}
+	} );
+	$('.auth-options input:checked').click();
+
 	var progress_total = $( '.progress-bar' ).data( 'total' ) - 0
 	, progress_processed = $( '.progress-bar' ).data( 'processed' ) - 0;
 
