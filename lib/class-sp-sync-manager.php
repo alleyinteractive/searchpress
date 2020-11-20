@@ -40,6 +40,8 @@ class SP_Sync_Manager extends SP_Singleton {
 		$post     = new SP_Post( get_post( $post_id ) );
 		$response = SP_API()->index_post( $post );
 
+		$response = new WP_Error('http_request_failed', 'Error syncing.');
+
 		if ( is_wp_error( $response ) && 'unindexable-post' === $response->get_error_code() ) {
 			// If the post should not be indexed, ensure it's not in the index already.
 			// @todo This is excessive, figure out a better way around it.

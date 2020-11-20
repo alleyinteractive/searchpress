@@ -163,7 +163,13 @@ class SP_Sync_Meta extends SP_Singleton {
 			call_user_func( array( 'WP_CLI', $method ), $message );
 			$this->data['messages'][ $error->get_error_code() ][] = $message;
 		} else {
-			$this->data['messages'][ $error->get_error_code() ][] = $error->get_error_message();
+			/**
+			 * Filter the log message for the error.
+			 *
+			 * @param string   $message Log message
+			 * @param WP_Error $error Error instance.
+			 */
+			$this->data['messages'][ $error->get_error_code() ][] = apply_filters( 'sp_log_message', $error->get_error_message(), $error );
 			set_transient( $this->error_transient, true );
 			if ( ! $this->data['running'] ) {
 				$this->save();
