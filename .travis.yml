@@ -13,7 +13,7 @@ language: php
 branches:
   only:
     - master
-    - /^release-.*$/
+    - /^release\/.*$/
 
 cache:
   directories:

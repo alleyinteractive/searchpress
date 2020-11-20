@@ -380,7 +380,16 @@ class SP_API extends SP_Singleton {
 				'output' => OBJECT,
 			)
 		);
-		return $this->post( "{$this->get_doc_type()}/_search", $query, $args['output'] );
+
+		/**
+		 * Filter the Elasticsearch search endpoint.
+		 *
+		 * @param string $url URL for the search request.
+		 * @param array  $args Arguments for the search request.
+		 */
+		$url = apply_filters( 'sp_search_uri', "{$this->get_doc_type()}/_search", $args );
+
+		return $this->post( $url, $query, $args['output'] );
 	}
 
 	/**
