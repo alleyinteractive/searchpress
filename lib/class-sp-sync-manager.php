@@ -52,8 +52,43 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @param int $post_id The post ID of the post to be indexed.
 	 */
 	public function sync_post( $post_id ) {
-		update_post_meta( $post_id, '_sp_index', '1' );
-		SP_Cron()->schedule_queue_index();
+		if ( $this->should_index_async( $post_id ) ) {
+			update_post_meta( $post_id, '_sp_index', '1' );
+			SP_Cron()->schedule_queue_index();
+		} else {
+			$post     = new SP_Post( get_post( $post_id ) );
+			$response = SP_API()->index_post( $post );
+
+			if ( is_wp_error( $response ) && 'unindexable-post' === $response->get_error_code() ) {
+				// If the post should not be indexed, ensure it's not in the index already.
+				// @todo This is excessive, figure out a better way around it.
+				$this->delete_post( $post_id );
+				do_action( 'sp_debug', "[SP_Sync_Manager] Post {$post_id} is not indexable", $response );
+				return;
+			}
+
+			if ( ! $this->parse_error( $response, array( 200, 201 ) ) ) {
+				do_action( 'sp_debug', "[SP_Sync_Manager] Indexed Post {$post_id}", $response );
+			} else {
+				do_action( 'sp_debug', "[SP_Sync_Manager] Error Indexing Post {$post_id}", $response );
+			}
+		}
+	}
+
+	/**
+	 * Determine if the post should be synced asynchronously
+	 *
+	 * @param int $post_id Post ID.
+	 * @return bool
+	 */
+	protected function should_index_async( int $post_id ): bool {
+		/**
+		 * Flag if the post should be synced asynchronously.
+		 *
+		 * @param bool $should_sync_async Flag if the post should be synced asynchronously, defaults to true.
+		 * @param int  $post_id Post ID.
+		 */
+		return (bool) apply_filters( 'sp_should_index_async', true, $post_id );
 	}
 
 	/**

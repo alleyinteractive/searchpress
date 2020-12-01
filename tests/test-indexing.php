@@ -501,4 +501,16 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		$this->assertSame( 5, SP_Sync_Manager()->count_posts() );
 		$this->assertSame( 5, SP_Sync_Manager()->count_posts_indexed() );
 	}
+
+	public function test_non_async_indexing() {
+		add_filter( 'sp_should_index_async', '__return_false' );
+
+		self::factory()->post->create( array( 'post_title' => 'sync post' ) );
+		$this->refresh_index();
+
+		$this->assertEquals(
+			array( 'sync-post' ),
+			$this->search_and_get_field( array( 'query' => 'sync post' ) )
+		);
+	}
 }
