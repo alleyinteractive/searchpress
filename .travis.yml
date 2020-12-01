@@ -73,7 +73,7 @@ before_script:
 
   - |
     if [[ "$WP_PHPCS" == "1" ]]; then
-      composer global require automattic/vipwpcs
+      composer g require --dev automattic/vipwpcs dealerdirect/phpcodesniffer-composer-installer
       phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs,$HOME/.composer/vendor/automattic/vipwpcs
     fi
 
