@@ -557,7 +557,7 @@ class SP_Admin extends SP_Singleton {
 		 *
 		 * @param bool $should_flush Flag if flushing should be disable via UI, defaults to false.
 		 */
-		if ( apply_filters( 'searchpress_disable_flush_via_ui', false ) ) {
+		if ( apply_filters( 'sp_disable_flush_via_ui', false ) ) {
 			$sp_flush_data = false;
 		} else {
 			$sp_flush_data = ! empty( $_POST['sp_flush_data'] );
