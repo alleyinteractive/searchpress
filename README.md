@@ -74,6 +74,7 @@ Changelog
 ### 0.5 _(in progress)_
 
 * Adds UI for authentication
+* **POSSIBLE BREAKING CHANGE**: Moves SearchPress integration to the `posts_pre_query`.
 
 ### 0.4
 
