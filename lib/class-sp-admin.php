@@ -323,16 +323,14 @@ class SP_Admin extends SP_Singleton {
 							<strong><?php esc_html_e( 'Because this site has a large number of posts, this may take a long time to index.', 'searchpress' ); ?></strong>
 						<?php endif ?>
 						<?php esc_html_e( "Exactly how long indexing will take will vary on a number of factors, like the server's CPU and memory, connection speed, current traffic, average post size, and associated terms and post meta.", 'searchpress' ); ?>
-						<?php
-						if ( $this->allow_flushing ) : ?>
+						<?php if ( $this->allow_flushing ) : ?>
 							<?php esc_html_e( 'SearchPress will be inactive during indexing if you choose to "Flush the data and update the mapping".', 'searchpress' ); ?>
 						<?php endif; ?>
 					</p>
 
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="sp_full_sync" />
-						<?php
-						if ( $this->allow_flushing ) : ?>
+						<?php if ( $this->allow_flushing ) : ?>
 							<p>
 								<label for="sp_flush_data">
 									<input type="checkbox"
@@ -557,9 +555,9 @@ class SP_Admin extends SP_Singleton {
 		/**
 		 * Whether to disable flushing the index via the admin screen.
 		 *
-		 * @param bool False.
+		 * @param bool $should_flush Flag if flushing should be disable via UI, defaults to false.
 		 */
-		if ( apply_filters( 'disable_flush_via_ui', false ) ) {
+		if ( apply_filters( 'searchpress_disable_flush_via_ui', false ) ) {
 			$sp_flush_data = false;
 		} else {
 			$sp_flush_data = ! empty( $_POST['sp_flush_data'] );
