@@ -440,7 +440,7 @@ class SP_Config extends SP_Singleton {
 	 * @param mixed  $value  Not used.
 	 * @return mixed The value for the setting.
 	 */
-	public function __call( $method, $value ) {
+	public function __call( $method, $value ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		return $this->get_setting( $method );
 	}
 
