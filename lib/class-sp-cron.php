@@ -85,7 +85,7 @@ class SP_Cron extends SP_Singleton {
 /**
  * Initializes and returns the SP_Cron instance.
  *
- * @return SP_Singleton The initialized SP_Cron instance.
+ * @return SP_Cron The initialized SP_Cron instance.
  */
 function SP_Cron() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	return SP_Cron::instance();
