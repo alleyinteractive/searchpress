@@ -13,7 +13,7 @@ language: php
 branches:
   only:
     - master
-    - /^release-.*$/
+    - /^release\/.*$/
 
 cache:
   directories:
@@ -73,8 +73,7 @@ before_script:
 
   - |
     if [[ "$WP_PHPCS" == "1" ]]; then
-      composer global require automattic/vipwpcs
-      phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs,$HOME/.composer/vendor/automattic/vipwpcs
+      composer g require --dev automattic/vipwpcs dealerdirect/phpcodesniffer-composer-installer
     fi
 
   # Wait up to 60 seconds until ES is up, or die if it never comes up.

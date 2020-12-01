@@ -3,7 +3,7 @@ Contributors: mboynes, alleyinteractive
 Tags: search, elasticsearch, faceted search, performance
 Requires at least: 4.8.0
 Tested up to: 5.4
-Stable tag: 0.4
+Stable tag: 0.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 

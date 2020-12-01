@@ -411,6 +411,10 @@ class SP_Config extends SP_Singleton {
 				'active'      => false,
 				'map_version' => 0,
 				'es_version'  => -1,
+				'username'    => '',
+				'basic_auth'  => '',
+				'index'       => '',
+				'auth_header' => '',
 			)
 		);
 		return $this->settings;
@@ -436,7 +440,7 @@ class SP_Config extends SP_Singleton {
 	 * @param mixed  $value  Not used.
 	 * @return mixed The value for the setting.
 	 */
-	public function __call( $method, $value ) {
+	public function __call( $method, $value ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		return $this->get_setting( $method );
 	}
 
@@ -449,12 +453,29 @@ class SP_Config extends SP_Singleton {
 		if ( ! $this->settings ) {
 			$this->get_settings();
 		}
-		$old_settings   = $this->settings;
-		$this->settings = wp_parse_args( $new_settings, $this->settings );
-		update_option( 'sp_settings', $this->settings );
 
 		if ( ! empty( $new_settings['host'] ) ) {
+			$new_settings['host'] = untrailingslashit( $new_settings['host'] );
+		}
+
+		$old_settings   = $this->settings;
+		$this->settings = wp_parse_args( $new_settings, $this->settings );
+
+		update_option( 'sp_settings', $this->settings );
+		if ( ! empty( $new_settings['host'] ) ) {
 			SP_API()->host = $this->get_setting( 'host' );
+		}
+
+		if ( ! empty( $new_settings['basic_auth'] ) ) {
+			SP_API()->basic_auth = $this->get_setting( 'basic_auth' );
+		}
+
+		if ( ! empty( $new_settings['auth_header'] ) ) {
+			SP_API()->auth_header = $this->get_setting( 'auth_header' );
+		}
+
+		if ( ! empty( $new_settings['index'] ) ) {
+			SP_API()->index = $this->get_setting( 'index' );
 		}
 
 		/**
@@ -489,6 +510,18 @@ class SP_Config extends SP_Singleton {
 	public function get_es_version() {
 		$version = $this->get_setting( 'es_version' );
 		return -1 !== $version ? $version : SP_API()->version();
+	}
+
+	/**
+	 * Get the ES password hashed.
+	 *
+	 * @return string Hashed password.
+	 */
+	public function get_hashed_password() {
+		$basic_auth = $this->get_setting( 'basic_auth' );
+		$user_pass  = ! empty( $basic_auth ) ? base64_decode( $basic_auth ) : '';
+		$password   = strpos( $user_pass, ':' ) ? explode( ':', $user_pass )[1] : '';
+		return ! empty( $password ) ? hash( 'ripemd160', $password ) : '';
 	}
 }
 
