@@ -52,7 +52,13 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @param int $post_id The post ID of the post to be indexed.
 	 */
 	public function sync_post( $post_id ) {
-		if ( $this->should_index_async( $post_id ) ) {
+		/**
+		 * Flag if the post should be synced asynchronously.
+		 *
+		 * @param bool $should_sync_async Flag if the post should be synced asynchronously, defaults to true.
+		 * @param int  $post_id Post ID.
+		 */
+		if ( apply_filters( 'sp_should_index_async', true, $post_id ) ) {
 			update_post_meta( $post_id, '_sp_index', '1' );
 			SP_Cron()->schedule_queue_index();
 		} else {
@@ -73,22 +79,6 @@ class SP_Sync_Manager extends SP_Singleton {
 				do_action( 'sp_debug', "[SP_Sync_Manager] Error Indexing Post {$post_id}", $response );
 			}
 		}
-	}
-
-	/**
-	 * Determine if the post should be synced asynchronously
-	 *
-	 * @param int $post_id Post ID.
-	 * @return bool
-	 */
-	protected function should_index_async( int $post_id ): bool {
-		/**
-		 * Flag if the post should be synced asynchronously.
-		 *
-		 * @param bool $should_sync_async Flag if the post should be synced asynchronously, defaults to true.
-		 * @param int  $post_id Post ID.
-		 */
-		return (bool) apply_filters( 'sp_should_index_async', true, $post_id );
 	}
 
 	/**
