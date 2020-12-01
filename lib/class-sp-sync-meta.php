@@ -10,7 +10,15 @@
  * Many of the methods are disabled if we're in the WP-CLI environment, but this
  * class is still used to track the meta data (for consistency)
  *
- * @author Matthew Boynes
+ * @property bool  running   Is the sync currently running? Default false.
+ * @property int   started   What time the sync started. Default 0.
+ * @property int   finished  What time the sync finished. Default 0.
+ * @property int   bulk      How many posts to process at a time. Default 500.
+ * @property int   page      What "page" the sync is on. Default 0.
+ * @property int   total     The total number of posts to be synced. Default 0.
+ * @property int   processed Total number of posts processed. Default 0.
+ * @property int   success   Number of posts successfully synced. Default 0.
+ * @property array messages  Messages from the sync. Default array().
  */
 class SP_Sync_Meta extends SP_Singleton {
 
