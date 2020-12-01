@@ -62,8 +62,15 @@ class SP_Sync_Manager extends SP_Singleton {
 			update_post_meta( $post_id, '_sp_index', '1' );
 			SP_Cron()->schedule_queue_index();
 		} else {
-			$post     = new SP_Post( get_post( $post_id ) );
-			$response = SP_API()->index_post( $post );
+			$post = new SP_Post( get_post( $post_id ) );
+
+			/***
+			 * Filter the response when indexing the post.
+			 *
+			 * @param object|WP_Error $response Object when response is successful, WP_Error otherwise.
+			 * @param int             $post_id Post ID.
+			 */
+			$response = apply_filters( 'sp_index_response', SP_API()->index_post( $post ), $post_id );
 
 			if ( is_wp_error( $response ) && 'unindexable-post' === $response->get_error_code() ) {
 				// If the post should not be indexed, ensure it's not in the index already.
