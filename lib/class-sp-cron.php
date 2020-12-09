@@ -62,6 +62,7 @@ class SP_Cron extends SP_Singleton {
 	public function queue_index() {
 		do_action( 'sp_debug', '[SP Cron] Running index queue' );
 		SP_Sync_Manager()->update_index_from_queue();
+		SP_Sync_Meta()->stop( 'save' );
 	}
 
 	/**
