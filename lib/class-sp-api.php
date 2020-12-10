@@ -240,6 +240,10 @@ class SP_API extends SP_Singleton {
 		);
 		$result         = sp_remote_request( $url, $request_params );
 
+		if ( 'GET' !== $method ) {
+			do_action( 'sp_request_response', $result, $url, $method, $body, $request_params );
+		}
+
 		if ( ! is_wp_error( $result ) ) {
 			$this->last_request = array(
 				'url'              => $url,
