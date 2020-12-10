@@ -340,7 +340,17 @@ class SP_Post extends SP_Indexable {
 			$should_be_indexed = false;
 		}
 
-		return apply_filters( 'sp_post_should_be_indexed', $should_be_indexed, $this );
+		$should_be_indexed = apply_filters( 'sp_post_should_be_indexed', $should_be_indexed, $this );
+
+		if ( ! $should_be_indexed ) {
+			update_post_meta(
+				$this->data['post_id'],
+				'_sp_should_be_indexed_error',
+				[ $post_status, $this->data['post_status'], $this->data['post_type'], $this->data['parent_status'] ]
+			);
+		}
+
+		return $should_be_indexed;
 	}
 
 	/**
