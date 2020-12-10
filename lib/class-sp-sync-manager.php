@@ -58,7 +58,14 @@ class SP_Sync_Manager extends SP_Singleton {
 		 * @param bool $should_sync_async Flag if the post should be synced asynchronously, defaults to true.
 		 * @param int  $post_id Post ID.
 		 */
-		if ( apply_filters( 'sp_should_index_async', true, $post_id ) ) {
+		$should_async = apply_filters( 'sp_should_index_async', true, $post_id );
+
+		// Never async for a CLI request.
+		if ( ( defined( 'WP_CLI' ) && WP_CLI && ! wp_doing_cron() ) ) {
+			$should_async = false;
+		}
+
+		if ( $should_async ) {
 			update_post_meta( $post_id, '_sp_index', '1' );
 			SP_Cron()->schedule_queue_index();
 		} else {
