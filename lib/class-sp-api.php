@@ -282,8 +282,16 @@ class SP_API extends SP_Singleton {
 				$body[] = addcslashes( $json, "\n" );
 			}
 		}
+		
+		/**
+		 * Filter the bulk index path.
+		 * Useful, for example, if a pipeline needs to be added to the bulk index operation.
+		 *
+		 * @param string $bulk_index_path Bulk index path.
+		 */
+		$bulk_index_path = apply_filters( 'sp_bulk_index_path', "{$this->get_doc_type()}/_bulk" );
 		return $this->put(
-			"{$this->get_doc_type()}/_bulk",
+			$bulk_index_path,
 			wp_check_invalid_utf8( implode( "\n", $body ), true ) . "\n"
 		);
 	}
