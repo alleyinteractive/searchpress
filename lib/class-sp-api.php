@@ -252,7 +252,7 @@ class SP_API extends SP_Singleton {
 		if ( empty( $json ) ) {
 			return new WP_Error( 'invalid-json', __( 'Invalid JSON', 'searchpress' ) );
 		}
-		
+
 		/**
 		 * Filter the index path for single posts.
 		 *
@@ -290,7 +290,12 @@ class SP_API extends SP_Singleton {
 				$body[] = addcslashes( $json, "\n" );
 			}
 		}
-		
+
+		// If no posts should be indexed, return an empty response.
+		if ( empty( $body ) ) {
+			return (object) [ 'items' => [] ];
+		}
+
 		/**
 		 * Filter the bulk index path.
 		 * Useful, for example, if a pipeline needs to be added to the bulk index operation.
