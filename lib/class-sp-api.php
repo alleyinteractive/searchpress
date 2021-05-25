@@ -252,7 +252,15 @@ class SP_API extends SP_Singleton {
 		if ( empty( $json ) ) {
 			return new WP_Error( 'invalid-json', __( 'Invalid JSON', 'searchpress' ) );
 		}
-		return $this->put( "{$this->get_doc_type()}/{$post->post_id}", $json );
+		
+		/**
+		 * Filter the index path for single posts.
+		 *
+		 * @param string   $post_index_path Single post index path.
+		 * @param \WP_Post $post            Post Object.
+		 */
+		$post_index_path = apply_filters( 'sp_post_index_path', "{$this->get_doc_type()}/{$post->post_id}", $post );
+		return $this->put( $post_index_path, $json );
 	}
 
 	/**
