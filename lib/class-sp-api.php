@@ -293,7 +293,7 @@ class SP_API extends SP_Singleton {
 
 		// If no posts should be indexed, return an empty response.
 		if ( empty( $body ) ) {
-			return (object) [ 'items' => [] ];
+			return (object) array( 'items' => array() );
 		}
 
 		/**
