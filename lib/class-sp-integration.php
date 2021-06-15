@@ -79,23 +79,13 @@ class SP_Integration extends SP_Singleton {
 	 * @access public
 	 */
 	public function init_hooks() {
-		// Checks to see if we need to worry about found_posts.
-		add_filter( 'post_limits_request', array( $this, 'filter__post_limits_request' ), 999, 2 );
-
-		// Replaces the standard search query with one that fetches the posts based on post IDs supplied by ES.
-		add_filter( 'posts_request', array( $this, 'filter__posts_request' ), 5, 2 );
-
-		// Nukes the FOUND_ROWS() database query.
-		add_filter( 'found_posts_query', array( $this, 'filter__found_posts_query' ), 5, 2 );
-
-		// Since the FOUND_ROWS() query was nuked, we need to supply the total number of found posts.
-		add_filter( 'found_posts', array( $this, 'filter__found_posts' ), 5, 2 );
+		add_filter( 'posts_pre_query', [ $this, 'filter__posts_pre_query' ], 10, 2 );
 
 		// Add our custom query var for advanced searches.
-		add_filter( 'query_vars', array( $this, 'query_vars' ) );
+		add_filter( 'query_vars', [ $this, 'query_vars' ] );
 
 		// Force the search template if ?sp[force]=1.
-		add_action( 'parse_query', array( $this, 'force_search_template' ), 5 );
+		add_action( 'parse_query', [ $this, 'force_search_template' ], 5 );
 	}
 
 	/**
@@ -104,12 +94,61 @@ class SP_Integration extends SP_Singleton {
 	 * @access public
 	 */
 	public function remove_hooks() {
-		remove_filter( 'post_limits_request', array( $this, 'filter__post_limits_request' ), 999, 2 );
-		remove_filter( 'posts_request', array( $this, 'filter__posts_request' ), 5, 2 );
-		remove_filter( 'found_posts_query', array( $this, 'filter__found_posts_query' ), 5, 2 );
-		remove_filter( 'found_posts', array( $this, 'filter__found_posts' ), 5, 2 );
-		remove_filter( 'query_vars', array( $this, 'query_vars' ) );
-		remove_action( 'parse_query', array( $this, 'force_search_template' ), 5 );
+		remove_filter( 'posts_pre_query', [ $this, 'filter__posts_pre_query' ] );
+		remove_filter( 'query_vars', [ $this, 'query_vars' ] );
+		remove_action( 'parse_query', [ $this, 'force_search_template' ], 5 );
+	}
+
+	/**
+	 * Filter the 'posts_pre_query' action to replace the entire query with the results
+	 * returned by SearchPress.
+	 *
+	 * @param array|null $posts Array of posts, defaults to null.
+	 * @param \WP_Query  $query Query object.
+	 * @return array|null
+	 */
+	public function filter__posts_pre_query( $posts, $query ) {
+		if ( ! $query->is_main_query() || ! $query->is_search() ) {
+			return $posts;
+		}
+
+		$es_wp_query_args = $this->build_es_request( $query );
+
+		// Convert the WP-style args into ES args.
+		$this->search_obj = new SP_WP_Search( $es_wp_query_args );
+		$results          = $this->search_obj->get_results( 'hits' );
+
+		// Total number of results for paging purposes.
+		$this->found_posts  = $this->search_obj->get_results( 'total' );
+		$query->found_posts = $this->found_posts;
+
+		// Calculate the maximum number of pages.
+		$query->max_num_pages = ceil( $this->found_posts / (int) $query->get( 'posts_per_page' ) );
+
+		// Modify the 'query' to mention SearchPress was involved.
+		$query->request = 'SELECT * FROM {$wpdb->posts} WHERE 1=0 /* SearchPress search results */';
+
+		if ( empty( $results ) ) {
+			return [];
+		}
+
+		/**
+		 * Allow the entire SearchPress result to be overridden.
+		 *
+		 * @param WP_Post[]|null $results Query results.
+		 * @param SP_WP_Search   $search Search object.
+		 * @param WP_Query       WP Query object.
+		 */
+		$pre_search_results = apply_filters( 'sp_pre_search_results', null, $this->search_obj, $query );
+		if ( null !== $pre_search_results ) {
+			return $pre_search_results;
+		}
+
+		// Get the post IDs of the results.
+		$post_ids = $this->search_obj->pluck_field();
+		$post_ids = array_filter( array_map( 'absint', $post_ids ) );
+		$posts    = array_filter( array_map( 'get_post', $post_ids ) );
+		return $posts;
 	}
 
 
@@ -150,108 +189,6 @@ class SP_Integration extends SP_Singleton {
 	}
 
 	/**
-	 * A filter callback for post_limits_request to determine if we should
-	 * calculate the total number of posts that match the query or not.
-	 *
-	 * @param string   $limits The LIMIT clause of the query.
-	 * @param WP_Query $query  The current query being executed.
-	 * @access public
-	 * @return string The unmodified value of $limits.
-	 */
-	public function filter__post_limits_request( $limits, $query ) {
-		if ( ! $query->is_search() ) {
-			return $limits;
-		}
-
-		if ( empty( $limits ) || $query->get( 'no_found_rows' ) ) {
-			$this->do_found_posts = false;
-		} else {
-			$this->do_found_posts = true;
-		}
-
-		return $limits;
-	}
-
-	/**
-	 * A filter callback for posts_request that replaces the normal query with
-	 * one that queries based on post IDs found by Elasticsearch in the proper
-	 * order.
-	 *
-	 * @param string   $sql   The SQL to be filtered.
-	 * @param WP_Query $query The query object for the query to be filtered.
-	 * @access public
-	 * @return string The modified SQL for the posts_request operation.
-	 */
-	public function filter__posts_request( $sql, $query ) {
-		global $wpdb;
-
-		if ( ! $query->is_main_query() || ! $query->is_search() ) {
-			return $sql;
-		}
-
-		// If we put in a phony search term, remove it now.
-		if ( '1441f19754335ca4638bfdf1aea00c6d' === $query->get( 's' ) ) {
-			$query->set( 's', '' );
-		}
-
-		$es_wp_query_args = $this->build_es_request( $query );
-
-		// Convert the WP-style args into ES args.
-		$this->search_obj = new SP_WP_Search( $es_wp_query_args );
-		$results          = $this->search_obj->get_results( 'hits' );
-
-		// Total number of results for paging purposes.
-		$this->found_posts = $this->search_obj->get_results( 'total' );
-
-		if ( empty( $results ) ) {
-			return "SELECT * FROM {$wpdb->posts} WHERE 1=0 /* SearchPress search results */";
-		}
-
-		// Get the post IDs of the results.
-		$post_ids = $this->search_obj->pluck_field();
-		$post_ids = array_map( 'absint', $post_ids );
-		$post_ids = array_filter( $post_ids );
-
-		// Replace the search SQL with one that fetches the exact posts we want in the order we want.
-		$post_ids_string = implode( ',', $post_ids );
-		return "SELECT * FROM {$wpdb->posts} WHERE {$wpdb->posts}.ID IN( {$post_ids_string} ) ORDER BY FIELD( {$wpdb->posts}.ID, {$post_ids_string} ) /* SearchPress search results */";
-	}
-
-	/**
-	 * Nixes the found posts query if we are going to keep track of the value
-	 * ourselves by querying ES.
-	 *
-	 * @param string   $sql   The SQL to be used to determine the number of found posts.
-	 * @param WP_Query $query The query currently being executed.
-	 * @access public
-	 * @return string The modified SQL for the found posts query.
-	 */
-	public function filter__found_posts_query( $sql, $query ) {
-		if ( ! $query->is_main_query() || ! $query->is_search() ) {
-			return $sql;
-		}
-
-		return '';
-	}
-
-	/**
-	 * A filter callback for found_posts that overrides the main query and the
-	 * search query to use SearchPress' found posts count.
-	 *
-	 * @param array    $found_posts The array of posts found by WordPress.
-	 * @param WP_Query $query       The WP_Query object for the request.
-	 * @access public
-	 * @return int The number of found posts.
-	 */
-	public function filter__found_posts( $found_posts, $query ) {
-		if ( ! $query->is_main_query() || ! $query->is_search() ) {
-			return $found_posts;
-		}
-
-		return $this->found_posts;
-	}
-
-	/**
 	 * Given a query object, build the variables needed for an Elasticsearch
 	 * request.
 	 *
@@ -264,11 +201,11 @@ class SP_Integration extends SP_Singleton {
 
 		// Start building the WP-style search query args.
 		// They'll be translated to ES format args later.
-		$es_wp_query_args = array(
+		$es_wp_query_args = [
 			'query'          => $query->get( 's' ),
 			'posts_per_page' => $query->get( 'posts_per_page' ),
 			'paged'          => $page,
-		);
+		];
 
 		$query_vars = $this->parse_query( $query );
 
@@ -305,10 +242,10 @@ class SP_Integration extends SP_Singleton {
 				$date_end   = $query->get( 'year' ) . '-12-31 23:59:59';
 			}
 
-			$es_wp_query_args['date_range'] = array(
+			$es_wp_query_args['date_range'] = [
 				'gte' => $date_start,
 				'lte' => $date_end,
-			);
+			];
 		}
 
 		// Advanced search fields.
@@ -336,7 +273,7 @@ class SP_Integration extends SP_Singleton {
 		// Set results sorting.
 		$orderby = $query->get( 'orderby' );
 		if ( ! empty( $orderby ) ) {
-			if ( in_array( $orderby, array( 'date', 'relevance' ), true ) ) {
+			if ( in_array( $orderby, [ 'date', 'relevance' ], true ) ) {
 				$es_wp_query_args['orderby'] = $orderby;
 			}
 		}
@@ -344,7 +281,7 @@ class SP_Integration extends SP_Singleton {
 		// Set sort ordering.
 		$order = strtolower( $query->get( 'order' ) );
 		if ( ! empty( $order ) ) {
-			if ( in_array( $order, array( 'asc', 'desc' ), true ) ) {
+			if ( in_array( $order, [ 'asc', 'desc' ], true ) ) {
 				$es_wp_query_args['order'] = $order;
 			}
 		}
@@ -354,7 +291,7 @@ class SP_Integration extends SP_Singleton {
 			$es_wp_query_args['facets'] = $this->facets;
 		}
 
-		$es_wp_query_args['fields'] = array( 'post_id' );
+		$es_wp_query_args['fields'] = [ 'post_id' ];
 
 		return $es_wp_query_args;
 	}
@@ -368,10 +305,10 @@ class SP_Integration extends SP_Singleton {
 	 * @return array An array of valid taxonomy query variables.
 	 */
 	protected function get_valid_taxonomy_query_vars( $query = false ) {
-		$taxonomies = get_taxonomies( array( 'public' => true ), 'objects' );
+		$taxonomies = get_taxonomies( [ 'public' => true ], 'objects' );
 		$query_vars = wp_list_pluck( $taxonomies, 'query_var' );
 		if ( $query ) {
-			$return = array();
+			$return = [];
 			foreach ( $query->query as $qv => $value ) {
 				if ( in_array( $qv, $query_vars, true ) ) {
 					$taxonomy            = array_search( $qv, $query_vars, true );
@@ -391,7 +328,7 @@ class SP_Integration extends SP_Singleton {
 	 * @return array The parsed query to be executed against Elasticsearch.
 	 */
 	protected function parse_query( $query ) {
-		$vars = array();
+		$vars = [];
 
 		// Taxonomy filters.
 		$terms = $this->get_valid_taxonomy_query_vars( $query );
@@ -412,7 +349,7 @@ class SP_Integration extends SP_Singleton {
 		}
 		// phpcs:enable
 
-		$vars['post_type'] = array();
+		$vars['post_type'] = [];
 
 		// Validate post types, making sure they exist and are indexed.
 		if ( $post_types ) {
