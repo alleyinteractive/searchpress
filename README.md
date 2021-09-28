@@ -67,6 +67,8 @@ Changelog
 ### 0.4
 
 * **CRITICAL BREAKING CHANGE:** Post meta indexing is now opt-in. See README for more information.
+* **POTENTIAL BREAKING CHANGE:** Removes `sp_post_indexable_meta` filter
+* Removes `sp_post_ignored_postmeta` filter
 * Adds support for ES 5.x, 6.x, 7.x
 * Fixes indexing bug with parentless attachments
 * Fixes a bug with bulk syncing attachments
