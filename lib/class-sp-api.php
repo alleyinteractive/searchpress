@@ -252,7 +252,15 @@ class SP_API extends SP_Singleton {
 		if ( empty( $json ) ) {
 			return new WP_Error( 'invalid-json', __( 'Invalid JSON', 'searchpress' ) );
 		}
-		return $this->put( "{$this->get_doc_type()}/{$post->post_id}", $json );
+
+		/**
+		 * Filter the index path for single posts.
+		 *
+		 * @param string  $post_index_path Single post index path.
+		 * @param SP_Post $post            SP Post Object.
+		 */
+		$post_index_path = apply_filters( 'sp_post_index_path', "{$this->get_doc_type()}/{$post->post_id}", $post );
+		return $this->put( $post_index_path, $json );
 	}
 
 	/**
@@ -282,8 +290,21 @@ class SP_API extends SP_Singleton {
 				$body[] = addcslashes( $json, "\n" );
 			}
 		}
+
+		// If no posts should be indexed, return an empty response.
+		if ( empty( $body ) ) {
+			return (object) array( 'items' => array() );
+		}
+
+		/**
+		 * Filter the bulk index path.
+		 * Useful, for example, if a pipeline needs to be added to the bulk index operation.
+		 *
+		 * @param string $bulk_index_path Bulk index path.
+		 */
+		$bulk_index_path = apply_filters( 'sp_bulk_index_path', "{$this->get_doc_type()}/_bulk" );
 		return $this->put(
-			"{$this->get_doc_type()}/_bulk",
+			$bulk_index_path,
 			wp_check_invalid_utf8( implode( "\n", $body ), true ) . "\n"
 		);
 	}
