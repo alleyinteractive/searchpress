@@ -403,6 +403,8 @@ class SP_WP_Search extends SP_Search {
 	 * @return array See above for further details.
 	 */
 	public function get_facet_data( $options = array() ) {
+		global $wp_query;
+
 		if ( empty( $this->facets ) ) {
 			return false;
 		}
@@ -419,10 +421,31 @@ class SP_WP_Search extends SP_Search {
 				'exclude_current'     => true,
 				'join_existing_terms' => true,
 				'join_terms_logic'    => array(),
-			) 
+			)
 		);
 
 		$facet_data = array();
+
+		/*
+		 * WordPress core will only store the first queried taxonomy term in the
+		 * query var for backwards compatibility, so we need to build a map of
+		 * queried terms from tax_query directly.
+		 */
+		$queried_terms = [];
+		if ( ! empty( $wp_query->tax_query->queries ) ) {
+			foreach ( $wp_query->tax_query->queries as $term_query ) {
+				if ( ! empty( $term_query['taxonomy'] ) && ! empty( $term_query['terms'] ) && is_array( $term_query['terms'] ) ) {
+					if ( empty( $queried_terms[ $term_query['taxonomy'] ] ) ) {
+						$queried_terms[ $term_query['taxonomy'] ] = $term_query['terms'];
+					} else {
+						$queried_terms[ $term_query['taxonomy'] ] = array_merge(
+							$queried_terms[ $term_query['taxonomy'] ],
+							$term_query['terms']
+						);
+					}
+				}
+			}
+		}
 
 		foreach ( $facets as $label => $facet ) {
 			if ( empty( $this->facets[ $label ] ) ) {
@@ -443,7 +466,9 @@ class SP_WP_Search extends SP_Search {
 					continue;
 				}
 
-				$existing_term_slugs = ( get_query_var( $tax_query_var ) ) ? explode( ',', get_query_var( $tax_query_var ) ) : array();
+				$existing_term_slugs = ! empty( $queried_terms[ $search_obj->facets[ $label ]['taxonomy'] ] )
+					? $queried_terms[ $this->facets[ $label ]['taxonomy'] ]
+					: array();
 			}
 
 			$items = array();
