@@ -214,4 +214,50 @@ class Tests_Faceting extends SearchPress_UnitTestCase {
 		$this->assertEquals( 'author_b', $facet_data['Author']['items'][1]['name'] );
 		$this->assertEquals( 1, $facet_data['Author']['items'][1]['count'] );
 	}
+
+	function test_facet_by_taxonomy() {
+		// Fake a taxonomy query to WP_Query so the query vars are set properly.
+		global $wp_query;
+		$wp_query = new WP_Query(
+			[
+				'post_type' => ['post', 'page'],
+				'tax_query' => [
+					[
+						'taxonomy' => 'category',
+						'field'    => 'slug',
+						'terms'    => ['cat-a'],
+					],
+					[
+						'taxonomy' => 'category',
+						'field'    => 'slug',
+						'terms'    => ['cat-b'],
+					],
+					[
+						'taxonomy' => 'category',
+						'field'    => 'slug',
+						'terms'    => ['cat-c'],
+					],
+				],
+			]
+		);
+
+		$s = new SP_WP_Search( array(
+			'post_type' => array( 'post', 'page' ),
+			'posts_per_page' => 0,
+			'facets' => array(
+				'Category'  => array( 'type' => 'taxonomy', 'taxonomy' => 'category', 'count' => 10 ),
+			),
+		) );
+		$facet_data = $s->get_facet_data(
+			[
+				'exclude_current'     => false,
+				'join_existing_terms' => false,
+			]
+		);
+
+		$this->assertEquals(
+			array( false, true, true, true ),
+			wp_list_pluck( $facet_data['Category']['items'], 'selected' )
+		);
+	}
 }
