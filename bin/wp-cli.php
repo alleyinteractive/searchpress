@@ -116,7 +116,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 *     $ wp searchpress flush
 	 *     Successfully flushed Post index
 	 */
-	public function flush( $args = array() ) {
+	public function flush() {
 		WP_CLI::log( 'Flushing current index...' );
 		$result = SP_Config()->flush();
 		if ( '200' == SP_API()->last_request['response_code'] || '404' == SP_API()->last_request['response_code'] ) {
