@@ -466,7 +466,7 @@ class SP_WP_Search extends SP_Search {
 					continue;
 				}
 
-				$existing_term_slugs = ! empty( $queried_terms[ $search_obj->facets[ $label ]['taxonomy'] ] )
+				$existing_term_slugs = ! empty( $queried_terms[ $this->facets[ $label ]['taxonomy'] ] )
 					? $queried_terms[ $this->facets[ $label ]['taxonomy'] ]
 					: array();
 			}
