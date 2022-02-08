@@ -109,7 +109,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Flush the current index. !!Warning!! This empties your elasticsearch index for the entire site.
+	 * Flush the current index. !!Warning!! This empties your Elasticsearch index for the entire site.
 	 *
 	 * ## EXAMPLE
 	 *
@@ -129,7 +129,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Index the current site or individual posts in ElasticSearch, optionally flushing any existing data and adding the document mapping.
+	 * Index the current site or individual posts in Elasticsearch, optionally flushing any existing data and adding the document mapping.
 	 *
 	 * ## OPTIONS
 	 *
@@ -299,7 +299,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Index a single post in ElasticSearch and output debugging information. You should enable `SP_DEBUG` and `SAVEQUERIES` before running this.
+	 * Index a single post in Elasticsearch and output debugging information. You should enable `SP_DEBUG` and `SAVEQUERIES` before running this.
 	 *
 	 * <post_id>
 	 * : Post ID to index.
