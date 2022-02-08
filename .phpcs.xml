@@ -3,7 +3,7 @@
 	<description>PHP_CodeSniffer standard for Searchpress.</description>
 
 	<!-- Include Alley Rules -->
-	<rule ref="Searchpress" />
+	<rule ref="Alley-Interactive" />
 
 	<!-- Set the text domain for i18n. -->
 	<rule ref="WordPress.WP.I18n">
