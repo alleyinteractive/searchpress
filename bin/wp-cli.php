@@ -319,11 +319,11 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 		}
 
 		if ( ! defined( 'SP_DEBUG') ) {
-			WP_CLI::error( 'SP_DEBUG should be enabled before running this.' );
+			WP_CLI::warning( 'SP_DEBUG should be enabled before running this.' );
 		}
 
 		if ( ! defined( 'SAVEQUERIES') ) {
-			WP_CLI::error( 'SAVEQUERIES should be enabled before running this.' );
+			WP_CLI::warning( 'SAVEQUERIES should be enabled before running this.' );
 		}
 
 		$post = get_post( $post_id );
