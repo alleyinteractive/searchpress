@@ -64,6 +64,8 @@ add_filter(
 Changelog
 ---------
 
+### 0.4.2 _(in progress)_
+
 ### 0.4.1
 
 * Updates grunt packages to latest versions
