@@ -241,11 +241,11 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 				$post = get_post( $post_id );
 
 				if ( ! $post instanceof WP_Post || empty( $post->ID ) ) {
-					WP_CLI::log( sprintf( 'Post %1$d does not exist.', $post_id ) );
+					WP_CLI::log( "Post {$post_id} does not exist." );
 					continue;
 				}
 
-				WP_CLI::log( sprintf( 'Indexing post %1$d', $post_id ) );
+				WP_CLI::log( "Indexing post {$post_id}" );
 
 				SP_Sync_Manager()->sync_post( $post_id );
 			}
@@ -369,7 +369,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 
 		$timestamp_start = microtime( true );
 
-		WP_CLI::log( sprintf( 'Indexing post %1$d', $post_id ) );
+		WP_CLI::log( "Indexing post {$post_id}" );
 
 		SP_Sync_Manager()->sync_post( $post_id );
 
