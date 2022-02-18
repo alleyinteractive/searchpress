@@ -23,6 +23,9 @@
  *      # Index the whole site starting on page 145
  *      $ wp searchpress index --page=145
  *
+ *      # Index posts from specific post type(s)
+ *      $ wp searchpress index --post-types=post,page
+ *
  *      # Index a single post (post ID 12345)
  *      $ wp searchpress index 12345
  *
@@ -34,7 +37,12 @@
  */
 class Searchpress_CLI_Command extends WP_CLI_Command {
 
-	public $date_range;
+	/**
+	 * Query arguments.
+	 *
+	 * @var array
+	 */
+	public $query_args;
 
 	/**
 	 * Prevent memory leaks from growing out of control
@@ -159,11 +167,14 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 * default: 1
 	 * ---
 	 *
+	 * [--post-types=<types>]
+	 * : Post types to index. Ex.: post,page.
+	 *
 	 * [--after-date=<date>]
-	 * : Index posts published on or after this date. Use YYYY-MM-DD.
+	 * : Index posts published on or after this date. Date format: YYYY-MM-DD.
 	 *
 	 * [--before-date=<date>]
-	 * : Index posts published on or before this date. Use YYYY-MM-DD.
+	 * : Index posts published on or before this date. Date format: YYYY-MM-DD.
 	 *
 	 * [<post-id>...]
 	 * : By default, this subcommand will query posts based on ID and pagination.
@@ -182,6 +193,9 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 *      # Index the whole site starting on page 145
 	 *      $ wp searchpress index --page=145
 	 *
+	 *      # Index posts from specific post type(s)
+	 *      $ wp searchpress index --post-types=post,page
+	 *
 	 *      # Index a single post (post ID 12345)
 	 *      $ wp searchpress index 12345
 	 *
@@ -194,7 +208,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 *      # Index posts published after 11-1-2015 (inclusive)
 	 *      $ wp searchpress index --after-date=2015-11-01
 	 *
-	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [--after-date=<date>] [--before-date=<date>] [<post-id>...]
+	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [--post-types=<types>] [--after-date=<date>] [--before-date=<date>] [<post-id>...]
 	 */
 	public function index( $args, $assoc_args ) {
 		if ( false !== ob_get_length() ) {
@@ -214,16 +228,25 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 		// Individual post indexing.
 		if ( ! empty( $args ) ) {
 			$num_posts = count( $args );
+
 			WP_CLI::log( sprintf( _n( 'Indexing %d post', 'Indexing %d posts', $num_posts ), number_format( $num_posts ) ) );
 
 			foreach ( $args as $post_id ) {
 				$post_id = intval( $post_id );
 
-				if ( ! $post_id ) {
+				if ( empty( $post_id ) ) {
+					continue;
+				}
+
+				$post = get_post( $post_id );
+
+				if ( ! $post instanceof WP_Post || empty( $post->ID ) ) {
+					WP_CLI::log( "Post {$post_id} does not exist." );
 					continue;
 				}
 
 				WP_CLI::log( "Indexing post {$post_id}" );
+
 				SP_Sync_Manager()->sync_post( $post_id );
 			}
 
@@ -237,23 +260,35 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 				$assoc_args['bulk'] = $assoc_args['limit'];
 			}
 
-			if ( isset( $assoc_args['after-date'] ) || isset( $assoc_args['before-date'] ) ) {
-				$this->date_range = array();
-				if ( isset( $assoc_args['after-date'] ) ) {
-					$this->date_range['after'] = $assoc_args['after-date'];
+			if ( isset( $assoc_args['after-date'] ) || isset( $assoc_args['before-date'] ) || isset( $assoc_args['post-types'] ) ) {
+				$this->query_args = array();
+
+				if ( ! empty( $assoc_args['after-date'] ) ) {
+					$this->query_args['after'] = $assoc_args['after-date'];
 				}
-				if ( isset( $assoc_args['before-date'] ) ) {
-					$this->date_range['before'] = $assoc_args['before-date'];
+
+				if ( ! empty( $assoc_args['before-date'] ) ) {
+					$this->query_args['before'] = $assoc_args['before-date'];
 				}
-				add_filter( 'searchpress_index_loop_args', array( $this, '__apply_date_range' ) );
-				add_filter( 'searchpress_index_count_args', array( $this, '__apply_date_range' ) );
+
+				if ( ! empty( $assoc_args['post-types'] ) ) {
+					$this->query_args['types'] = explode( ',', $assoc_args['post-types'] );
+				}
+
+				add_filter( 'searchpress_index_loop_args', array( $this, '__apply_searchpress_query_args' ) );
+				add_filter( 'searchpress_index_count_args', array( $this, '__apply_searchpress_query_args' ) );
 			}
 
 			$limit_number = $assoc_args['limit'] > 0 ? $assoc_args['limit'] : SP_Sync_Manager()->count_posts();
 			$limit_text   = sprintf( _n( '%s post', '%s posts', $limit_number ), number_format( $limit_number ) );
 
 			WP_CLI::log(
-				sprintf( 'Indexing %1$s, %2$d at a time, starting on page %3$d', $limit_text, number_format( $assoc_args['bulk'] ), absint( $assoc_args['page'] ) )
+				sprintf(
+					'Indexing %1$s, %2$d at a time, starting on page %3$d',
+					$limit_text,
+					number_format( $assoc_args['bulk'] ),
+					absint( $assoc_args['page'] )
+				)
 			);
 
 			// Keep tabs on where we are and what we've done.
@@ -346,34 +381,45 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Add date range when retrieving posts in bulk.
-	 * Dates need to be passed as YYYY-MM-DD. See synopsis for index function.
+	 * Set custom SearchPress query args.
 	 *
-	 * @param $args array
-	 * @return $args array
+	 * @param array $args Query arguments.
+	 * @return array
 	 */
-	public function __apply_date_range( $args ) {
-		$args['date_query'] = array(
-			0 => array(
-				'inclusive' => true,
-			),
-		);
-		if ( isset ( $this->date_range['after'] ) ) {
-			$from = strtotime( $this->date_range['after'] );
-			$args['date_query'][0]['after'] = array(
-				'year'  => date( 'Y', $from ),
-				'month' => date( 'm', $from ),
-				'day'   => date( 'd', $from ),
+	public function __apply_searchpress_query_args( $args ) {
+
+		// Set date query.
+		if ( isset( $this->query_args['after'] ) || isset( $this->query_args['before'] ) ) {
+			$args['date_query'] = array(
+				0 => array(
+					'inclusive' => true,
+				),
 			);
+
+			if ( isset( $this->query_args['after'] ) ) {
+				$from                           = strtotime( $this->query_args['after'] );
+				$args['date_query'][0]['after'] = array(
+					'year'  => date( 'Y', $from ),
+					'month' => date( 'm', $from ),
+					'day'   => date( 'd', $from ),
+				);
+			}
+
+			if ( isset( $this->query_args['before'] ) ) {
+				$to                              = strtotime( $this->query_args['before'] );
+				$args['date_query'][0]['before'] = array(
+					'year'  => date( 'Y', $to ),
+					'month' => date( 'm', $to ),
+					'day'   => date( 'd', $to ),
+				);
+			}
 		}
-		if ( isset ( $this->date_range['before'] ) ) {
-			$to = strtotime( $this->date_range['before'] );
-			$args['date_query'][0]['before'] = array(
-				'year'  => date( 'Y', $to ),
-				'month' => date( 'm', $to ),
-				'day'   => date( 'd', $to ),
-			);
+
+		// Set post types.
+		if ( isset( $this->query_args['types'] ) ) {
+			$args['post_type'] = $this->query_args['types'];
 		}
+
 		return $args;
 	}
 
