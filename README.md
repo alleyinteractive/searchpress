@@ -64,6 +64,14 @@ add_filter(
 Changelog
 ---------
 
+### 0.4.1
+
+* Updates grunt packages to latest versions
+* Documents deprecated/removed filters in 0.4.0
+* Improves handling of indexing batch with no indexable posts
+* Adds filter `sp_post_index_path` for single post paths
+* Adds filter `sp_bulk_index_path` for bulk index paths
+
 ### 0.4
 
 * **CRITICAL BREAKING CHANGE:** Post meta indexing is now opt-in. See README for more information.
