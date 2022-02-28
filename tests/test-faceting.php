@@ -218,7 +218,7 @@ class Tests_Faceting extends SearchPress_UnitTestCase {
 	function test_facet_by_taxonomy() {
 		// Fake a taxonomy query to WP_Query so the query vars are set properly.
 		global $wp_query;
-		$wp_query = new WP_Query(
+		$wp_query->parse_query(
 			[
 				'post_type' => ['post', 'page'],
 				'tax_query' => [
