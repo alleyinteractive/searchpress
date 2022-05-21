@@ -29,6 +29,11 @@ class SP_Sync_Manager extends SP_Singleton {
 	public $published_posts = false;
 
 	/**
+	 * Action for cron job for syncing terms.
+	 */
+	const ACTION_INDEX_TERM  = 'sp_index_term';
+
+	/**
 	 * Setup the singleton.
 	 */
 	public function setup() {
@@ -39,6 +44,10 @@ class SP_Sync_Manager extends SP_Singleton {
 			add_action( 'add_attachment', array( $this, 'sync_post' ) );
 			add_action( 'deleted_post', array( $this, 'delete_post' ) );
 			add_action( 'trashed_post', array( $this, 'delete_post' ) );
+
+			// When terms are deleted, queue up syncs to run via cron.
+			add_action( 'delete_term', array( $this, 'delete_term_sync' ), 10, 4 );
+			add_action( static::ACTION_INDEX_TERM, array( $this, 'resync_term' ), 10 , 3 );
 
 			// @TODO When terms or term relationships get updated, queue up syncs.
 			// @TODO When users get updated, queue up syncs for their posts.
@@ -93,6 +102,114 @@ class SP_Sync_Manager extends SP_Singleton {
 				do_action( 'sp_debug', "[SP_Sync_Manager] Error Indexing Post {$post_id}", $response );
 			}
 		}
+	}
+
+	/**
+	 * Callback for when a term is deleted.
+	 * Handles syncing all content in that term.
+	 *
+	 * @param int $term Term ID.
+	 * @param int $tt_id Taxonomy Term ID.
+	 * @param string $taxonomy Taxonomy name.
+	 * @param WP_Term $deleted_term Copy of the deleted term.
+	 */
+	public function delete_term_sync( $term, $tt_id, $taxonomy, $deleted_term ) {
+
+		// Never sync during a CLI request, because CLI commands should handle ES syncing themselves.
+		// Todo: Consider having the CLI script remove this action instead.
+		if ( ( defined( 'WP_CLI' ) && WP_CLI && ! wp_doing_cron() ) ) {
+		 return;
+		}
+
+		wp_schedule_single_event( time(), static::ACTION_INDEX_TERM, [
+			$term,
+			$taxonomy,
+			$deleted_term->slug
+		] );
+
+	}
+
+	/**
+	 * Resyncs all content in a term.
+	 * Note: This can be used for term deletions and term changes,
+	 * but not for an initial content index.
+	 * Content has to already be in Elasticsearch index.
+	 *
+	 * @param $term_id
+	 * @param $taxonomy
+	 * @param $term_slug
+	 *
+	 * @return void
+	 */
+	public function resync_term( $term_id, $taxonomy, $term_slug ) {
+		$per_page  = 200;
+		$page = 0;
+		$processed = 0;
+
+		/**
+		 * Fires when a resync is starting.
+		 * @param int $term_id Term ID.
+		 * @param string $taxonomy Taxonomy.
+		 * @param string $term_slug Term Slug.
+		 */
+		do_action( 'sp_before_resync_term', $term_id, $taxonomy, $term_slug );
+
+		// Debug code -- TO DO remove
+		trigger_error( "sp-debug: Starting Term Sync: term ID: $term_id, taxonomy: $taxonomy, slug: $term_slug ",
+			E_USER_WARNING );
+
+		/**
+		 * Run a query using Elasticsearch.
+		 */
+		$post_args = array(
+			'post_type'           => 'any',
+			'posts_per_page'      => $per_page,
+			'post_status'         => 'any',
+			'suppress_filters'    => false,
+			'ignore_sticky_posts' => true,
+			'no_found_rows'       => true,
+			'fields'              => 'ids',
+			'es'                  => true, // Elasticsearch query.
+			'tax_query'           => array( //phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+				array(
+					'field'    => 'slug',
+					'terms'    => $term_slug,
+					'taxonomy' => $taxonomy,
+				),
+			),
+		);
+
+		do {
+			$post_args['offset'] = $per_page * $page;
+			$ids               = get_posts( $post_args );
+
+			if ( ! empty( $ids ) ) {
+				// Give us plenty of time to process each of the shards.
+				set_time_limit( 15 );
+				$sp_posts = array_map( function ( $post_id ) {
+					return new \SP_Post( absint( trim( $post_id ) ) );
+				}, $ids );
+				\SP_API()->index_posts( $sp_posts );
+			}
+			sp_contain_memory_leaks();
+
+			$page ++;
+			$processed = + count( $ids );
+		} while ( $per_page === count( $ids ) );
+
+		/**
+		 * Fires when a resync has completed.
+		 *
+		 * @param int $term_id Term ID.
+		 * @param string $taxonomy Taxonomy.
+		 * @param string $term_slug Term Slug.
+		 * @param int $processed Number of posts indexed.
+		 */
+		do_action( 'sp_after_resync_term', $term_id, $taxonomy, $term_slug, $processed );
+
+		// Debug code -- TO DO remove
+		trigger_error( "sp-debug: Finished Term Sync: term ID: $term_id, taxonomy: $taxonomy, slug: $term_slug, Processed $processed",
+			E_USER_WARNING );
 	}
 
 	/**

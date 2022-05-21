@@ -278,3 +278,23 @@ function sp_remove_sync_hooks() {
 	remove_action( 'deleted_post', array( SP_Sync_Manager(), 'delete_post' ) );
 	remove_action( 'trashed_post', array( SP_Sync_Manager(), 'delete_post' ) );
 }
+
+if ( ! function_exists( 'sp_contain_memory_leaks' ) ) {
+	/**
+	 * Clear some common memory leaks for bulk processors.
+	 */
+	function sp_contain_memory_leaks() {
+		global $wpdb, $wp_object_cache;
+		$wpdb->queries = array();
+		if ( ! is_object( $wp_object_cache ) ) {
+			return;
+		}
+		$wp_object_cache->group_ops = array();
+		$wp_object_cache->stats = array();
+		$wp_object_cache->memcache_debug = array();
+		$wp_object_cache->cache = array();
+		if ( method_exists( $wp_object_cache, '__remoteset' ) ) {
+			$wp_object_cache->__remoteset();
+		}
+	}
+}
