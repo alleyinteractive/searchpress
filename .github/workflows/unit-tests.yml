@@ -4,22 +4,21 @@ on: pull_request
 
 jobs:
   tests:
-    name: WP ${{ matrix.wp_version }} @ PHP ${{ matrix.php }} (WP_MULTISITE=${{ matrix.multisite }})
+    name: "WP: ${{ matrix.wp_version }} - PHP: ${{ matrix.php }} (MU: ${{ matrix.multisite }})"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
-        php: [8.0]
+        php: [7.3]
         wp_version: ["latest"]
         multisite: [0]
-        es_version: [8.2.0]
+        es_version: [7.6.2]
     env:
       CACHEDIR: /tmp/test-cache
       WP_CORE_DIR: /tmp/wordpress/
       WP_TESTS_DIR: /tmp/wordpress-tests-lib
       WP_VERSION: ${{ matrix.wp_version }}
       WP_MULTISITE: ${{ matrix.multisite }}
-      SEARCHPRESS_HOST: 'http://es1:9200'
     services:
       mysql:
         image: mysql:5.7
