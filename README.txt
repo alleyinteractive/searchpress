@@ -19,7 +19,7 @@ server.
 == Prerequisites ==
 
 * Elasticsearch: 6.8+
-* PHP: 7.3+
+* PHP: 7.1+
 * WordPress: 4.9+
 
 == Installation ==

@@ -24,8 +24,8 @@ jobs:
             wp_version: '5.9.3'
           - php: '7.2'
             es_version: '7.17.5'
-            multisite: 0
-            wp_version: 'latest'
+            multisite: 1
+            wp_version: '4.9.20'
           - php: '7.1'
             es_version: '7.17.5'
             multisite: 0
@@ -77,6 +77,7 @@ jobs:
           coverage: none
 
       - name: Install dependencies
+        if: ${{ matrix.php >= '7.4' }}
         uses: ramsey/composer-install@v1
         with:
           composer-options: "--ignore-platform-reqs"
@@ -92,6 +93,7 @@ jobs:
           git --version
           php --version
           composer --version
+          phpunit --version
 
       - name: Set up WordPress
         run: |
