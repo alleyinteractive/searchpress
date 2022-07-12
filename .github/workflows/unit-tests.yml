@@ -92,7 +92,6 @@ jobs:
           git --version
           php --version
           composer --version
-          phpunit --version
 
       - name: Set up WordPress
         run: |
