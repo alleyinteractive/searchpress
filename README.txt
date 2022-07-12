@@ -2,7 +2,7 @@
 Contributors: mboynes, alleyinteractive
 Tags: search, elasticsearch, faceted search, performance
 Requires at least: 4.9.20
-Requires PHP: 7.3
+Requires PHP: 7.4
 Tested up to: 6.0
 Stable tag: 0.4.3
 License: GPLv2 or later
@@ -19,7 +19,7 @@ server.
 == Prerequisites ==
 
 * Elasticsearch: 6.8+
-* PHP: 7.1+
+* PHP: 7.4+
 * WordPress: 4.9+
 
 == Installation ==

@@ -18,8 +18,8 @@ Each stable release will be tagged and you'll be able to [download that release 
 Prerequisites
 -------------
 
-* [Elasticsearch](https://www.elastic.co/products/elasticsearch): 6.8+
-* PHP: 7.3+
+* [Elasticsearch](https://www.elastic.co/elasticsearch): 6.8+
+* PHP: 7.4+
 * WordPress: 4.9+
 
 

@@ -17,19 +17,11 @@ jobs:
           - php: '7.4'
             es_version: '7.17.5'
             multisite: 1
-            wp_version: 'latest'
-          - php: '7.3'
+            wp_version: '4.9.20'
+          - php: '7.4'
             es_version: '6.8.23'
             multisite: 0
             wp_version: '5.9.3'
-          - php: '7.2'
-            es_version: '7.17.5'
-            multisite: 1
-            wp_version: '4.9.20'
-          - php: '7.1'
-            es_version: '7.17.5'
-            multisite: 0
-            wp_version: 'latest'
     env:
       CACHEDIR: /tmp/test-cache
       WP_CORE_DIR: /tmp/wordpress/
@@ -80,10 +72,6 @@ jobs:
         uses: ramsey/composer-install@v1
         with:
           composer-options: "--ignore-platform-reqs"
-
-      - name: Adjust PHPUnit version
-        if: ${{ matrix.php <= '7.3' }}
-        run: composer require --with-all-dependencies --dev "phpunit/phpunit:6.1.*"
 
       - name: Log information
         run: |
