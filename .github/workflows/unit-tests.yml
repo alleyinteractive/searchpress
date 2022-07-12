@@ -9,10 +9,19 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.0, 7.4, 7.3]
-        wp_version: ["latest", 5.9.3, 4.8.19]
-        multisite: [0, 1, 0]
-        es_version: [8.3.2, 7.17.5, 6.8.23]
+        php: [8.0]
+        wp_version: ["latest"]
+        multisite: [0]
+        es_version: [8.3.2]
+        include:
+          - php: '7.4'
+            wp_version: '5.9.3'
+            multisite: 1
+            es_version: '7.17.5'
+          - php: '7.3'
+            wp_version: '4.8.19'
+            multisite: 0
+            es_version: '6.8.23'
     env:
       CACHEDIR: /tmp/test-cache
       WP_CORE_DIR: /tmp/wordpress/
