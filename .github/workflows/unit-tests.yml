@@ -9,18 +9,18 @@ jobs:
     strategy:
       fail-fast: false # do not fail fast, let all the failing tests fail.
       matrix:
-        es_version: [8.3.2]
-        multisite: [0]
         php: [8.0]
+        es_version: [7.17.5]
+        multisite: [0]
         wp_version: ["latest"]
         include:
           - php: '7.4'
             es_version: '7.17.5'
-            multisite: 1
-            wp_version: '4.9.20'
+            multisite: 0
+            wp_version: '5.9.3'
           - php: '7.4'
             es_version: '6.8.23'
-            multisite: 0
+            multisite: 1
             wp_version: '5.9.3'
     env:
       CACHEDIR: /tmp/test-cache

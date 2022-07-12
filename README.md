@@ -20,7 +20,7 @@ Prerequisites
 
 * [Elasticsearch](https://www.elastic.co/elasticsearch): 6.8+
 * PHP: 7.4+
-* WordPress: 4.9+
+* WordPress: 5.9+
 
 
 Setup

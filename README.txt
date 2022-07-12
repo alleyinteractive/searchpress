@@ -1,7 +1,7 @@
 === SearchPress ===
 Contributors: mboynes, alleyinteractive
 Tags: search, elasticsearch, faceted search, performance
-Requires at least: 4.9.20
+Requires at least: 5.9
 Requires PHP: 7.4
 Tested up to: 6.0
 Stable tag: 0.4.3
@@ -20,7 +20,7 @@ server.
 
 * Elasticsearch: 6.8+
 * PHP: 7.4+
-* WordPress: 4.9+
+* WordPress: 5.9+
 
 == Installation ==
 
