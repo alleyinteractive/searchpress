@@ -6,22 +6,26 @@ jobs:
   tests:
     name: "WP: ${{ matrix.wp_version }} - PHP: ${{ matrix.php }} - ES: ${{ matrix.es_version }} (MU: ${{ matrix.multisite }})"
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false # do not fail fast, let all the failing tests fail.
       matrix:
+        es_version: [8.3.2]
+        experimental: [true]
+        multisite: [0]
         php: [8.0]
         wp_version: ["latest"]
-        multisite: [0]
-        es_version: [8.3.2]
         include:
           - php: '7.4'
-            wp_version: '5.9.3'
-            multisite: 1
             es_version: '7.17.5'
+            experimental: false
+            multisite: 1
+            wp_version: '5.9.3'
           - php: '7.3'
-            wp_version: '4.9.20'
-            multisite: 0
             es_version: '6.8.23'
+            experimental: true
+            multisite: 0
+            wp_version: '4.9.20'
     env:
       CACHEDIR: /tmp/test-cache
       WP_CORE_DIR: /tmp/wordpress/
