@@ -16,8 +16,8 @@
     }
   ],
   "require-dev": {
+    "php": "^7.3 | ^7.4 | ^8.0",
     "alleyinteractive/alley-coding-standards": "^0.3.0",
-    "phpunit/phpunit": "^6.1 || ^7.5",
     "yoast/phpunit-polyfills": "^1.0"
   },
   "scripts": {

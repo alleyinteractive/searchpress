@@ -53,7 +53,7 @@ class Tests_Mapping extends SearchPress_UnitTestCase {
 	 */
 	protected static $demo_dates = array();
 
-	public static function setUpBeforeClass() {
+	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
 
 		add_filter(

@@ -7,7 +7,7 @@
  * @group integration
  */
 class Tests_Integration extends SearchPress_UnitTestCase {
-	public static function setUpBeforeClass() {
+	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
 
 		$cat = self::factory()->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-demo' ) );
@@ -37,7 +37,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 		);
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		register_post_type( 'cpt', array( 'public' => true ) );
