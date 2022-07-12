@@ -1,11 +1,18 @@
 {
   "name": "alleyinteractive/searchpress",
-  "description": "SearchPress",
-  "type": "project",
+  "description": "Elasticsearch integration for WordPress.",
+  "type": "wordpress-plugin",
+  "keywords": [
+    "wordpress",
+    "plugin",
+    "search",
+    "searchpress"
+  ],
+  "license": "GPL-2.0-or-later",
   "authors": [
     {
       "name": "Alley Interactive",
-      "email": "noreply@alleyinteractive.com"
+      "email": "noreply@alley.co"
     }
   ],
   "require-dev": {
@@ -15,7 +22,7 @@
   },
   "scripts": {
     "phpcbf": "phpcbf .",
-    "phpcs": "phpcs .",
+    "phpcs": "phpcs . --basepath=.",
     "phpunit": "phpunit",
     "setup": [
       "composer install"
