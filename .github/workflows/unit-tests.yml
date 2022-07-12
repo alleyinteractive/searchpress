@@ -17,7 +17,7 @@ jobs:
           - php: '7.4'
             es_version: '7.17.5'
             multisite: 1
-            wp_version: '4.9.20'
+            wp_version: 'latest'
           - php: '7.3'
             es_version: '6.8.23'
             multisite: 0
@@ -78,7 +78,8 @@ jobs:
           composer-options: "--ignore-platform-reqs"
 
       - name: Adjust PHPUnit version
-        run: if [ ${{ matrix.php }} == '7.3' || ${{ matrix.php }} == '7.2' ]; then composer require --with-all-dependencies --dev "phpunit/phpunit:6.1.*"; fi
+        if: ${{ matrix.php }} == '7.3' || ${{ matrix.php }} == '7.2'
+        run: composer require --with-all-dependencies --dev "phpunit/phpunit:6.1.*"
 
       - name: Log information
         run: |
