@@ -7,7 +7,7 @@ jobs:
     name: "WP: ${{ matrix.wp_version }} - PHP: ${{ matrix.php }} - ES: ${{ matrix.es_version }} (MU: ${{ matrix.multisite }})"
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      fail-fast: false # do not fail fast, let all the failing tests fail.
       matrix:
         php: [8.0]
         wp_version: ["latest"]
