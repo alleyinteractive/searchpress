@@ -6,26 +6,26 @@ jobs:
   tests:
     name: "WP: ${{ matrix.wp_version }} - PHP: ${{ matrix.php }} - ES: ${{ matrix.es_version }} (MU: ${{ matrix.multisite }})"
     runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false # do not fail fast, let all the failing tests fail.
       matrix:
         es_version: [8.3.2]
-        experimental: [true]
         multisite: [0]
         php: [8.0]
         wp_version: ["latest"]
         include:
           - php: '7.4'
             es_version: '7.17.5'
-            experimental: false
             multisite: 1
-            wp_version: '5.9.3'
+            wp_version: '4.9.20'
           - php: '7.3'
             es_version: '6.8.23'
-            experimental: true
             multisite: 0
-            wp_version: '4.9.20'
+            wp_version: '5.9.3'
+          - php: '7.2'
+            es_version: '7.17.5'
+            multisite: 0
+            wp_version: 'latest'
     env:
       CACHEDIR: /tmp/test-cache
       WP_CORE_DIR: /tmp/wordpress/
@@ -78,7 +78,7 @@ jobs:
           composer-options: "--ignore-platform-reqs"
 
       - name: Adjust PHPUnit version
-        run: if [ ${{ matrix.php }} == '7.3' ]; then composer require --with-all-dependencies --dev "phpunit/phpunit:6.1.*"; fi
+        run: if [ ${{ matrix.php }} == '7.3' || ${{ matrix.php }} == '7.2' ]; then composer require --with-all-dependencies --dev "phpunit/phpunit:6.1.*"; fi
 
       - name: Log information
         run: |
