@@ -77,7 +77,6 @@ jobs:
           coverage: none
 
       - name: Install dependencies
-        if: ${{ matrix.php >= '7.4' }}
         uses: ramsey/composer-install@v1
         with:
           composer-options: "--ignore-platform-reqs"
