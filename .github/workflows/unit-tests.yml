@@ -82,7 +82,7 @@ jobs:
           composer-options: "--ignore-platform-reqs"
 
       - name: Adjust PHPUnit version
-        if: matrix.php <= 7.3'
+        if: ${{ matrix.php <= '7.3' }}
         run: composer require --with-all-dependencies --dev "phpunit/phpunit:6.1.*"
 
       - name: Log information
