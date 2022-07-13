@@ -18,9 +18,9 @@
     }
   ],
   "require-dev": {
+    "alleyinteractive/alley-coding-standards": "^0.3.0",
     "php": ">=7.4",
     "phpunit/phpunit": "7.5.*",
-    "alleyinteractive/alley-coding-standards": "^0.3.0",
     "yoast/phpunit-polyfills": "^1.0"
   },
   "scripts": {
@@ -34,6 +34,7 @@
   "config": {
     "allow-plugins": {
       "dealerdirect/phpcodesniffer-composer-installer": true
-    }
+    },
+    "sort-packages": true
   }
 }

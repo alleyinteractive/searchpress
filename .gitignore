@@ -18,7 +18,6 @@ vendor
 ehthumbs.db
 Thumbs.db
 .thumbsdb
-composer.lock
 
 # IDE files
 *.code-workspace
