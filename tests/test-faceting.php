@@ -5,7 +5,7 @@
  */
 class Tests_Faceting extends SearchPress_UnitTestCase {
 
-	public static function setUpBeforeClass() {
+	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
 
 		$posts_to_index = array();

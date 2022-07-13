@@ -4,7 +4,7 @@
  * @group general
  */
 class Tests_General extends SearchPress_UnitTestCase {
-	public static function setUpBeforeClass() {
+	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
 
 		self::index(

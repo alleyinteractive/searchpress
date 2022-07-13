@@ -6,7 +6,7 @@
 class Tests_Api extends SearchPress_UnitTestCase {
 	protected static $post_id;
 
-	public static function setUpBeforeClass() {
+	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
 
 		self::$post_id = self::factory()->post->create( array( 'post_title' => 'lorem-ipsum', 'post_date' => '2009-07-01 00:00:00' ) );
