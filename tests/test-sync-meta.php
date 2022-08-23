@@ -21,6 +21,7 @@ class Tests_Sync_Meta extends SearchPress_UnitTestCase {
 	}
 
 	function test_sync_meta_storage() {
+		delete_option( 'sp_sync_meta' );
 		$meta = get_option( 'sp_sync_meta', null );
 		$this->assertNull( $meta );
 

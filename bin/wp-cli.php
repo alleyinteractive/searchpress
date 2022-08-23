@@ -1,11 +1,11 @@
 <?php
 
-WP_CLI::add_command( 'searchpress', 'Searchpress_CLI_Command' );
+WP_CLI::add_command( 'searchpress', 'SearchPress_CLI_Command' );
 
 /**
  * CLI Commands for SearchPress
  */
-class Searchpress_CLI_Command extends WP_CLI_Command {
+class SearchPress_CLI_Command extends WP_CLI_Command {
 
 	public $date_range;
 

@@ -8,8 +8,10 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 	protected $old_wp_scripts, $old_wp_styles;
 	protected $old_screen;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
+		SP_Heartbeat()->record_pulse();
+
 		// is_admin returns false, so this file doesn't get loaded with the rest of the plugin
 		require_once dirname( __FILE__ ) . '/../lib/class-sp-admin.php';
 		$this->current_user = get_current_user_id();
@@ -33,8 +35,11 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		add_filter( 'wp_redirect', array( $this, 'prevent_redirect' ) );
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		wp_set_current_user( $this->current_user );
+
+		SP_Sync_Meta()->reset( 'save' );
+		SP_Sync_Manager()->published_posts = false;
 
 		// Restore current_screen.
 		$GLOBALS['current_screen'] = $this->old_screen;

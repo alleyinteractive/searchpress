@@ -80,14 +80,35 @@ class SP_Admin extends SP_Singleton {
 		<div class="wrap">
 			<h2><?php esc_html_e( 'SearchPress', 'searchpress' ); ?></h2>
 
-			<?php if ( isset( $_GET['error'] ) ) : // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification ?>
-				<?php // translators: error text. ?>
-				<div class="error updated"><p><?php echo esc_html( sprintf( __( 'An error has occurred: %s', 'searchpress' ), $this->get_error( sanitize_text_field( wp_unslash( $_GET['error'] ) ) ) ) ); // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification ?></p></div>
+			<?php
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			if ( isset( $_GET['error'] ) ) :
+				?>
+				<div class="error updated">
+					<p>
+						<?php
+						// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+						echo esc_html(
+							sprintf(
+								// translators: error text.
+								__( 'An error has occurred: %s', 'searchpress' ),
+								// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+								$this->get_error( sanitize_text_field( wp_unslash( $_GET['error'] ) ) )
+							)
+						);
+						?>
+					</p>
+				</div>
 			<?php endif ?>
 
-			<?php if ( isset( $_GET['complete'] ) ) : // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification ?>
+			<?php
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			if ( isset( $_GET['complete'] ) ) :
+				?>
 				<div class="updated success"><p><?php esc_html_e( 'Sync complete!', 'searchpress' ); ?></p></div>
-			<?php endif ?>
+				<?php
+			endif;
+			?>
 
 			<h3 class="nav-tab-wrapper">
 				<a class="nav-tab<?php $this->tab_active( 'status', $active_tab ); ?>" href="#sp-status"><?php esc_html_e( 'Status', 'searchpress' ); ?></a>
@@ -139,10 +160,10 @@ class SP_Admin extends SP_Singleton {
 				<?php if ( ! empty( $sync->started ) ) : ?>
 					<h3><?php esc_html_e( 'Last full sync', 'searchpress' ); ?></h3>
 					<?php // translators: date and time started. ?>
-					<p><?php echo esc_html( sprintf( __( 'Started at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->started ) ) ); ?></p>
+					<p><?php echo esc_html( sprintf( __( 'Started at %s', 'searchpress' ), gmdate( 'Y-m-d H:i:s T', $sync->started ) ) ); ?></p>
 					<?php if ( ! empty( $sync->finished ) ) : ?>
 						<?php // translators: time completed. ?>
-						<p><?php echo esc_html( sprintf( __( 'Completed at %s', 'searchpress' ), date( 'Y-m-d H:i:s T', $sync->finished ) ) ); ?></p>
+						<p><?php echo esc_html( sprintf( __( 'Completed at %s', 'searchpress' ), gmdate( 'Y-m-d H:i:s T', $sync->finished ) ) ); ?></p>
 					<?php endif ?>
 				<?php endif ?>
 			</div>
@@ -178,17 +199,28 @@ class SP_Admin extends SP_Singleton {
 				<?php else : ?>
 
 					<h3><?php esc_html_e( 'Full Sync', 'searchpress' ); ?></h3>
-					<h4><?php esc_html_e( 'Running a full sync will wipe the current index if there is one and rebuild it from scratch.', 'searchpress' ); ?></h4>
 					<p>
 						<?php if ( SP_Sync_Manager()->count_posts() > 25000 ) : ?>
 							<strong><?php esc_html_e( 'Because this site has a large number of posts, this may take a long time to index.', 'searchpress' ); ?></strong>
 						<?php endif ?>
 						<?php esc_html_e( "Exactly how long indexing will take will vary on a number of factors, like the server's CPU and memory, connection speed, current traffic, average post size, and associated terms and post meta.", 'searchpress' ); ?>
-						<?php esc_html_e( 'SearchPress will be inactive during indexing.', 'searchpress' ); ?>
+						<?php esc_html_e( 'SearchPress will be inactive during indexing if you choose to "Flush the data and update the mapping".', 'searchpress' ); ?>
 					</p>
 
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="sp_full_sync" />
+						<p>
+							<label for="sp_flush_data">
+								<input type="checkbox"
+									name="sp_flush_data"
+									id="sp_flush_data"
+									value="1"
+									<?php checked( 0 === SP_Sync_Manager()->count_posts_indexed() ); ?>
+								/>
+								<?php esc_html_e( 'Flush the data and update the mapping', 'searchpress' ); ?>
+							</label>
+							<span class="explanation"><?php esc_html_e( 'This will wipe the data currently in the Elasticsearch index and rebuild it from scratch. This is necessary in order to udpate the mapping.', 'searchpress' ); ?></span>
+						</p>
 						<?php wp_nonce_field( 'sp_sync', 'sp_sync_nonce' ); ?>
 						<?php submit_button( __( 'Run Full Sync', 'searchpress' ), 'delete' ); ?>
 					</form>
@@ -243,13 +275,13 @@ class SP_Admin extends SP_Singleton {
 	 */
 	protected function error_type( $type ) {
 		switch ( $type ) {
-			case 'error': 
+			case 'error':
 				return __( 'Errors', 'searchpress' );
-			case 'warning': 
+			case 'warning':
 				return __( 'Warnings', 'searchpress' );
-			case 'line': 
+			case 'line':
 				return __( 'Messages', 'searchpress' );
-			case 'success': 
+			case 'success':
 				return __( 'Success', 'searchpress' );
 			default:
 				return '';
@@ -339,12 +371,13 @@ class SP_Admin extends SP_Singleton {
 			wp_die( 'You are not authorized to perform that action' );
 		}
 
+		$sp_flush_data = ! empty( $_POST['sp_flush_data'] );
 		SP_Config()->update_settings(
 			array(
 				'must_init' => false,
-				'active'    => false,
+				'active'    => ! $sp_flush_data, // leave SP active if not flushing data.
 				'last_beat' => false,
-			) 
+			)
 		);
 
 		// The index may not exist yet, so use the global cluster health to check the heartbeat.
@@ -352,14 +385,15 @@ class SP_Admin extends SP_Singleton {
 		if ( ! SP_Heartbeat()->check_beat() ) {
 			return $this->redirect( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_NO_BEAT ) );
 		} else {
-			SP_Config()->flush();
-			if ( ! isset( SP_API()->last_request['response_code'] ) || ! in_array( intval( SP_API()->last_request['response_code'] ), array( 200, 404 ), true ) ) {
-				return $this->redirect( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_FLUSH_FAIL ) );
-			} else {
+			if ( $sp_flush_data ) {
+				SP_Config()->flush();
+				if ( ! isset( SP_API()->last_request['response_code'] ) || ! in_array( (int) SP_API()->last_request['response_code'], array( 200, 404 ), true ) ) {
+					return $this->redirect( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_FLUSH_FAIL ) );
+				}
 				SP_Config()->create_mapping();
-				SP_Sync_Manager()->do_cron_reindex();
-				return $this->redirect( admin_url( 'tools.php?page=searchpress' ) );
 			}
+			SP_Sync_Manager()->do_cron_reindex();
+			return $this->redirect( admin_url( 'tools.php?page=searchpress' ) );
 		}
 	}
 
@@ -434,13 +468,13 @@ class SP_Admin extends SP_Singleton {
 				array(
 					'processed' => SP_Sync_Meta()->processed,
 					'page'      => SP_Sync_Meta()->page,
-				) 
+				)
 			);
 		} else {
 			echo wp_json_encode(
 				array(
 					'processed' => 'complete',
-				) 
+				)
 			);
 		}
 
@@ -456,14 +490,14 @@ class SP_Admin extends SP_Singleton {
 	 */
 	public function assets() {
 		if ( current_user_can( $this->capability ) && $this->is_settings_page() ) {
-			wp_enqueue_style( 'searchpress-admin-css', SP_PLUGIN_URL . '/assets/admin.css', array(), '0.3' );
-			wp_enqueue_script( 'searchpress-admin-js', SP_PLUGIN_URL . '/assets/admin.js', array( 'jquery' ), '0.3', true );
+			wp_enqueue_style( 'searchpress-admin-css', SP_PLUGIN_URL . '/assets/admin.css', array(), SP_VERSION );
+			wp_enqueue_script( 'searchpress-admin-js', SP_PLUGIN_URL . '/assets/admin.js', array( 'jquery' ), SP_VERSION, true );
 			wp_localize_script(
 				'searchpress-admin-js',
 				'searchpress',
 				array(
 					'admin_url' => esc_url_raw( admin_url( 'tools.php?page=searchpress' ) ),
-				) 
+				)
 			);
 		}
 	}
@@ -477,9 +511,9 @@ class SP_Admin extends SP_Singleton {
 	 */
 	public function get_error( $code ) {
 		switch ( $code ) {
-			case SP_ERROR_FLUSH_FAIL: 
+			case SP_ERROR_FLUSH_FAIL:
 				return __( 'SearchPress could not flush the old data', 'searchpress' );
-			case SP_ERROR_NO_BEAT: 
+			case SP_ERROR_NO_BEAT:
 				return __( 'SearchPress cannot reach the Elasticsearch server', 'searchpress' );
 		}
 		return __( 'Unknown error', 'searchpress' );
@@ -492,7 +526,8 @@ class SP_Admin extends SP_Singleton {
 	 * @return bool True if the user is on the settings page, false if not.
 	 */
 	public function is_settings_page() {
-		return ( isset( $_GET['page'] ) && 'searchpress' === sanitize_text_field( wp_unslash( $_GET['page'] ) ) ); // phpcs:ignore WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.NonceVerification.NoNonceVerification
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return ( isset( $_GET['page'] ) && 'searchpress' === sanitize_text_field( wp_unslash( $_GET['page'] ) ) );
 	}
 
 	/**
@@ -536,7 +571,8 @@ class SP_Admin extends SP_Singleton {
 			if ( 'shutdown' === $heartbeat_status ) {
 				$message_escaped .= "\n" . esc_html__( "SearchPress has deactivated itself to preserve site search for your visitors. Your site will use WordPress' built-in search until the Elasticsearch server comes back online.", 'searchpress' );
 			}
-			echo '<div class="updated error">' . wpautop( $message_escaped ) . '</div>'; // WPCS: XSS ok.
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo '<div class="updated error">' . wpautop( $message_escaped ) . '</div>';
 
 			return;
 		}
@@ -550,7 +586,8 @@ class SP_Admin extends SP_Singleton {
 					esc_html__( 'View status', 'searchpress' )
 				);
 			}
-			echo '<div class="updated">' . wpautop( $message_escaped ) . '</div>'; // WPCS: XSS ok.
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo '<div class="updated">' . wpautop( $message_escaped ) . '</div>';
 
 			return;
 		}
@@ -564,7 +601,8 @@ class SP_Admin extends SP_Singleton {
 					esc_html__( 'Go to Log', 'searchpress' )
 				);
 			}
-			echo '<div class="updated error">' . wpautop( $message_escaped ) . '</div>'; // WPCS: XSS ok.
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo '<div class="updated error">' . wpautop( $message_escaped ) . '</div>';
 
 			return;
 		}
@@ -587,9 +625,10 @@ class SP_Admin extends SP_Singleton {
 				$link_escaped = '';
 			}
 
-			printf( // WPCS: XSS ok.
+			printf(
 				'<div class="updated error"><p>%1$s%2$s</p></div>',
 				esc_html__( 'SearchPress was updated and you need to reindex your content.', 'searchpress' ),
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				$link_escaped
 			);
 		}

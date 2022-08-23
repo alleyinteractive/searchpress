@@ -79,6 +79,9 @@ class SP_Search {
 				return ( ! empty( $this->search_results['hits']['hits'] ) ) ? $this->search_results['hits']['hits'] : array();
 
 			case 'total':
+				if ( isset( $this->search_results['hits']['total']['value'] ) ) {
+					return (int) $this->search_results['hits']['total']['value'];
+				}
 				return ( ! empty( $this->search_results['hits']['total'] ) ) ? intval( $this->search_results['hits']['total'] ) : 0;
 
 			case 'facets':
@@ -124,7 +127,7 @@ class SP_Search {
 				array(
 					'post_type'      => array_values( get_post_types() ),
 					'post_status'    => array_values( get_post_stati() ),
-					'posts_per_page' => $this->get_results( 'total' ),
+					'posts_per_page' => count( $ids ), // phpcs:ignore WordPress.WP.PostsPerPage.posts_per_page_posts_per_page
 					'post__in'       => $ids,
 					'orderby'        => 'post__in',
 					'order'          => 'ASC',
