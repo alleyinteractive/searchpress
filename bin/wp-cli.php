@@ -91,7 +91,7 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	 * @param $args array
 	 * @return $args array
 	 */
-	public function __apply_date_range( $args ) {
+	public function _apply_date_range( $args ) {
 		$args['date_query'] = array(
 			0 => array(
 				'inclusive' => true,
@@ -227,8 +227,8 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 				if ( isset( $assoc_args['before-date'] ) ) {
 					$this->date_range['before'] = $assoc_args['before-date'];
 				}
-				add_filter( 'searchpress_index_loop_args', array( $this, '__apply_date_range' ) );
-				add_filter( 'searchpress_index_count_args', array( $this, '__apply_date_range' ) );
+				add_filter( 'searchpress_index_loop_args', array( $this, '_apply_date_range' ) );
+				add_filter( 'searchpress_index_count_args', array( $this, '_apply_date_range' ) );
 			}
 
 			$limit_number = $assoc_args['limit'] > 0 ? $assoc_args['limit'] : SP_Sync_Manager()->count_posts();
