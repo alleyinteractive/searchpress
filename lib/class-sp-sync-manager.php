@@ -101,6 +101,22 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @param int $post_id The post ID of the post to delete from Elasticsearch.
 	 */
 	public function delete_post( $post_id ) {
+		$should_async = apply_filters( 'sp_should_delete_async', true, $post_id );
+
+		if ( ! $should_async ) {
+			$response = SP_API()->delete_post( $post_id );
+
+			// We're OK with 404 responses here because a post might not be in the index.
+			if ( ! $this->parse_error( $response, array( 200, 404 ) ) ) {
+				do_action( 'sp_debug', '[SP_Sync_Manager] Deleted Post', $response );
+			} else {
+				do_action( 'sp_debug', '[SP_Sync_Manager] Error Deleting Post', $response );
+			}
+
+			return;
+		}
+
+		// Delete the post asynchronously.
 		$to_delete = get_option( 'sp_delete', array() );
 		if ( ! is_array( $to_delete ) ) {
 			$to_delete = array();
