@@ -74,6 +74,16 @@ class SP_Integration extends SP_Singleton {
 	}
 
 	/**
+	 * Check if a query should be driven by SearchPress.
+	 *
+	 * @param \WP_Query $query \WP_Query object to check.
+	 * @return bool
+	 */
+	public static function is_integrated_query( $query ) {
+		return null !== $query->get( 'sp', null ) || ( $query->is_main_query() && $query->is_search() );
+	}
+
+	/**
 	 * Initializes action and filter hooks used by SearchPress.
 	 *
 	 * @access public
@@ -141,7 +151,7 @@ class SP_Integration extends SP_Singleton {
 		$this->sp = get_query_var( 'sp' );
 
 		// If this is a search, but not a keyword search, we have to fake it.
-		if ( ! $wp_query->is_search() && ! empty( $this->sp ) && 1 === intval( $this->sp['force'] ) ) {
+		if ( ! $wp_query->is_search() && ! empty( $this->sp['force'] ) && 1 === intval( $this->sp['force'] ) ) {
 			// First, we'll set the search string to something phony.
 			$wp_query->set( 's', '1441f19754335ca4638bfdf1aea00c6d' );
 			$wp_query->is_search = true;
@@ -185,7 +195,7 @@ class SP_Integration extends SP_Singleton {
 	public function filter__posts_request( $sql, $query ) {
 		global $wpdb;
 
-		if ( ! $query->is_main_query() || ! $query->is_search() ) {
+		if ( ! $this->is_integrated_query( $query ) ) {
 			return $sql;
 		}
 
@@ -195,6 +205,17 @@ class SP_Integration extends SP_Singleton {
 		}
 
 		$es_wp_query_args = $this->build_es_request( $query );
+
+		/**
+		 * Filter the interpreted ES query prior to sending it to ES. This allows
+		 * developers to customize the ES DSL based on data in WP_Query that this
+		 * class doesn't know about.
+		 *
+		 * @param array     $es_wp_query_args Elasticsearch DSL as an associative array.
+		 * @param \WP_Query $query            The WP_Query object for this integration.
+		 * @param static    $integration      This class.
+		 */
+		$es_wp_query_args = apply_filters( 'sp_integration_converted_es_args', $es_wp_query_args, $query, $this );
 
 		// Convert the WP-style args into ES args.
 		$this->search_obj = new SP_WP_Search( $es_wp_query_args );
@@ -227,7 +248,7 @@ class SP_Integration extends SP_Singleton {
 	 * @return string The modified SQL for the found posts query.
 	 */
 	public function filter__found_posts_query( $sql, $query ) {
-		if ( ! $query->is_main_query() || ! $query->is_search() ) {
+		if ( ! $this->is_integrated_query( $query ) ) {
 			return $sql;
 		}
 
@@ -238,13 +259,13 @@ class SP_Integration extends SP_Singleton {
 	 * A filter callback for found_posts that overrides the main query and the
 	 * search query to use SearchPress' found posts count.
 	 *
-	 * @param array    $found_posts The array of posts found by WordPress.
+	 * @param int      $found_posts The number of posts found by WordPress.
 	 * @param WP_Query $query       The WP_Query object for the request.
 	 * @access public
 	 * @return int The number of found posts.
 	 */
 	public function filter__found_posts( $found_posts, $query ) {
-		if ( ! $query->is_main_query() || ! $query->is_search() ) {
+		if ( ! $this->is_integrated_query( $query ) ) {
 			return $found_posts;
 		}
 
