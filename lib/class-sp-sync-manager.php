@@ -66,9 +66,6 @@ class SP_Sync_Manager extends SP_Singleton {
 			$response = SP_API()->index_post( $post );
 
 			if ( is_wp_error( $response ) && 'unindexable-post' === $response->get_error_code() ) {
-				// If the post should not be indexed, ensure it's not in the index already.
-				// @todo This is excessive, figure out a better way around it.
-				$this->delete_post( $post_id );
 				do_action( 'sp_debug', "[SP_Sync_Manager] Post {$post_id} is not indexable", $response );
 				return;
 			}
