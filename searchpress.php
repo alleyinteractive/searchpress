@@ -7,7 +7,7 @@
  * Author: Matthew Boynes, Alley Interactive
  * Author URI: http://www.alleyinteractive.com/
  *
- * @package Searchpress
+ * @package SearchPress
  */
 
 /*

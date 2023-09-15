@@ -8,7 +8,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 	protected $old_wp_scripts, $old_wp_styles;
 	protected $old_screen;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		SP_Heartbeat()->record_pulse();
 
@@ -35,7 +35,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		add_filter( 'wp_redirect', array( $this, 'prevent_redirect' ) );
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		wp_set_current_user( $this->current_user );
 
 		SP_Sync_Meta()->reset( 'save' );
