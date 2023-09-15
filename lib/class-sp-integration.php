@@ -112,6 +112,11 @@ class SP_Integration extends SP_Singleton {
 			return $posts;
 		}
 
+		// If we put in a phony search term, remove it now.
+		if ( '1441f19754335ca4638bfdf1aea00c6d' === $query->get( 's' ) ) {
+			$query->set( 's', '' );
+		}
+
 		$es_wp_query_args = $this->build_es_request( $query );
 
 		// Convert the WP-style args into ES args.
