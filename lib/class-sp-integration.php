@@ -111,7 +111,7 @@ class SP_Integration extends SP_Singleton {
 		$should_auto_integrate = $query->is_main_query() && $query->is_search();
 		if (
 			/**
-			 * Should a query be automatically integrated with SearchPress?
+			 * Filters whether a query should automatically be integrated with SearchPress.
 			 *
 			 * @param bool     $should_auto_integrate Whether the query should be auto-integrated with SearchPress. This
 			 * 									      defaults to true if the query is the main search query.
