@@ -108,9 +108,27 @@ class SP_Integration extends SP_Singleton {
 	 * @return array|null
 	 */
 	public function filter__posts_pre_query( $posts, $query ) {
-		if ( ! $query->is_main_query() || ! $query->is_search() ) {
+		$should_auto_integrate = $query->is_main_query() && $query->is_search();
+		if (
+			/**
+			 * Filters whether a query should automatically be integrated with SearchPress.
+			 *
+			 * @param bool     $should_auto_integrate Whether the query should be auto-integrated with SearchPress. This
+			 *                                        defaults to true if the query is the main search query.
+			 * @param WP_Query $query                 The query object.
+			 */
+			! apply_filters( 'sp_integrate_query', $should_auto_integrate, $query )
+		) {
 			return $posts;
 		}
+
+		// If we put in a phony search term, remove it now.
+		if ( '1441f19754335ca4638bfdf1aea00c6d' === $query->get( 's' ) ) {
+			$query->set( 's', '' );
+		}
+
+		// Force the query to advertise as a search query.
+		$query->is_search = true;
 
 		$es_wp_query_args = $this->build_es_request( $query );
 
