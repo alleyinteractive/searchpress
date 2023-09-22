@@ -333,6 +333,7 @@ class SP_WP_Search extends SP_Search {
 
 					case 'date_histogram':
 						$interval_param = sp_es_version_compare( '7.0' ) ? 'calendar_interval' : 'interval';
+
 						$es_query_args['aggregations'][ $label ] = array(
 							'date_histogram' => array(
 								$interval_param => $facet['interval'],
