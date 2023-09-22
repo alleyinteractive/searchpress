@@ -129,7 +129,7 @@ class Tests_Mapping_Postmeta extends SearchPress_UnitTestCase {
 		if ( $should_truncate_raw ) {
 			$meta_raw = $this->search_and_get_field( array(), 'post_meta.long_string_test.raw' );
 			$this->assertNotSame( array( $string ), $meta_raw, 'Checking meta.raw' );
-			$this->assertContains( $meta_raw[0], $string );
+			$this->assertStringContainsString( $meta_raw[0], $string );
 		} else {
 			$this->assertSame( array( $string ), $this->search_and_get_field( array(), 'post_meta.long_string_test.raw' ), 'Checking meta.raw' );
 		}

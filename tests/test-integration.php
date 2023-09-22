@@ -48,7 +48,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 		$this->assertEquals( get_query_var( 's' ), 'trackback' );
 		$this->assertTrue( is_search() );
 
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array(
 				'many-trackbacks',
@@ -70,7 +70,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 		$this->go_to( '/?s=cucumbers' );
 		$this->assertEquals( get_query_var( 's' ), 'cucumbers' );
 		$this->assertTrue( is_search() );
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals( 0, $GLOBALS['wp_query']->found_posts );
 	}
 
@@ -79,7 +79,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 		$this->assertEquals( get_query_var( 'year' ), '2010' );
 		$this->assertEmpty( get_query_var( 'monthnum' ) );
 		$this->assertEmpty( get_query_var( 'day' ) );
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array( 'simple-markup-test' ),
 			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
@@ -89,7 +89,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 		$this->assertEquals( get_query_var( 'year' ), '2009' );
 		$this->assertEquals( get_query_var( 'monthnum' ), '8' );
 		$this->assertEmpty( get_query_var( 'day' ) );
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array( 'comment-test' ),
 			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
@@ -99,7 +99,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 		$this->assertEquals( get_query_var( 'year' ), '2009' );
 		$this->assertEquals( get_query_var( 'monthnum' ), '11' );
 		$this->assertEquals( get_query_var( 'day' ), '1' );
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array( 'one-comment' ),
 			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
@@ -108,7 +108,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 
 	function test_sp_date_range() {
 		$this->go_to( '/?s=comment&sp[f]=2009-10-14&sp[t]=2009-12-31' );
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array( 'one-comment' ),
 			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
@@ -118,7 +118,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 	function test_terms() {
 		$this->go_to( '/?s=comment&category_name=cat-demo' );
 		$this->assertEquals( get_query_var( 'category_name' ), 'cat-demo' );
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array( 'comment-test' ),
 			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
@@ -126,7 +126,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 
 		$this->go_to( '/?s=comment&tag=tag-demo' );
 		$this->assertEquals( get_query_var( 'tag' ), 'tag-demo' );
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array( 'one-comment' ),
 			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
@@ -136,7 +136,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 	function test_post_types() {
 		$this->go_to( '/?s=lorem&post_type=cpt' );
 		$this->assertEquals( get_query_var( 'post_type' ), 'cpt' );
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array( 'lorem-cpt' ),
 			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
