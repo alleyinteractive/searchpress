@@ -14,45 +14,45 @@ class Tests_Api extends SearchPress_UnitTestCase {
 	}
 
 	function test_api_get() {
-		$response = SP_API()->get( SP_API()->get_doc_type() . self::$post_id );
+		$response = SP_API()->get( SP_API()->get_api_endpoint( '_doc', self::$post_id ) );
 		$this->assertEquals( 'GET', SP_API()->last_request['params']['method'] );
 		$this->assertEquals( '200', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
 		$this->assertEquals( self::$post_id, $response->_source->post_id );
 
-		SP_API()->get( SP_API()->get_doc_type() . "foo" );
+		SP_API()->get( SP_API()->get_api_endpoint( '_doc', 'foo' ) );
 		$this->assertEquals( 'GET', SP_API()->last_request['params']['method'] );
 		$this->assertEquals( '404', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
 	}
 
 	function test_api_post() {
-		$response = SP_API()->post( SP_API()->get_doc_type() . '_search', '{"query":{"match_all":{}}}' );
+		$response = SP_API()->post( SP_API()->get_api_endpoint( '_search' ), '{"query":{"match_all":{}}}' );
 		$this->assertEquals( 'POST', SP_API()->last_request['params']['method'] );
 		$this->assertEquals( '200', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
 		$this->assertEquals( self::$post_id, $response->hits->hits[0]->_source->post_id );
 	}
 
 	function test_api_put() {
-		SP_API()->get( SP_API()->get_doc_type() . '123456' );
+		SP_API()->get( SP_API()->get_api_endpoint( '_doc', '123456' ) );
 		$this->assertEquals( '404', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
 
-		SP_API()->put( SP_API()->get_doc_type() . '123456', '{"post_id":123456}' );
+		SP_API()->put( SP_API()->get_api_endpoint( '_doc', '123456' ), '{"post_id":123456}' );
 		$this->assertEquals( 'PUT', SP_API()->last_request['params']['method'] );
 		$this->assertEquals( '201', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
 
-		$response = SP_API()->get( SP_API()->get_doc_type() . '123456' );
+		$response = SP_API()->get( SP_API()->get_api_endpoint( '_doc', '123456' ) );
 		$this->assertEquals( 123456, $response->_source->post_id );
 	}
 
 	function test_api_delete() {
-		SP_API()->put( SP_API()->get_doc_type() . '223456', '{"post_id":223456}' );
+		SP_API()->put( SP_API()->get_api_endpoint( '_doc', '223456' ), '{"post_id":223456}' );
 		$this->assertEquals( '201', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
-		$response = SP_API()->get( SP_API()->get_doc_type() . "223456" );
+		$response = SP_API()->get( SP_API()->get_api_endpoint( '_doc', '223456' ) );
 		$this->assertEquals( 223456, $response->_source->post_id );
 
-		SP_API()->delete( SP_API()->get_doc_type() . '223456' );
+		SP_API()->delete( SP_API()->get_api_endpoint( '_doc', '223456' ) );
 		$this->assertEquals( '200', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
 
-		SP_API()->delete( SP_API()->get_doc_type() . '223456' );
+		SP_API()->delete( SP_API()->get_api_endpoint( '_doc', '223456' ) );
 		$this->assertEquals( '404', wp_remote_retrieve_response_code( SP_API()->last_request['response'] ) );
 	}
 
@@ -84,7 +84,7 @@ class Tests_Api extends SearchPress_UnitTestCase {
 			};
 		} );
 
-        SP_API()->put( SP_API()->get_doc_type() . '123456', '{"post_id":123456}' );
+        SP_API()->put( SP_API()->get_api_endpoint( '_doc', '123456' ), '{"post_id":123456}' );
 
 		$this->assertSame( 'PUT', $method );
 		$this->assertSame( 'before request', $pre );
