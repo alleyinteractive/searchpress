@@ -95,9 +95,11 @@ class SP_API extends SP_Singleton {
 	public function get_doc_type() {
 		if ( empty( $this->doc_type ) ) {
 			if ( sp_es_version_compare( '6.0', '<' ) ) {
-				$this->doc_type = 'post';
+				$this->doc_type = 'post/';
+			} elseif ( sp_es_version_compare( '8.0', '<' ) ) {
+				$this->doc_type = '_doc/';
 			} else {
-				$this->doc_type = '_doc';
+				$this->doc_type = '';
 			}
 		}
 
@@ -259,7 +261,7 @@ class SP_API extends SP_Singleton {
 		 * @param string  $post_index_path Single post index path.
 		 * @param SP_Post $post            SP Post Object.
 		 */
-		$post_index_path = apply_filters( 'sp_post_index_path', "{$this->get_doc_type()}/{$post->post_id}", $post );
+		$post_index_path = apply_filters( 'sp_post_index_path', "{$this->get_doc_type()}{$post->post_id}", $post );
 		return $this->put( $post_index_path, $json );
 	}
 
@@ -302,7 +304,7 @@ class SP_API extends SP_Singleton {
 		 *
 		 * @param string $bulk_index_path Bulk index path.
 		 */
-		$bulk_index_path = apply_filters( 'sp_bulk_index_path', "{$this->get_doc_type()}/_bulk" );
+		$bulk_index_path = apply_filters( 'sp_bulk_index_path', "{$this->get_doc_type()}_bulk" );
 		return $this->put(
 			$bulk_index_path,
 			wp_check_invalid_utf8( implode( "\n", $body ), true ) . "\n"
@@ -316,7 +318,7 @@ class SP_API extends SP_Singleton {
 	 * @return object The response from the API.
 	 */
 	public function delete_post( $post_id ) {
-		return $this->delete( "{$this->get_doc_type()}/{$post_id}" );
+		return $this->delete( "{$this->get_doc_type()}{$post_id}" );
 	}
 
 	/**
@@ -334,7 +336,7 @@ class SP_API extends SP_Singleton {
 				'output' => OBJECT,
 			)
 		);
-		return $this->post( "{$this->get_doc_type()}/_search", $query, $args['output'] );
+		return $this->post( "{$this->get_doc_type()}_search", $query, $args['output'] );
 	}
 
 	/**
