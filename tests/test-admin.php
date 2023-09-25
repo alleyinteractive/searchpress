@@ -91,7 +91,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 	 */
 	function test_settings_page_no_access() {
 		$this->expectException( \WPDieException::class );
-		$this->expectExceptionMessage( "You do not have sufficient permissions to access this page." );
+		$this->expectExceptionMessage( 'You do not have sufficient permissions to access this page.' );
 		// Ensure that editors don't have access to the settings
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'editor' ) ) );
 		SP_Admin()->setup();
@@ -110,13 +110,13 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 
 	public function test_save_settings_no_access() {
 		$this->expectException( \WPDieException::class );
-		$this->expectExceptionMessage( "You do not have sufficient permissions to access this page." );
+		$this->expectExceptionMessage( 'You do not have sufficient permissions to access this page.' );
 		SP_Admin()->save_settings();
 	}
 
 	public function test_save_settings_invalid_nonce() {
 		$this->expectException( \WPDieException::class );
-		$this->expectExceptionMessage( "You are not authorized to perform that action" );
+		$this->expectExceptionMessage( 'You are not authorized to perform that action' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		SP_Admin()->save_settings();
 	}
@@ -188,13 +188,13 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 
 	public function test_trigger_full_sync_no_access() {
 		$this->expectException( \WPDieException::class );
-		$this->expectExceptionMessage( "You do not have sufficient permissions to access this page." );
+		$this->expectExceptionMessage( 'You do not have sufficient permissions to access this page.' );
 		SP_Admin()->full_sync();
 	}
 
 	public function test_trigger_full_sync_invalid_nonce() {
 		$this->expectException( \WPDieException::class );
-		$this->expectExceptionMessage( "You are not authorized to perform that action" );
+		$this->expectExceptionMessage( 'You are not authorized to perform that action' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		SP_Admin()->full_sync();
 	}
@@ -241,13 +241,13 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 
 	public function test_trigger_cancel_sync_no_access() {
 		$this->expectException( \WPDieException::class );
-		$this->expectExceptionMessage( "You do not have sufficient permissions to access this page." );
+		$this->expectExceptionMessage( 'You do not have sufficient permissions to access this page.' );
 		SP_Admin()->cancel_sync();
 	}
 
 	public function test_trigger_cancel_sync_invalid_nonce() {
 		$this->expectException( \WPDieException::class );
-		$this->expectExceptionMessage( "You are not authorized to perform that action" );
+		$this->expectExceptionMessage( 'You are not authorized to perform that action' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		SP_Admin()->cancel_sync();
 	}
@@ -272,13 +272,13 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 
 	public function test_trigger_clear_log_no_access() {
 		$this->expectException( \WPDieException::class );
-		$this->expectExceptionMessage( "You do not have sufficient permissions to access this page." );
+		$this->expectExceptionMessage( 'You do not have sufficient permissions to access this page.' );
 		SP_Admin()->clear_log();
 	}
 
 	public function test_trigger_clear_log_invalid_nonce() {
 		$this->expectException( \WPDieException::class );
-		$this->expectExceptionMessage( "You are not authorized to perform that action" );
+		$this->expectExceptionMessage( 'You are not authorized to perform that action' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		SP_Admin()->clear_log();
 	}
@@ -303,13 +303,13 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 
 	public function test_trigger_active_toggle_no_access() {
 		$this->expectException( \WPDieException::class );
-		$this->expectExceptionMessage( "You do not have sufficient permissions to access this page." );
+		$this->expectExceptionMessage( 'You do not have sufficient permissions to access this page.' );
 		SP_Admin()->active_toggle();
 	}
 
 	public function test_trigger_active_toggle_invalid_nonce() {
 		$this->expectException( \WPDieException::class );
-		$this->expectExceptionMessage( "You are not authorized to perform that action" );
+		$this->expectExceptionMessage( 'You are not authorized to perform that action' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		SP_Admin()->active_toggle();
 	}
