@@ -172,6 +172,34 @@ class SP_API extends SP_Singleton {
 	}
 
 	/**
+	 * Get the API endpoint for a given API and resource.
+	 *
+	 * This function helps work around version changes in Elasticsearch's API
+	 * endpoints. For example, in ES 8.0, the `_doc` endpoint was removed from
+	 * some API endpoints.
+	 *
+	 * @param string|null     $api      API type.
+	 * @param string|int|null $resource Resource ID.
+	 * @return string|null API endpoint.
+	 */
+	public function get_api_endpoint( $api = null, $resource = null ) {
+		// Endpoints that vary doc type, and if it's included, based on ES version.
+		if ( in_array( $api, [ '_search', '_bulk', '_count' ], true ) ) {
+			if ( sp_es_version_compare( '8.0' ) ) {
+				return $api;
+			}
+			return $this->get_doc_type() . '/' . $api;
+		}
+
+		// Doc endpoint.
+		if ( '_doc' === $api ) {
+			return $this->get_doc_type() . ( $resource ? '/' . $resource : '' );
+		}
+
+		return $api;
+	}
+
+	/**
 	 * Executes a GET request against the API.
 	 *
 	 * @param string $url    The URL to send the request to.
@@ -326,7 +354,7 @@ class SP_API extends SP_Singleton {
 		 * @param string  $post_index_path Single post index path.
 		 * @param SP_Post $post            SP Post Object.
 		 */
-		$post_index_path = apply_filters( 'sp_post_index_path', "{$this->get_doc_type()}/{$post->post_id}", $post );
+		$post_index_path = apply_filters( 'sp_post_index_path', $this->get_api_endpoint( '_doc', $post->post_id ), $post );
 		return $this->put( $post_index_path, $json );
 	}
 
@@ -369,7 +397,7 @@ class SP_API extends SP_Singleton {
 		 *
 		 * @param string $bulk_index_path Bulk index path.
 		 */
-		$bulk_index_path = apply_filters( 'sp_bulk_index_path', "{$this->get_doc_type()}/_bulk" );
+		$bulk_index_path = apply_filters( 'sp_bulk_index_path', $this->get_api_endpoint( '_bulk' ) );
 		return $this->put(
 			$bulk_index_path,
 			wp_check_invalid_utf8( implode( "\n", $body ), true ) . "\n"
@@ -383,7 +411,7 @@ class SP_API extends SP_Singleton {
 	 * @return object The response from the API.
 	 */
 	public function delete_post( $post_id ) {
-		return $this->delete( "{$this->get_doc_type()}/{$post_id}" );
+		return $this->delete( $this->get_api_endpoint( '_doc', $post_id ) );
 	}
 
 	/**
@@ -405,12 +433,12 @@ class SP_API extends SP_Singleton {
 		/**
 		 * Filter the Elasticsearch search endpoint.
 		 *
-		 * @param string $url URL for the search request.
+		 * @param string $uri  URI for the search request.
 		 * @param array  $args Arguments for the search request.
 		 */
-		$url = apply_filters( 'sp_search_uri', "{$this->get_doc_type()}/_search", $args );
+		$uri = apply_filters( 'sp_search_uri', $this->get_api_endpoint( '_search' ), $args );
 
-		return $this->post( $url, $query, $args['output'] );
+		return $this->post( $uri, $query, $args['output'] );
 	}
 
 	/**
