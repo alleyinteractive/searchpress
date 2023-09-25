@@ -288,7 +288,7 @@ class SP_API extends SP_Singleton {
 		 * @param SP_Post $post            SP Post Object.
 		 */
 		$post_index_path = apply_filters( 'sp_post_index_path', $this->get_api_endpoint( '_doc', $post->post_id ), $post );
-		return $this->post( $post_index_path, $json );
+		return $this->put( $post_index_path, $json );
 	}
 
 	/**
