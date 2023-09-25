@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false # do not fail fast, let all the failing tests fail.
       matrix:
-        php: [8.0]
+        php: [8.2]
         es_version: [7.17.5, 8.10.2]
         multisite: [0]
         wp_version: ["latest"]
@@ -18,7 +18,7 @@ jobs:
             es_version: '8.10.2'
             multisite: 0
             wp_version: '5.9.3'
-          - php: '7.4'
+          - php: '8.0'
             es_version: '6.8.23'
             multisite: 1
             wp_version: '5.9.3'
