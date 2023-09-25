@@ -179,29 +179,67 @@ class SP_Config extends SP_Singleton {
 				'date_detection'    => false,
 				'dynamic_templates' => array(
 					array(
-						'template_meta' => array(
-							'path_match' => 'post_meta.*',
+						'template_meta_value' => array(
+							'path_match' => 'post_meta.*.value',
 							'mapping'    => array(
-								'type'       => 'object',
-								'properties' => array(
-									'value'    => array( 'type' => $analyzed_string_type ),
-									'raw'      => $not_analyzed_string,
-									'long'     => array( 'type' => 'long' ),
-									'double'   => array( 'type' => 'double' ),
-									'boolean'  => array( 'type' => 'boolean' ),
-									'date'     => array(
-										'type'   => 'date',
-										'format' => 'yyyy-MM-dd',
-									),
-									'datetime' => array(
-										'type'   => 'date',
-										'format' => 'yyyy-MM-dd HH:mm:ss',
-									),
-									'time'     => array(
-										'type'   => 'date',
-										'format' => 'HH:mm:ss',
-									),
-								),
+								'type' => $analyzed_string_type,
+							),
+						),
+					),
+					array(
+						'template_meta_raw' => array(
+							'path_match' => 'post_meta.*.raw',
+							'mapping'    => $not_analyzed_string,
+						),
+					),
+					array(
+						'template_meta_long' => array(
+							'path_match' => 'post_meta.*.long',
+							'mapping'    => array(
+								'type' => 'long',
+							),
+						),
+					),
+					array(
+						'template_meta_double' => array(
+							'path_match' => 'post_meta.*.double',
+							'mapping'    => array(
+								'type' => 'double',
+							),
+						),
+					),
+					array(
+						'template_meta_boolean' => array(
+							'path_match' => 'post_meta.*.boolean',
+							'mapping'    => array(
+								'type' => 'boolean',
+							),
+						),
+					),
+					array(
+						'template_meta_date' => array(
+							'path_match' => 'post_meta.*.date',
+							'mapping'    => array(
+								'type' => 'date',
+								'format' => 'yyyy-MM-dd',
+							),
+						),
+					),
+					array(
+						'template_meta_datetime' => array(
+							'path_match' => 'post_meta.*.datetime',
+							'mapping'    => array(
+								'type' => 'date',
+								'format' => 'yyyy-MM-dd HH:mm:ss',
+							),
+						),
+					),
+					array(
+						'template_meta_time' => array(
+							'path_match' => 'post_meta.*.time',
+							'mapping'    => array(
+								'type' => 'date',
+								'format' => 'HH:mm:ss',
 							),
 						),
 					),
@@ -343,8 +381,6 @@ class SP_Config extends SP_Singleton {
 					'post_password'     => $not_analyzed_string,
 					'menu_order'        => array( 'type' => 'integer' ),
 					'permalink'         => array( 'type' => $analyzed_string_type ),
-					'terms'             => array( 'type' => 'object' ),
-					'post_meta'         => array( 'type' => 'object' ),
 				),
 			),
 		);
