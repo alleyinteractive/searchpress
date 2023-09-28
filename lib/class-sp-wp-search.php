@@ -211,7 +211,7 @@ class SP_WP_Search extends SP_Search {
 					$comp  = 'and';
 				}
 
-				$terms = array_map( 'sanitize_title', $terms );
+				$terms = array_filter( array_map( 'sanitize_title', $terms ) );
 				if ( count( $terms ) ) {
 					$tax_fld = 'terms.' . $tax . '.slug';
 					foreach ( $terms as $term ) {
@@ -236,9 +236,7 @@ class SP_WP_Search extends SP_Search {
 		// Prime query.bool.must so we can array_merge with it.
 		$es_query_args['query']['bool']['must'] = array();
 
-		if ( ! empty( $filters ) ) {
-			$es_query_args['query']['bool']['must'] = array_merge( $es_query_args['query']['bool']['must'], $filters );
-		}
+		$es_query_args['query']['bool']['must'] = array_merge( $es_query_args['query']['bool']['must'], $filters );
 
 		// Fill in the query.
 		if ( ! empty( $args['query'] ) ) {
@@ -408,13 +406,13 @@ class SP_WP_Search extends SP_Search {
 		global $wp_query;
 
 		if ( empty( $this->facets ) ) {
-			return false;
+			return array();
 		}
 
 		$facets = $this->get_results( 'facets' );
 
 		if ( ! $facets ) {
-			return false;
+			return array();
 		}
 
 		$options = wp_parse_args(
@@ -461,6 +459,8 @@ class SP_WP_Search extends SP_Search {
 			 * All taxonomy terms are going to have the same query_var, so run
 			 * this before the loop.
 			 */
+			$existing_term_slugs = array();
+			$tax_query_var       = '';
 			if ( 'taxonomy' === $this->facets[ $label ]['type'] ) {
 				$tax_query_var = $this->get_taxonomy_query_var( $this->facets[ $label ]['taxonomy'] );
 
@@ -582,7 +582,7 @@ class SP_WP_Search extends SP_Search {
 							break;
 
 						default:
-							// continue 2; // switch() is considered a looping structure.
+							$name = '';
 					}
 
 					$datum = array(
@@ -606,12 +606,12 @@ class SP_WP_Search extends SP_Search {
 	 * @access protected
 	 *
 	 * @param  string $taxonomy_name A valid taxonomy.
-	 * @return string The query var for the given taxonomy.
+	 * @return string|false The query var for the given taxonomy or false on failure.
 	 */
 	protected function get_taxonomy_query_var( $taxonomy_name ) {
 		$taxonomy = get_taxonomy( $taxonomy_name );
 
-		if ( ! $taxonomy || is_wp_error( $taxonomy ) ) {
+		if ( ! $taxonomy ) {
 			return false;
 		}
 

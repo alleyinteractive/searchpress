@@ -5,10 +5,13 @@
  * @package SearchPress
  */
 
+use SearchPress\Singleton;
+
 /**
  * A class to handle admin functionality for the plugin, such as settings pages.
  */
-class SP_Admin extends SP_Singleton {
+class SP_Admin {
+	use Singleton;
 
 	/**
 	 * The capability required to manage SearchPress. Defaults to 'manage_options'.
@@ -93,7 +96,7 @@ class SP_Admin extends SP_Singleton {
 								// translators: error text.
 								__( 'An error has occurred: %s', 'searchpress' ),
 								// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-								$this->get_error( sanitize_text_field( wp_unslash( $_GET['error'] ) ) )
+								$this->get_error( (int) $_GET['error'] )
 							)
 						);
 						?>
@@ -127,7 +130,7 @@ class SP_Admin extends SP_Singleton {
 							<td class="status-<?php echo esc_attr( $active_status ); ?> status-<?php echo esc_attr( $heartbeat_status ); ?>"><abbr title="<?php echo esc_attr( $overall_status[1] ); ?>"><?php echo esc_html( $overall_status[0] ); ?></abbr></td>
 							<td><?php echo esc_html( number_format( intval( SP_Sync_Manager()->count_posts() ) ) ); ?></td>
 							<td><?php echo esc_html( number_format( intval( SP_Sync_Manager()->count_posts_indexed() ) ) ); ?></td>
-							<td><?php echo - 1 !== $es_version ? esc_html( $es_version ) : esc_html__( 'Unknown', 'searchpress' ); ?></td>
+							<td><?php echo $es_version ? esc_html( $es_version ) : esc_html__( 'Unknown', 'searchpress' ); ?></td>
 						</tr>
 					</tbody>
 					<tfoot>
@@ -645,13 +648,3 @@ class SP_Admin extends SP_Singleton {
 		exit;
 	}
 }
-
-/**
- * Returns an initialized instance of the SP_Admin class.
- *
- * @return SP_Admin An initialized instance of the SP_Admin class.
- */
-function SP_Admin() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
-	return SP_Admin::instance();
-}
-add_action( 'after_setup_theme', 'SP_Admin' );

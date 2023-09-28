@@ -34,7 +34,7 @@ if ( ! defined( 'SP_PLUGIN_DIR' ) ) {
 }
 
 // Base Singleton class.
-require_once SP_PLUGIN_DIR . '/lib/class-sp-singleton.php';
+require_once SP_PLUGIN_DIR . '/lib/trait-singleton.php';
 
 // Base indexable class.
 require_once SP_PLUGIN_DIR . '/lib/class-sp-indexable.php';
@@ -83,6 +83,7 @@ require_once SP_PLUGIN_DIR . '/lib/class-sp-search-suggest.php';
 
 if ( is_admin() ) {
 	require_once SP_PLUGIN_DIR . '/lib/class-sp-admin.php';
+	add_action( 'after_setup_theme', 'SP_Admin' );
 }
 
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
@@ -92,5 +93,20 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 if ( defined( 'SP_DEBUG' ) && SP_DEBUG ) {
 	include SP_PLUGIN_DIR . '/lib/class-sp-debug.php';
 }
+
+add_action( 'after_setup_theme', 'SP_API' );
+add_action( 'after_setup_theme', 'SP_Heartbeat', 20 );
+add_action( 'after_setup_theme', 'SP_Cron', 20 );
+add_action( 'after_setup_theme', 'SP_Integration', 30 ); // Must init after SP_Heartbeat.
+add_action( 'after_setup_theme', 'sp_maybe_enable_search_suggest', 100 );
+
+/**
+ * SP_Sync_Manager only gets instantiated when necessary, so we register these
+ * hooks outside of the class.
+ */
+if ( SP_Config()->active() ) {
+	sp_add_sync_hooks();
+}
+SP_Compat();
 
 do_action( 'searchpress_loaded' );

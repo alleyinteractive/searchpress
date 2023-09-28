@@ -5,6 +5,98 @@
  * @package SearchPress
  */
 
+/* phpcs:disable WordPress.NamingConventions.ValidFunctionName */
+/**
+ * Get the SP_API singleton.
+ *
+ * @return SP_API
+ */
+function SP_API() {
+	return SP_API::instance();
+}
+
+/**
+ * Get the SP_Admin singleton.
+ *
+ * @return SP_Admin
+ */
+function SP_Admin() {
+	return SP_Admin::instance();
+}
+
+/**
+ * Get the SP_Compat singleton.
+ *
+ * @return SP_Compat
+ */
+function SP_Compat() {
+	return SP_Compat::instance();
+}
+
+/**
+ * Get the SP_Config singleton.
+ *
+ * @return SP_Config
+ */
+function SP_Config() {
+	return SP_Config::instance();
+}
+
+/**
+ * Get the SP_Cron singleton.
+ *
+ * @return SP_Cron
+ */
+function SP_Cron() {
+	return SP_Cron::instance();
+}
+
+/**
+ * Get the SP_Heartbeat singleton.
+ *
+ * @return SP_Heartbeat
+ */
+function SP_Heartbeat() {
+	return SP_Heartbeat::instance();
+}
+
+/**
+ * Get the SP_Integration singleton.
+ *
+ * @return SP_Integration
+ */
+function SP_Integration() {
+	return SP_Integration::instance();
+}
+
+/**
+ * Get the SP_Search_Suggest singleton.
+ *
+ * @return SP_Search_Suggest
+ */
+function SP_Search_Suggest() {
+	return SP_Search_Suggest::instance();
+}
+
+/**
+ * Get the SP_Sync_Manager singleton.
+ *
+ * @return SP_Sync_Manager
+ */
+function SP_Sync_Manager() {
+	return SP_Sync_Manager::instance();
+}
+
+/**
+ * Get the SP_Sync_Meta singleton.
+ *
+ * @return SP_Sync_Meta
+ */
+function SP_Sync_Meta() {
+	return SP_Sync_Meta::instance();
+}
+/* phpcs:enable WordPress.NamingConventions.ValidFunctionName */
+
 /**
  * Pluck a certain field out of an ES response.
  *
@@ -213,7 +305,7 @@ function sp_global_cluster_health() {
  * @param  string $version Version number.
  * @param  string $compare Optional. Test for a particular relationship. Default
  *                         is `>=`.
- * @return bool|null Null on failure, bool on success.
+ * @return bool
  */
 function sp_es_version_compare( $version, $compare = '>=' ) {
 	return version_compare( SP_Config()->get_es_version(), $version, $compare );
@@ -255,6 +347,29 @@ function sp_remote_request( $url, $request_params = array() ) {
 	}
 
 	return call_user_func( $callable, $url, $request_params );
+}
+
+/**
+ * Optionally setup search suggest. This runs after the theme and plugins have
+ * all been set up.
+ */
+function sp_maybe_enable_search_suggest() {
+	/**
+	 * Checks if search suggestions are enabled. If true, adds the config to
+	 * the mapping. If you'd like to edit it, use the `sp_config_mapping`
+	 * filter.
+	 *
+	 * Note that this will only work on ES 5.0 or later.
+	 *
+	 * @see https://www.elastic.co/guide/en/elasticsearch/reference/7.6/search-suggesters.html#completion-suggester
+	 *
+	 * @param  boolean $enabled Enabled if true, disabled if false. Defaults
+	 *                          to false.
+	 */
+	if ( apply_filters( 'sp_enable_search_suggest', false ) ) {
+		// Initialize the singleton.
+		SP_Search_Suggest::instance();
+	}
 }
 
 /**

@@ -5,10 +5,13 @@
  * @package SearchPress
  */
 
+use SearchPress\Singleton;
+
 /**
  * Autocomplete search suggestions.
  */
-class SP_Search_Suggest extends SP_Singleton {
+class SP_Search_Suggest {
+	use Singleton;
 
 	/**
 	 * Setup the singleton.
@@ -200,7 +203,7 @@ class SP_Search_Suggest extends SP_Singleton {
 		/**
 		 * Filter the raw search suggest query.
 		 *
-		 * @param array Search suggest query.
+		 * @param array $query Search suggest query.
 		 */
 		$request = apply_filters(
 			'sp_search_suggest_query',
@@ -250,27 +253,3 @@ class SP_Search_Suggest extends SP_Singleton {
 		);
 	}
 }
-
-/**
- * Optionally setup search suggest. This runs after the theme and plugins have
- * all been setup.
- */
-function sp_maybe_enable_search_suggest() {
-	/**
-	 * Checks if search suggestions are enabled. If true, adds the config to
-	 * the mapping. If you'd like to edit it, use the `sp_config_mapping`
-	 * filter.
-	 *
-	 * Note that this will only work on ES 5.0 or later.
-	 *
-	 * @see https://www.elastic.co/guide/en/elasticsearch/reference/7.6/search-suggesters.html#completion-suggester
-	 *
-	 * @param  boolean $enabled Enabled if true, disabled if false. Defaults
-	 *                          to false.
-	 */
-	if ( apply_filters( 'sp_enable_search_suggest', false ) ) {
-		// Initialize the singleton.
-		SP_Search_Suggest::instance();
-	}
-}
-add_action( 'after_setup_theme', 'sp_maybe_enable_search_suggest', 100 );

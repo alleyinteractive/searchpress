@@ -5,10 +5,13 @@
  * @package SearchPress
  */
 
+use SearchPress\Singleton;
+
 /**
  * SP_Cron class. Handles cron actions for SearchPress.
  */
-class SP_Cron extends SP_Singleton {
+class SP_Cron {
+	use Singleton;
 
 	/**
 	 * Setup the actions for this singleton.
@@ -45,13 +48,3 @@ class SP_Cron extends SP_Singleton {
 		SP_Sync_Meta()->stop( 'save' );
 	}
 }
-
-/**
- * Initializes and returns the SP_Cron instance.
- *
- * @return SP_Singleton The initialized SP_Cron instance.
- */
-function SP_Cron() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
-	return SP_Cron::instance();
-}
-add_action( 'after_setup_theme', 'SP_Cron', 20 );

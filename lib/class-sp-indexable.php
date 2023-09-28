@@ -42,8 +42,8 @@ abstract class SP_Indexable {
 	/**
 	 * Split the meta values into different types for meta query casting.
 	 *
-	 * @param string $value Meta value.
-	 * @param array  $types Data types to cast to, e.g. ['value', 'long'].
+	 * @param mixed $value Meta value.
+	 * @param array $types Data types to cast to, e.g. ['value', 'long'].
 	 * @return array
 	 */
 	public static function cast_meta_types( $value, $types = array() ) {
@@ -116,7 +116,23 @@ abstract class SP_Indexable {
 	 * Parse out the properties of a date.
 	 *
 	 * @param  string $date  A date, expected to be in mysql format.
-	 * @return array The parsed date.
+	 *
+	 * @return null|array {
+	 *     The parsed date.
+	 *
+	 *     @type string $date              Date as MySQL date string.
+	 *     @type int    $year              Year of the date.
+	 *     @type int    $month             Month number of the date.
+	 *     @type int    $day               Day of the month of the date.
+	 *     @type int    $hour              Hour of the date.
+	 *     @type int    $minute            Minute of the date.
+	 *     @type int    $second            Second of the date.
+	 *     @type int    $week              Week number of the date.
+	 *     @type int    $day_of_week       Day of the week of the date.
+	 *     @type int    $day_of_year       Day of the year of the date.
+	 *     @type int    $seconds_from_day  Number of seconds into the day of the date.
+	 *     @type int    $seconds_from_hour Number of seconds into the hour of the date.
+	 * }
 	 */
 	public static function get_date( $date ) {
 		if ( empty( $date ) || '0000-00-00 00:00:00' === $date ) {
@@ -135,8 +151,8 @@ abstract class SP_Indexable {
 			'week'              => intval( gmdate( 'W', $ts ) ),
 			'day_of_week'       => intval( gmdate( 'N', $ts ) ),
 			'day_of_year'       => intval( gmdate( 'z', $ts ) ),
-			'seconds_from_day'  => intval( mktime( gmdate( 'H', $ts ), gmdate( 'i', $ts ), gmdate( 's', $ts ), 1, 1, 1970 ) ),
-			'seconds_from_hour' => intval( mktime( 0, gmdate( 'i', $ts ), gmdate( 's', $ts ), 1, 1, 1970 ) ),
+			'seconds_from_day'  => intval( mktime( (int) gmdate( 'H', $ts ), (int) gmdate( 'i', $ts ), (int) gmdate( 's', $ts ), 1, 1, 1970 ) ),
+			'seconds_from_hour' => intval( mktime( 0, (int) gmdate( 'i', $ts ), (int) gmdate( 's', $ts ), 1, 1, 1970 ) ),
 		);
 	}
 

@@ -5,10 +5,13 @@
  * @package SearchPress
  */
 
+use SearchPress\Singleton;
+
 /**
  * Action hook and filter callbacks for compatibility with other plugins.
  */
-class SP_Compat extends SP_Singleton {
+class SP_Compat {
+	use Singleton;
 
 	/**
 	 * Advanced Post Cache can periodically return the wrong value for
@@ -37,14 +40,3 @@ class SP_Compat extends SP_Singleton {
 		add_action( 'sp_pre_index_loop', array( $this, 'action_sp_pre_index_loop' ) );
 	}
 }
-
-/**
- * Returns an initialized instance of the SP_Compat class.
- *
- * @return SP_Compat An initialized instance of the SP_Compat class.
- */
-function SP_Compat() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
-	return SP_Compat::instance();
-}
-
-SP_Compat();

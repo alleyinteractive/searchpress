@@ -1,0 +1,13 @@
+name: Code Quality
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  code-quality:
+    uses: alleyinteractive/.github/.github/workflows/php-code-quality.yml@main

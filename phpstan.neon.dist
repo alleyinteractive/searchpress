@@ -1,0 +1,10 @@
+parameters:
+	level: 5
+	bootstrapFiles:
+		- searchpress.php
+	paths:
+		- searchpress.php
+		- lib/
+	ignoreErrors:
+		- '#Action callback returns .* but should not return anything.#'
+		- '#Access to an undefined property object::\$_id.#'

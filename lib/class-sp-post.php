@@ -6,7 +6,29 @@
  */
 
 /**
- * An object for posts in the ES index
+ * An object for posts in the ES index.
+ *
+ * @property int    $ID                Post ID.
+ * @property int    $post_id           Post ID.
+ * @property string $post_author       Post author ID.
+ * @property array  $post_date         Date data for post_date.
+ * @property array  $post_date_gmt     Date data for post_date_gmt.
+ * @property array  $post_modified     Date data for post_modified.
+ * @property array  $post_modified_gmt Date data for post_modified_gmt.
+ * @property string $post_title        Post title.
+ * @property string $post_excerpt      Post excerpt.
+ * @property string $post_content      Post content
+ * @property string $post_status       Post status.
+ * @property string $post_name         Post name (slug).
+ * @property int    $post_parent       Post parent ID.
+ * @property string $parent_status     Parent status.
+ * @property string $post_type         Post type.
+ * @property string $post_mime_type    Post mime_type.
+ * @property string $post_password     Post password.
+ * @property int    $menu_order        Post menu_order.
+ * @property string $permalink         Post permalink.
+ * @property array  $terms             Post terms.
+ * @property array  $post_meta         Post meta.
  *
  * @todo should we index paginated posts differently? Would be nice to click a search result and go to correct page
  */
@@ -78,7 +100,7 @@ class SP_Post extends SP_Indexable {
 
 		$this->data['post_id'] = intval( $post->ID );
 		// We're storing the login here instead of user ID, as that's more flexible.
-		$this->data['post_author']       = $this->get_user( $post->post_author );
+		$this->data['post_author']       = $this->get_user( (int) $post->post_author );
 		$this->data['post_date']         = $this->get_date( $post->post_date );
 		$this->data['post_date_gmt']     = $this->get_date( $post->post_date_gmt );
 		$this->data['post_modified']     = $this->get_date( $post->post_modified );
@@ -204,7 +226,7 @@ class SP_Post extends SP_Indexable {
 		}
 
 		if ( empty( $object_terms ) ) {
-			return;
+			return [];
 		}
 
 		$terms = array();
@@ -310,8 +332,8 @@ class SP_Post extends SP_Indexable {
 		 * Filter the data prior to indexing. If you need to modify the data sent
 		 * to Elasticsearch, this is likely the best filter to use.
 		 *
-		 * @param array    $data Data to be sent to Elasticsearch.
-		 * @param \SP_Post $this This object.
+		 * @param array    $data    Data to be sent to Elasticsearch.
+		 * @param \SP_Post $sp_post This object.
 		 */
 		return wp_json_encode( apply_filters( 'sp_post_pre_index', $this->data, $this ) );
 	}

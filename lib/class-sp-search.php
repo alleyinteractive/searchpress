@@ -33,7 +33,7 @@ class SP_Search {
 	 * The WP_Post objects corresponding to the search, should they be
 	 * requested. This is more or less a cache.
 	 *
-	 * @var array
+	 * @var null|array
 	 */
 	public $posts = null;
 

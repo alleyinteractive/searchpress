@@ -5,10 +5,13 @@
  * @package SearchPress
  */
 
+use SearchPress\Singleton;
+
 /**
- * Lub dub. Lub dub.
+ * This class maintains "heartbeat" monitoring of Elasticsearch.
  */
-class SP_Heartbeat extends SP_Singleton {
+class SP_Heartbeat {
+	use Singleton;
 
 	/**
 	 * What cluster statuses do we consider successful? Default is ['yellow', 'green'].
@@ -43,14 +46,14 @@ class SP_Heartbeat extends SP_Singleton {
 	 * Cached result of the heartbeat check.
 	 *
 	 * @access protected
-	 * @var boolean
+	 * @var bool|null
 	 */
 	protected $beat_result;
 
 	/**
 	 * Cached result of the time of last heartbeat.
 	 *
-	 * @var int
+	 * @var int|null
 	 */
 	protected $last_beat;
 
@@ -207,13 +210,3 @@ class SP_Heartbeat extends SP_Singleton {
 		}
 	}
 }
-
-/**
- * Initializes and returns the instance of the SP_Heartbeat class.
- *
- * @return SP_Singleton The initialized instance of the SP_Heartbeat class.
- */
-function SP_Heartbeat() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
-	return SP_Heartbeat::instance();
-}
-add_action( 'after_setup_theme', 'SP_Heartbeat', 20 );
