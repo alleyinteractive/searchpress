@@ -5,7 +5,7 @@
  * @package SearchPress
  */
 
-/**
+/*
  * Copyright (C) 2012-2013 Automattic
  * Copyright (C) 2013 SearchPress
  *
@@ -27,7 +27,14 @@
  * The license for this software can likely be found here:
  * http://www.gnu.org/licenses/gpl-2.0.html
  */
-class SP_Integration extends SP_Singleton {
+
+use SearchPress\Singleton;
+
+/**
+ * SP_Integration handles integration with WordPress, replacing core search when appropriate.
+ */
+class SP_Integration {
+	use Singleton;
 
 	/**
 	 * Whether we should execute the found_posts query or not.
@@ -104,10 +111,10 @@ class SP_Integration extends SP_Singleton {
 	 * @access public
 	 */
 	public function remove_hooks() {
-		remove_filter( 'post_limits_request', array( $this, 'filter__post_limits_request' ), 999, 2 );
-		remove_filter( 'posts_request', array( $this, 'filter__posts_request' ), 5, 2 );
-		remove_filter( 'found_posts_query', array( $this, 'filter__found_posts_query' ), 5, 2 );
-		remove_filter( 'found_posts', array( $this, 'filter__found_posts' ), 5, 2 );
+		remove_filter( 'post_limits_request', array( $this, 'filter__post_limits_request' ), 999 );
+		remove_filter( 'posts_request', array( $this, 'filter__posts_request' ), 5 );
+		remove_filter( 'found_posts_query', array( $this, 'filter__found_posts_query' ), 5 );
+		remove_filter( 'found_posts', array( $this, 'filter__found_posts' ), 5 );
 		remove_filter( 'query_vars', array( $this, 'query_vars' ) );
 		remove_action( 'parse_query', array( $this, 'force_search_template' ), 5 );
 	}
@@ -238,7 +245,7 @@ class SP_Integration extends SP_Singleton {
 	 * A filter callback for found_posts that overrides the main query and the
 	 * search query to use SearchPress' found posts count.
 	 *
-	 * @param array    $found_posts The array of posts found by WordPress.
+	 * @param int      $found_posts The number of posts found by WordPress.
 	 * @param WP_Query $query       The WP_Query object for the request.
 	 * @access public
 	 * @return int The number of found posts.
@@ -328,7 +335,7 @@ class SP_Integration extends SP_Singleton {
 			}
 		}
 
-		if ( ! empty( $es_wp_query_args['date_range'] ) && empty( $es_wp_query_args['date_range']['field'] ) ) {
+		if ( ! empty( $es_wp_query_args['date_range'] ) ) {
 			$es_wp_query_args['date_range']['field'] = 'post_date';
 		}
 
@@ -430,13 +437,3 @@ class SP_Integration extends SP_Singleton {
 		return $vars;
 	}
 }
-
-/**
- * Returns an initialized instance of the SP_Integration class.
- *
- * @return SP_Integration An initialized instance of the SP_Integration class.
- */
-function SP_Integration() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
-	return SP_Integration::instance();
-}
-add_action( 'after_setup_theme', 'SP_Integration', 30 ); // Must init after SP_Heartbeat.

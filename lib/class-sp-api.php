@@ -5,10 +5,13 @@
  * @package SearchPress
  */
 
+use SearchPress\Singleton;
+
 /**
- * Basic WordPress-oriented Elasticsearch API client
+ * Basic WordPress-oriented Elasticsearch API client.
  */
-class SP_API extends SP_Singleton {
+class SP_API {
+	use Singleton;
 
 	/**
 	 * The Elasticsearch host URL.
@@ -296,7 +299,7 @@ class SP_API extends SP_Singleton {
 	 *
 	 * @param array $posts An array of posts to index. May either be post IDs,
 	 *                     WP_Post objects, or SP_Post objects.
-	 * @return object The API response.
+	 * @return stdClass The API response.
 	 */
 	public function index_posts( $posts ) {
 		$body = array();
@@ -401,13 +404,4 @@ class SP_API extends SP_Singleton {
 		}
 		return $version;
 	}
-}
-
-/**
- * Returns an initialized instance of the SP_API class.
- *
- * @return SP_API An initialized instance of the SP_API class.
- */
-function SP_API() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
-	return SP_API::instance();
 }

@@ -5,26 +5,24 @@
  * @package SearchPress
  */
 
+use SearchPress\Singleton;
+
 /**
- * SearchPress Sync Manager
- *
- * Controls the data sync from WordPress to elasticsearch
+ * SearchPress Sync Manager. Controls the data sync from WordPress to Elasticsearch.
  *
  * Reminders and considerations while building this:
- *
  * @todo Trigger massive reindex (potentially) when indexed usermeta is edited
  * @todo Trigger massive reindex when term data is edited
  * @todo Changing permalinks should trigger full reindex?
- *
- * @author Matthew Boynes
  */
-class SP_Sync_Manager extends SP_Singleton {
+class SP_Sync_Manager {
+	use Singleton;
 
 	/**
 	 * Stores an array of published posts to iterate over.
 	 *
 	 * @access public
-	 * @var bool
+	 * @var false|int
 	 */
 	public $published_posts = false;
 
@@ -195,7 +193,7 @@ class SP_Sync_Manager extends SP_Singleton {
 		// Reload the sync meta to ensure it hasn't been canceled while we were getting those posts.
 		$sync_meta->reload();
 
-		if ( ! $posts || is_wp_error( $posts ) || ! $sync_meta->running ) {
+		if ( empty( $posts ) || ! $sync_meta->running ) {
 			return false;
 		}
 
@@ -203,6 +201,7 @@ class SP_Sync_Manager extends SP_Singleton {
 		do_action( 'sp_debug', sprintf( '[SP_Sync_Manager] Indexed %d Posts', count( $posts ) ), $response );
 
 		$sync_meta->reload();
+		// @phpstan-ignore-next-line
 		if ( ! $sync_meta->running ) {
 			return false;
 		}
@@ -224,10 +223,10 @@ class SP_Sync_Manager extends SP_Singleton {
 			foreach ( $response->items as $post ) {
 				// Status should be 200 or 201, depending on if we're updating or creating respectively.
 				if ( ! isset( $post->index->status ) ) {
-					// translators: post ID, JSON-encoded API response.
+					// translators: 1: post ID, 2: JSON-encoded API response.
 					$sync_meta->log( new WP_Error( 'warning', sprintf( __( 'Error indexing post %1$s; Response: %2$s', 'searchpress' ), $post->index->_id, wp_json_encode( $post ) ), $post ) );
 				} elseif ( ! in_array( intval( $post->index->status ), array( 200, 201 ), true ) ) {
-					// translators: post ID, HTTP response code.
+					// translators: 1: post ID, 2: HTTP response code.
 					$sync_meta->log( new WP_Error( 'warning', sprintf( __( 'Error indexing post %1$s; HTTP response code: %2$s', 'searchpress' ), $post->index->_id, $post->index->status ), $post ) );
 				} else {
 					$sync_meta->success++;
@@ -305,22 +304,4 @@ class SP_Sync_Manager extends SP_Singleton {
 		$count = SP_API()->get( SP_API()->get_api_endpoint( '_count' ) );
 		return ! empty( $count->count ) ? intval( $count->count ) : 0;
 	}
-}
-
-/**
- * Returns an initialized instance of the SP_Sync_Manager class.
- *
- * @return SP_Sync_Manager An initialized instance of the SP_Sync_Manager class.
- */
-function SP_Sync_Manager() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
-	return SP_Sync_Manager::instance();
-}
-
-
-/**
- * SP_Sync_Manager only gets instantiated when necessary, so we register these
- * hooks outside of the class.
- */
-if ( SP_Config()->active() ) {
-	sp_add_sync_hooks();
 }

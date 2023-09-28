@@ -5,29 +5,44 @@
  * @package SearchPress
  */
 
+use SearchPress\Singleton;
+
 /**
- * SearchPress configuration
+ * SearchPress configuration.
+ *
+ * @method string host()        ES Host URL.
+ * @method bool   must_init()   Whether the index must be initialized.
+ * @method bool   active()      Whether SearchPress is active.
+ * @method int    map_version() Mapping version.
+ * @method int    es_version()  Elasticsearch version.
  */
-class SP_Config extends SP_Singleton {
+class SP_Config {
+	use Singleton;
 
 	/**
 	 * Cached settings from wp_options.
 	 *
-	 * @var array
+	 * @var null|array {
+	 *     @type string $host        ES Host URL.
+	 *     @type bool   $must_init   Whether the index must be initialized.
+	 *     @type bool   $active      Whether SearchPress is active.
+	 *     @type int    $map_version Mapping version.
+	 *     @type int    $es_version  Elasticsearch version.
+	 * }
 	 */
 	public $settings;
 
 	/**
 	 * Cached post_statuses to index.
 	 *
-	 * @var array
+	 * @var array|null
 	 */
 	public $post_statuses;
 
 	/**
 	 * Cached post_types to index.
 	 *
-	 * @var array
+	 * @var array|null
 	 */
 	public $post_types;
 
@@ -37,15 +52,6 @@ class SP_Config extends SP_Singleton {
 	 * @var string
 	 */
 	public $namespace = 'searchpress/v1';
-
-	/**
-	 * Stub for initializing the singleton.
-	 *
-	 * @codeCoverageIgnore
-	 */
-	public function setup() {
-		// Initialize anything for the singleton here.
-	}
 
 	/**
 	 * Get an array of post_statuses which should be indexed. Only posts in
@@ -490,13 +496,4 @@ class SP_Config extends SP_Singleton {
 		$version = $this->get_setting( 'es_version' );
 		return -1 !== $version ? $version : SP_API()->version();
 	}
-}
-
-/**
- * Returns an initialized instance of the SP_Config class.
- *
- * @return SP_Config An initialized instance of the SP_Config class.
- */
-function SP_Config() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
-	return SP_Config::instance();
 }

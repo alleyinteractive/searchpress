@@ -36,8 +36,8 @@ class SP_Debug {
 	/**
 	 * Logs a debug message.
 	 *
-	 * @param string                 $action The action that was being undertaken.
-	 * @param array|bool|string|null $value  The value to log.
+	 * @param string $action The action that was being undertaken.
+	 * @param mixed  $value  The value to log.
 	 * @access public
 	 */
 	public static function debug( $action, $value = null ) {
