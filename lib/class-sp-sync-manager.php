@@ -11,6 +11,7 @@ use SearchPress\Singleton;
  * SearchPress Sync Manager. Controls the data sync from WordPress to Elasticsearch.
  *
  * Reminders and considerations while building this:
+ *
  * @todo Trigger massive reindex (potentially) when indexed usermeta is edited
  * @todo Trigger massive reindex when term data is edited
  * @todo Changing permalinks should trigger full reindex?

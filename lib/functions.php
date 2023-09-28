@@ -5,6 +5,7 @@
  * @package SearchPress
  */
 
+/* phpcs:disable WordPress.NamingConventions.ValidFunctionName */
 /**
  * Get the SP_API singleton.
  *
@@ -94,6 +95,7 @@ function SP_Sync_Manager() {
 function SP_Sync_Meta() {
 	return SP_Sync_Meta::instance();
 }
+/* phpcs:enable WordPress.NamingConventions.ValidFunctionName */
 
 /**
  * Pluck a certain field out of an ES response.
