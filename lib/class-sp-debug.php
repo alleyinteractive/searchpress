@@ -75,15 +75,16 @@ class SP_Debug {
 	}
 
 	/**
-	 * Triggers the sp_debug action to include the data before indexing.
+	 * Triggers the sp_debug filter to include the data before indexing.
 	 *
 	 * @param object $data The data passed to sp_post_pre_index.
 	 */
 	public static function debug_sp_post_pre_index( $data ) {
 		do_action( 'sp_debug', '[SP_Post] Post JSON', wp_json_encode( $data ) );
+		return $data;
 	}
 }
 add_action( 'sp_debug', array( 'SP_Debug', 'debug' ), 10, 2 );
-add_action( 'sp_post_pre_index', array( 'SP_Debug', 'debug_sp_post_pre_index' ), 999 );
+add_filter( 'sp_post_pre_index', array( 'SP_Debug', 'debug_sp_post_pre_index' ), 999 );
 
 SP_Debug::init();
