@@ -81,9 +81,10 @@ class SP_Debug {
 	 */
 	public static function debug_sp_post_pre_index( $data ) {
 		do_action( 'sp_debug', '[SP_Post] Post JSON', wp_json_encode( $data ) );
+		return $data;
 	}
 }
 add_action( 'sp_debug', array( 'SP_Debug', 'debug' ), 10, 2 );
-add_action( 'sp_post_pre_index', array( 'SP_Debug', 'debug_sp_post_pre_index' ), 999 );
+add_filter( 'sp_post_pre_index', array( 'SP_Debug', 'debug_sp_post_pre_index' ), 999 );
 
 SP_Debug::init();
