@@ -75,7 +75,7 @@ class SP_Debug {
 	}
 
 	/**
-	 * Triggers the sp_debug filter to include the data before indexing.
+	 * Triggers the sp_debug action to include the data before indexing.
 	 *
 	 * @param object $data The data passed to sp_post_pre_index.
 	 */
