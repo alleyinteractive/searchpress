@@ -2,5 +2,10 @@
   "name": "searchpress",
   "version": "0.5.0",
   "main": "Gruntfile.js",
-  "author": "Matthew Boynes"
+  "author": "Matthew Boynes",
+  "devDependencies": {
+    "grunt": "~1.4.1",
+    "grunt-wp-i18n": "~1.0.3",
+    "grunt-wp-readme-to-markdown": "~2.0.1"
+  }
 }

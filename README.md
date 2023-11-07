@@ -1,6 +1,8 @@
 SearchPress [<img align="right" src="https://travis-ci.org/alleyinteractive/searchpress.svg?branch=master" />](https://travis-ci.org/alleyinteractive/searchpress)
 ===========
 
+![SearchPress](https://user-images.githubusercontent.com/465154/116134994-887eff80-a69e-11eb-8e6a-cd7c51a9a5eb.png)
+
 Elasticsearch integration for WordPress.
 
 
@@ -23,8 +25,9 @@ SearchPress has a thorough battery of unit and integration tests to help add com
 Prerequisites
 -------------
 
-* [Elasticsearch](https://www.elastic.co/products/elasticsearch) 1.7+; 7.x recommended.
-* PHP 5.6+; PHP 7.4 recommended.
+* [Elasticsearch](https://www.elastic.co/elasticsearch): 6.8+
+* PHP: 7.4+
+* WordPress: 5.9+
 
 
 Setup
@@ -74,10 +77,25 @@ Changelog
 ### 0.5 _(in progress)_
 
 * Adds UI for authentication
+### 0.4.3
+
+* Adding support for Github Actions
+  * Test action for PHPCS
+  * Test action for unit tests
+
+### 0.4.1
+
+* Updates grunt packages to latest versions
+* Documents deprecated/removed filters in 0.4.0
+* Improves handling of indexing batch with no indexable posts
+* Adds filter `sp_post_index_path` for single post paths
+* Adds filter `sp_bulk_index_path` for bulk index paths
 
 ### 0.4
 
 * **CRITICAL BREAKING CHANGE:** Post meta indexing is now opt-in. See README for more information.
+* **POTENTIAL BREAKING CHANGE:** Removes `sp_post_indexable_meta` filter
+* Removes `sp_post_ignored_postmeta` filter
 * Adds support for ES 5.x, 6.x, 7.x
 * Fixes indexing bug with parentless attachments
 * Fixes a bug with bulk syncing attachments

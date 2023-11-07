@@ -3,7 +3,7 @@
 class SearchPress_UnitTestCase extends WP_UnitTestCase {
 	protected static $sp_settings;
 
-	public static function setUpBeforeClass() {
+	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
 
 		sp_index_flush_data();
@@ -14,7 +14,7 @@ class SearchPress_UnitTestCase extends WP_UnitTestCase {
 		sp_remove_sync_hooks();
 	}
 
-	public static function tearDownAfterClass() {
+	public static function tearDownAfterClass(): void {
 		SP_Sync_Meta()->reset( 'save' );
 		SP_Sync_Manager()->published_posts = false;
 		sp_index_flush_data();
@@ -23,15 +23,15 @@ class SearchPress_UnitTestCase extends WP_UnitTestCase {
 		wp_clear_scheduled_hook( 'sp_reindex' );
 		wp_clear_scheduled_hook( 'sp_heartbeat' );
 
-		return parent::tearDownAfterClass();
+		parent::tearDownAfterClass();
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		self::$sp_settings = SP_Config()->get_settings();
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		$this->reset_post_types();
 		$this->reset_taxonomies();
 		$this->reset_post_statuses();
