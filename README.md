@@ -77,6 +77,8 @@ Changelog
 ### 0.5 _(in progress)_
 
 * Adds UI for authentication
+* PHP 8.1/8.2 compatibility
+
 ### 0.4.3
 
 * Adding support for Github Actions
