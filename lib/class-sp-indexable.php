@@ -84,7 +84,7 @@ abstract class SP_Indexable {
 		}
 		if (
 			( isset( $types['date'] ) || isset( $types['datetime'] ) || isset( $types['time'] ) )
-			&& strlen( (string) $value ) <= 255 // Limit date/time strings to 255 chars for performance.
+			&& strlen( $value ) <= 255 // Limit date/time strings to 255 chars for performance.
 		) {
 			$time = false;
 			$int  = (int) $value;
@@ -93,7 +93,7 @@ abstract class SP_Indexable {
 			if ( (string) $int === (string) $value ) {
 				$time = $int;
 			} elseif ( ! is_numeric( $value ) ) {
-				$time = strtotime( (string) $value );
+				$time = strtotime( $value );
 			}
 
 			if ( false !== $time ) {

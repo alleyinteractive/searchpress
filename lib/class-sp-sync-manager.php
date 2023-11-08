@@ -48,14 +48,6 @@ class SP_Sync_Manager extends SP_Singleton {
 
 	/**
 	 * Enqueue a single post to be indexed.
-	 * Stores a cache of userdata to speed up indexing.
-	 *
-	 * @var array
-	 */
-	public $users = [];
-
-	/**
-	 * Sync a single post (on creation or update)
 	 *
 	 * @param int $post_id The post ID of the post to be indexed.
 	 */
