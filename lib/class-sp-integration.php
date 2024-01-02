@@ -141,7 +141,7 @@ class SP_Integration extends SP_Singleton {
 		$this->sp = get_query_var( 'sp' );
 
 		// If this is a search, but not a keyword search, we have to fake it.
-		if ( ! $wp_query->is_search() && ! empty( $this->sp ) && 1 === intval( $this->sp['force'] ) ) {
+		if ( ! $wp_query->is_search() && isset( $this->sp['force'] ) && 1 === intval( $this->sp['force'] ) ) {
 			// First, we'll set the search string to something phony.
 			$wp_query->set( 's', '1441f19754335ca4638bfdf1aea00c6d' );
 			$wp_query->is_search = true;
