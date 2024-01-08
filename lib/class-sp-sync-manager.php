@@ -29,6 +29,13 @@ class SP_Sync_Manager extends SP_Singleton {
 	public $published_posts = false;
 
 	/**
+	 * Stores a cache of userdata to speed up indexing.
+	 *
+	 * @var array
+	 */
+	public $users = [];
+
+	/**
 	 * Sync a single post (on creation or update)
 	 *
 	 * @todo if post should not be added, it's deleted (to account for unpublishing, etc). Make that more elegant.
@@ -295,7 +302,7 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @return int
 	 */
 	public function count_posts_indexed() {
-		$count = SP_API()->get( SP_API()->get_doc_type() . '/_count' );
+		$count = SP_API()->get( SP_API()->get_api_endpoint( '_count' ) );
 		return ! empty( $count->count ) ? intval( $count->count ) : 0;
 	}
 }

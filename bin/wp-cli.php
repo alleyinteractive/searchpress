@@ -35,7 +35,7 @@
  *      # Index posts published between 11-1-2015 and 12-30-2015 (inclusive)
  *      $ wp searchpress index --after-date=2015-11-01 --before-date=2015-12-30
  */
-class Searchpress_CLI_Command extends WP_CLI_Command {
+class SearchPress_CLI_Command extends WP_CLI_Command {
 
 	/**
 	 * Query arguments.
@@ -137,7 +137,39 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Index the current site or individual posts in Elasticsearch, optionally flushing any existing data and adding the document mapping.
+	 * Add date range when retrieving posts in bulk.
+	 * Dates need to be passed as YYYY-MM-DD. See synopsis for index function.
+	 *
+	 * @param $args array
+	 * @return $args array
+	 */
+	public function _apply_date_range( $args ) {
+		$args['date_query'] = array(
+			0 => array(
+				'inclusive' => true,
+			),
+		);
+		if ( isset ( $this->date_range['after'] ) ) {
+			$from = strtotime( $this->date_range['after'] );
+			$args['date_query'][0]['after'] = array(
+				'year'  => date( 'Y', $from ),
+				'month' => date( 'm', $from ),
+				'day'   => date( 'd', $from ),
+			);
+		}
+		if ( isset ( $this->date_range['before'] ) ) {
+			$to = strtotime( $this->date_range['before'] );
+			$args['date_query'][0]['before'] = array(
+				'year'  => date( 'Y', $to ),
+				'month' => date( 'm', $to ),
+				'day'   => date( 'd', $to ),
+			);
+		}
+		return $args;
+	}
+
+	/**
+	 * Index the current site or individual posts in elasticsearch, optionally flushing any existing data and adding the document mapping.
 	 *
 	 * ## OPTIONS
 	 *
@@ -275,8 +307,8 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 					$this->query_args['types'] = explode( ',', $assoc_args['post-types'] );
 				}
 
-				add_filter( 'searchpress_index_loop_args', array( $this, '__apply_searchpress_query_args' ) );
-				add_filter( 'searchpress_index_count_args', array( $this, '__apply_searchpress_query_args' ) );
+				add_filter( 'searchpress_index_loop_args', array( $this, '_apply_searchpress_query_args' ) );
+				add_filter( 'searchpress_index_count_args', array( $this, '_apply_searchpress_query_args' ) );
 			}
 
 			$limit_number = $assoc_args['limit'] > 0 ? $assoc_args['limit'] : SP_Sync_Manager()->count_posts();

@@ -8,13 +8,13 @@
 class Tests_Mapping_Postmeta extends SearchPress_UnitTestCase {
 	protected static $demo_post_id;
 
-	public static function setUpBeforeClass() {
+	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
 
 		self::$demo_post_id = self::factory()->post->create();
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		add_filter(
@@ -28,7 +28,7 @@ class Tests_Mapping_Postmeta extends SearchPress_UnitTestCase {
 		);
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		delete_post_meta( self::$demo_post_id, 'mapping_postmeta_test' );
 		delete_post_meta( self::$demo_post_id, 'long_string_test' );
 
@@ -129,7 +129,7 @@ class Tests_Mapping_Postmeta extends SearchPress_UnitTestCase {
 		if ( $should_truncate_raw ) {
 			$meta_raw = $this->search_and_get_field( array(), 'post_meta.long_string_test.raw' );
 			$this->assertNotSame( array( $string ), $meta_raw, 'Checking meta.raw' );
-			$this->assertContains( $meta_raw[0], $string );
+			$this->assertStringContainsString( $meta_raw[0], $string );
 		} else {
 			$this->assertSame( array( $string ), $this->search_and_get_field( array(), 'post_meta.long_string_test.raw' ), 'Checking meta.raw' );
 		}

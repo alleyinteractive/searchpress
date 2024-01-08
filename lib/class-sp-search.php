@@ -127,7 +127,7 @@ class SP_Search {
 				array(
 					'post_type'      => array_values( get_post_types() ),
 					'post_status'    => array_values( get_post_stati() ),
-					'posts_per_page' => count( $ids ),
+					'posts_per_page' => count( $ids ), // phpcs:ignore WordPress.WP.PostsPerPage.posts_per_page_posts_per_page
 					'post__in'       => $ids,
 					'orderby'        => 'post__in',
 					'order'          => 'ASC',
