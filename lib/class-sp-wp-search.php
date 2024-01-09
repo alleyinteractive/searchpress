@@ -205,7 +205,7 @@ class SP_WP_Search extends SP_Search {
 			foreach ( (array) $args['terms'] as $tax => $terms ) {
 				if ( is_array( $terms ) ) {
 					$terms = $terms;
-					$comp = 'or';
+					$comp  = 'or';
 				} elseif ( strpos( $terms, ',' ) ) {
 					$terms = explode( ',', $terms );
 					$comp  = 'or';
