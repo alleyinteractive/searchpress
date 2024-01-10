@@ -15,8 +15,6 @@
  * @todo Trigger massive reindex (potentially) when indexed usermeta is edited
  * @todo Trigger massive reindex when term data is edited
  * @todo Changing permalinks should trigger full reindex?
- *
- * @author Matthew Boynes
  */
 class SP_Sync_Manager extends SP_Singleton {
 
@@ -315,7 +313,6 @@ class SP_Sync_Manager extends SP_Singleton {
 function SP_Sync_Manager() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	return SP_Sync_Manager::instance();
 }
-
 
 /**
  * SP_Sync_Manager only gets instantiated when necessary, so we register these

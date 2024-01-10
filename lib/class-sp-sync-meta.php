@@ -9,8 +9,6 @@
  * Simple class for working with the meta information associated with ES Syncing.
  * Many of the methods are disabled if we're in the WP-CLI environment, but this
  * class is still used to track the meta data (for consistency)
- *
- * @author Matthew Boynes
  */
 class SP_Sync_Meta extends SP_Singleton {
 
