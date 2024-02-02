@@ -1,6 +1,6 @@
 # SearchPress [<img align="right" src="https://travis-ci.org/alleyinteractive/searchpress.svg?branch=master" />](https://travis-ci.org/alleyinteractive/searchpress)
 
-![searchpress](https://user-images.githubusercontent.com/465154/116134994-887eff80-a69e-11eb-8e6a-cd7c51a9a5eb.png)
+![SearchPress](https://user-images.githubusercontent.com/465154/116134994-887eff80-a69e-11eb-8e6a-cd7c51a9a5eb.png)
 
 Elasticsearch integration for WordPress.
 
@@ -18,8 +18,9 @@ Each stable release will be tagged and you'll be able to [download that release 
 Prerequisites
 -------------
 
-* [elasticsearch](https://www.elastic.co/products/elasticsearch) 1.7+; 5.0+ recommended.
-* PHP 5.3+; PHP 7 recommended.
+* [Elasticsearch](https://www.elastic.co/elasticsearch): 6.8+
+* PHP: 7.4+
+* WordPress: 5.9+
 
 
 Setup
@@ -63,6 +64,12 @@ add_filter(
 
 Changelog
 ---------
+
+### 0.4.3
+
+* Adding support for Github Actions
+  * Test action for PHPCS
+  * Test action for unit tests
 
 ### 0.4.2
 

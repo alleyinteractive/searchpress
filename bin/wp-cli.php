@@ -1,5 +1,7 @@
 <?php
 
+WP_CLI::add_command( 'searchpress', 'SearchPress_CLI_Command' );
+
 /**
  * Manage SearchPress through the command-line.
  *
@@ -35,7 +37,7 @@
  *      # Index posts published between 11-1-2015 and 12-30-2015 (inclusive)
  *      $ wp searchpress index --after-date=2015-11-01 --before-date=2015-12-30
  */
-class Searchpress_CLI_Command extends WP_CLI_Command {
+class SearchPress_CLI_Command extends WP_CLI_Command {
 
 	/**
 	 * Query arguments.
@@ -453,5 +455,3 @@ class Searchpress_CLI_Command extends WP_CLI_Command {
 		return $ret . absint( ceil( $seconds ) ) . 's';
 	}
 }
-
-WP_CLI::add_command( 'searchpress', 'Searchpress_CLI_Command' );
