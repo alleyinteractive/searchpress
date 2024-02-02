@@ -72,7 +72,6 @@ class SP_API extends SP_Singleton {
 		 *
 		 * @param bool   $verify_ssl Whether to verify SSL certificate for non-localhost requests.
 		 * @param string $host Elasticsearch host.
-		 * @return bool
 		 */
 		$verify_ssl = apply_filters( 'sp_api_verify_ssl', 'https' === $host_parts['scheme'] && 'localhost' !== $host_parts['host'], $this->host );
 
@@ -266,7 +265,19 @@ class SP_API extends SP_Singleton {
 				'body'   => $body,
 			)
 		);
-		$result         = sp_remote_request( $url, $request_params );
+
+		$result = sp_remote_request( $url, $request_params );
+
+		/**
+		 * Fires after a request is made to the API.
+		 *
+		 * @param array|WP_Error $result          The result of the request.
+		 * @param string         $url             The URL to send the request to.
+		 * @param string         $method          The method for the request. Defaults to GET.
+		 * @param string         $body            The body of the request.
+		 * @param array          $request_params  Additional parameters.
+		 */
+		do_action( 'sp_request_response', $result, $url, $method, $body, $request_params );
 
 		if ( ! is_wp_error( $result ) ) {
 			$this->last_request = array(
@@ -398,6 +409,7 @@ class SP_API extends SP_Singleton {
 		 * @param string $bulk_index_path Bulk index path.
 		 */
 		$bulk_index_path = apply_filters( 'sp_bulk_index_path', $this->get_api_endpoint( '_bulk' ) );
+
 		return $this->put(
 			$bulk_index_path,
 			wp_check_invalid_utf8( implode( "\n", $body ), true ) . "\n"
@@ -461,6 +473,7 @@ class SP_API extends SP_Singleton {
 		 * @param string $url URI or URL to hit to query the cluster health.
 		 */
 		$health_uri = apply_filters( 'sp_cluster_health_uri', '/_cluster/health?wait_for_status=yellow&timeout=200ms' ); // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
+
 		return $this->get( $health_uri );
 	}
 

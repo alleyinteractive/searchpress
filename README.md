@@ -21,7 +21,6 @@ We try to maintain backwards compatibility as much as possible. It's possible th
 
 SearchPress has a thorough battery of unit and integration tests to help add compatibility with each new Elasticsearch release, without compromising compatibility with older releases.
 
-
 Prerequisites
 -------------
 
@@ -70,7 +69,6 @@ add_filter(
 );
 ```
 
-
 Changelog
 ---------
 
@@ -78,6 +76,8 @@ Changelog
 
 * Adds UI for authentication
 * **POSSIBLE BREAKING CHANGE**: Moves SearchPress integration to the `posts_pre_query`.
+* Updated the "Tested up to" the latest current version (6.4).
+* Removed the phpDoc `@author` field.
 
 ### 0.4.3
 

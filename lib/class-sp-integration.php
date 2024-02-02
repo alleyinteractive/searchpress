@@ -186,8 +186,6 @@ class SP_Integration extends SP_Singleton {
 	 * Set a faceted search as a search (and thus force the search template). A hook for the parse_query action.
 	 *
 	 * @param object $wp_query The current WP_Query. Passed by reference and modified if necessary.
-	 * @return void
-	 * @author Matthew Boynes
 	 */
 	public function force_search_template( &$wp_query ) {
 		if ( ! $wp_query->is_main_query() ) {
