@@ -67,9 +67,14 @@ Changelog
 
 ### 0.4.3
 
-* Adding support for Github Actions
-  * Test action for PHPCS
-  * Test action for unit tests
+* Manually check for queried taxonomy terms when building facets
+* Adds support for Github Actions
+  * Tests action for PHPCS
+  * Tests action for unit tests
+* Removes double underscore for single to fix PHP warning
+* Updates phpunit
+* Adds support for ES 8.x
+* Adds support for PHP 8.1, 8.2
 
 ### 0.4.2
 
