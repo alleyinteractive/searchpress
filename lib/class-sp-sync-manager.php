@@ -333,7 +333,7 @@ class SP_Sync_Manager extends SP_Singleton {
 			$posts    = $this->get_posts(
 				array(
 					'post__in'       => $post_ids,
-					'posts_per_page' => count( $post_ids ),
+					'posts_per_page' => count( $post_ids ), // phpcs:ignore WordPress.WP.PostsPerPage
 				)
 			);
 			$response = SP_API()->index_posts( $posts );
