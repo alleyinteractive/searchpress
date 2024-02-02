@@ -323,9 +323,11 @@ class SP_Post extends SP_Indexable {
 	 * @return bool True if the post should be indexed, false if not.
 	 */
 	public function should_be_indexed() {
+		$should_be_indexed = true;
+
 		// Check post type.
 		if ( ! in_array( $this->data['post_type'], SP_Config()->sync_post_types(), true ) ) {
-			return false;
+			$should_be_indexed = false;
 		}
 
 		// Check post status.
@@ -334,11 +336,11 @@ class SP_Post extends SP_Indexable {
 		} else {
 			$post_status = $this->data['post_status'];
 		}
-		if ( ! in_array( $post_status, SP_Config()->sync_statuses(), true ) ) {
-			return false;
+		if ( $should_be_indexed && ! in_array( $post_status, SP_Config()->sync_statuses(), true ) ) {
+			$should_be_indexed = false;
 		}
 
-		return apply_filters( 'sp_post_should_be_indexed', true, $this );
+		return apply_filters( 'sp_post_should_be_indexed', $should_be_indexed, $this );
 	}
 
 	/**

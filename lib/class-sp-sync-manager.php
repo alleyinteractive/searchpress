@@ -42,39 +42,46 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @access public
 	 */
 	public function sync_post( $post_id ) {
-		$post     = new SP_Post( get_post( $post_id ) );
-		$response = SP_API()->index_post( $post );
-
-		if ( is_wp_error( $response ) && 'unindexable-post' === $response->get_error_code() ) {
-			// If the post should not be indexed, ensure it's not in the index already.
-			// @todo This is excessive, figure out a better way around it.
-			$this->delete_post( $post_id );
-			do_action( 'sp_debug', "[SP_Sync_Manager] Post {$post_id} is not indexable", $response );
-			return;
-		}
-
-		if ( ! $this->parse_error( $response, array( 200, 201 ) ) ) {
-			do_action( 'sp_debug', "[SP_Sync_Manager] Indexed Post {$post_id}", $response );
+		/**
+		 * Flag if the post should be synced asynchronously.
+		 *
+		 * @param bool $should_sync_async Flag if the post should be synced asynchronously, defaults to true.
+		 * @param int  $post_id Post ID.
+		 */
+		if ( apply_filters( 'sp_should_index_async', true, $post_id ) ) {
+			update_post_meta( $post_id, '_sp_index', '1' );
+			SP_Cron()->schedule_queue_index();
 		} else {
-			do_action( 'sp_debug', "[SP_Sync_Manager] Error Indexing Post {$post_id}", $response );
+			$post     = new SP_Post( get_post( $post_id ) );
+			$response = SP_API()->index_post( $post );
+
+			if ( is_wp_error( $response ) && 'unindexable-post' === $response->get_error_code() ) {
+				do_action( 'sp_debug', "[SP_Sync_Manager] Post {$post_id} is not indexable", $response );
+				return;
+			}
+
+			if ( ! $this->parse_error( $response, array( 200, 201 ) ) ) {
+				do_action( 'sp_debug', "[SP_Sync_Manager] Indexed Post {$post_id}", $response );
+			} else {
+				do_action( 'sp_debug', "[SP_Sync_Manager] Error Indexing Post {$post_id}", $response );
+			}
 		}
 	}
 
 	/**
 	 * Delete a post from the ES index.
 	 *
-	 * @param int $post_id The post ID of the post to delete.
-	 * @access public
+	 * @param int $post_id The post ID of the post to delete from Elasticsearch.
 	 */
 	public function delete_post( $post_id ) {
-		$response = SP_API()->delete_post( $post_id );
-
-		// We're OK with 404 responses here because a post might not be in the index.
-		if ( ! $this->parse_error( $response, array( 200, 404 ) ) ) {
-			do_action( 'sp_debug', '[SP_Sync_Manager] Deleted Post', $response );
-		} else {
-			do_action( 'sp_debug', '[SP_Sync_Manager] Error Deleting Post', $response );
+		$to_delete = get_option( 'sp_delete', array() );
+		if ( ! is_array( $to_delete ) ) {
+			$to_delete = array();
 		}
+		$to_delete[] = absint( $post_id );
+
+		update_option( 'sp_delete', array_unique( $to_delete ), 'no' );
+		SP_Cron()->schedule_queue_index();
 	}
 
 	/**
@@ -302,6 +309,101 @@ class SP_Sync_Manager extends SP_Singleton {
 	public function count_posts_indexed() {
 		$count = SP_API()->get( SP_API()->get_api_endpoint( '_count' ) );
 		return ! empty( $count->count ) ? intval( $count->count ) : 0;
+	}
+
+	/**
+	 * Update the index from the queue.
+	 *
+	 * @todo  if post should not be added, it's deleted (to account for unpublishing, etc). Make that more elegant.
+	 * @todo  abort if we're currently indexing?
+	 * @todo  try again on errors, perhaps up to 3 times?
+	 * @todo  store sp index version and date in post meta?
+	 */
+	public function update_index_from_queue() {
+		global $wpdb;
+
+		$sync_meta = SP_Sync_Meta();
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery
+		$post_ids = $wpdb->get_col( "SELECT SQL_CALC_FOUND_ROWS `post_id` FROM {$wpdb->postmeta} WHERE `meta_key`='_sp_index' LIMIT 500" ); // WPCS: cache ok.
+		$total    = $wpdb->get_var( 'SELECT FOUND_ROWS()' );
+		// phpcs:enable
+
+		if ( ! empty( $post_ids ) ) {
+			$posts    = $this->get_posts(
+				array(
+					'post__in'       => $post_ids,
+					'posts_per_page' => count( $post_ids ), // phpcs:ignore WordPress.WP.PostsPerPage
+				)
+			);
+			$response = SP_API()->index_posts( $posts );
+
+			do_action( 'sp_debug', sprintf( '[SP_Sync_Manager] Indexed %d Posts', count( $posts ) ), $response );
+
+			if ( 200 !== (int) SP_API()->last_request['response_code'] ) {
+				$sync_meta->log( new WP_Error( 'error', __( 'ES response failed', 'searchpress' ), SP_API()->last_request ) );
+				$sync_meta->save();
+			} elseif ( ! is_object( $response ) || ! isset( $response->items ) || ! is_array( $response->items ) ) {
+				$sync_meta->log( new WP_Error( 'error', __( 'Error indexing data', 'searchpress' ), $response ) );
+				$sync_meta->save();
+			} else {
+				foreach ( $response->items as $post ) {
+					// Status should be 200 or 201, depending on if we're updating or creating respectively.
+					if ( ! isset( $post->index->status ) ) {
+						$sync_meta->log(
+							new WP_Error(
+								'warning',
+								sprintf(
+									// translators: 1: Post ID, 2: API response.
+									__( 'Error indexing post %1$s; Response: %2$s', 'searchpress' ),
+									$post->index->_id,
+									wp_json_encode( $post )
+								),
+								$post
+							)
+						);
+					} elseif ( ! in_array( $post->index->status, array( 200, 201 ), true ) ) {
+						$sync_meta->log(
+							new WP_Error(
+								'warning',
+								sprintf(
+									// translators: 1: Post ID, 2: response cpde.
+									__( 'Error indexing post %1$s; HTTP response code: %2$s', 'searchpress' ),
+									$post->index->_id,
+									$post->index->status
+								),
+								$post
+							)
+						);
+					} else { // Success!
+						delete_post_meta( $post->index->_id, '_sp_index', '1' );
+					}
+				}
+			}
+
+			if ( $total > count( $post_ids ) ) {
+				SP_Cron()->schedule_queue_index();
+			}
+		}
+
+		// Get the posts to delete.
+		$delete_post_ids = get_option( 'sp_delete' );
+		if ( ! empty( $delete_post_ids ) && is_array( $delete_post_ids ) ) {
+
+			foreach ( $delete_post_ids as $delete_post_id ) {
+				// This is excessive, figure out a better way around it.
+				$response = SP_API()->delete_post( $delete_post_id );
+
+				// We're OK with 404 responses here because a post might not be in the index.
+				if ( ! $this->parse_error( $response, array( 200, 404 ) ) ) {
+					do_action( 'sp_debug', '[SP_Sync_Manager] Deleted Post', $response );
+				} else {
+					do_action( 'sp_debug', '[SP_Sync_Manager] Error Deleting Post', $response );
+				}
+			}
+		}
+
+		delete_option( 'sp_delete' );
 	}
 }
 
