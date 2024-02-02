@@ -25,6 +25,13 @@ class SP_API extends SP_Singleton {
 	public $index = '';
 
 	/**
+	 * The auth header.
+	 *
+	 * @var string
+	 */
+	public $auth_header = '';
+
+	/**
 	 * The document type.
 	 *
 	 * In ES < 6.0, this was like a database table. ES 6.0 deprecated this in
@@ -55,34 +62,93 @@ class SP_API extends SP_Singleton {
 	 * @codeCoverageIgnore
 	 */
 	public function setup() {
-		$url         = get_site_url();
-		$this->index = preg_replace( '#^.*?//(.*?)/?$#', '$1', $url );
-		$this->host  = SP_Config()->get_setting( 'host' );
-		$host_parts  = wp_parse_url( $this->host );
+		$this->index       = $this->get_index_name();
+		$this->host        = $this->get_host();
+		$this->auth_header = $this->get_auth_header();
+		$host_parts        = wp_parse_url( $this->host );
 
 		/**
 		 * Override SSL verification for API requests
 		 *
 		 * @param bool   $verify_ssl Whether to verify SSL certificate for non-localhost requests.
 		 * @param string $host Elasticsearch host.
-		 * @return bool
 		 */
 		$verify_ssl = apply_filters( 'sp_api_verify_ssl', 'https' === $host_parts['scheme'] && 'localhost' !== $host_parts['host'], $this->host );
 
 		$this->request_defaults = array(
 			'sslverify'          => $verify_ssl,
 			'timeout'            => 10, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
-			'user-agent'         => 'SearchPress 0.1 for WordPress',
+			'user-agent'         => sprintf( 'SearchPress version %s for WordPress', SP_VERSION ),
 			'reject_unsafe_urls' => false,
 			'headers'            => array(
 				'Content-Type' => 'application/json',
 			),
 		);
+		if ( ! empty( $this->auth_header ) ) {
+			$this->request_defaults['headers']['Authorization'] = $this->auth_header;
+		}
 
 		// Increase the timeout for bulk indexing.
 		if ( wp_doing_cron() || defined( 'WP_CLI' ) && WP_CLI ) {
 			$this->request_defaults['timeout'] = 60; // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 		}
+	}
+
+	/**
+	 * Get the Elasticsearch host (url).
+	 *
+	 * @return string
+	 */
+	protected function get_host() {
+		if ( defined( 'SP_ES_HOST' ) ) {
+			return SP_ES_HOST;
+		}
+
+		return SP_Config()->get_setting( 'host' );
+	}
+
+	/**
+	 * Get the index name.
+	 *
+	 * The index name might come from a constant, a setting, or the current
+	 * site's URL.
+	 *
+	 * @return string
+	 */
+	protected function get_index_name() {
+		if ( defined( 'SP_ES_INDEX' ) ) {
+			return SP_ES_INDEX;
+		}
+
+		$index_setting = SP_Config()->get_setting( 'index' );
+		if ( ! empty( $index_setting ) ) {
+			return $index_setting;
+		}
+
+		return preg_replace( '#^.*?//(.*?)/?$#', '$1', get_site_url() );
+	}
+
+	/**
+	 * Get the auth header value.
+	 *
+	 * @return string|null
+	 */
+	protected function get_auth_header() {
+		if ( defined( 'SP_ES_AUTH' ) ) {
+			return SP_ES_AUTH;
+		}
+
+		$basic_auth_setting = SP_Config()->get_setting( 'basic_auth' );
+		if ( ! empty( $basic_auth_setting ) ) {
+			return "Basic {$basic_auth_setting}";
+		}
+
+		$auth_header_setting = SP_Config()->get_setting( 'auth_header' );
+		if ( ! empty( $auth_header_setting ) ) {
+			return $auth_header_setting;
+		}
+
+		return null;
 	}
 
 	/**
@@ -199,7 +265,19 @@ class SP_API extends SP_Singleton {
 				'body'   => $body,
 			)
 		);
-		$result         = sp_remote_request( $url, $request_params );
+
+		$result = sp_remote_request( $url, $request_params );
+
+		/**
+		 * Fires after a request is made to the API.
+		 *
+		 * @param array|WP_Error $result          The result of the request.
+		 * @param string         $url             The URL to send the request to.
+		 * @param string         $method          The method for the request. Defaults to GET.
+		 * @param string         $body            The body of the request.
+		 * @param array          $request_params  Additional parameters.
+		 */
+		do_action( 'sp_request_response', $result, $url, $method, $body, $request_params );
 
 		if ( ! is_wp_error( $result ) ) {
 			$this->last_request = array(
@@ -331,6 +409,7 @@ class SP_API extends SP_Singleton {
 		 * @param string $bulk_index_path Bulk index path.
 		 */
 		$bulk_index_path = apply_filters( 'sp_bulk_index_path', $this->get_api_endpoint( '_bulk' ) );
+
 		return $this->put(
 			$bulk_index_path,
 			wp_check_invalid_utf8( implode( "\n", $body ), true ) . "\n"
@@ -362,7 +441,16 @@ class SP_API extends SP_Singleton {
 				'output' => OBJECT,
 			)
 		);
-		return $this->post( $this->get_api_endpoint( '_search' ), $query, $args['output'] );
+
+		/**
+		 * Filter the Elasticsearch search endpoint.
+		 *
+		 * @param string $uri  URI for the search request.
+		 * @param array  $args Arguments for the search request.
+		 */
+		$uri = apply_filters( 'sp_search_uri', $this->get_api_endpoint( '_search' ), $args );
+
+		return $this->post( $uri, $query, $args['output'] );
 	}
 
 	/**
@@ -385,6 +473,7 @@ class SP_API extends SP_Singleton {
 		 * @param string $url URI or URL to hit to query the cluster health.
 		 */
 		$health_uri = apply_filters( 'sp_cluster_health_uri', '/_cluster/health?wait_for_status=yellow&timeout=200ms' ); // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
+
 		return $this->get( $health_uri );
 	}
 

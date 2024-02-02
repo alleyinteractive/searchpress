@@ -72,7 +72,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 	 * Simply ensure that this works.
 	 */
 	function test_admin() {
-		SP_Admin();
+		$this->assertInstanceOf( SP_Admin::class, SP_Admin() );
 	}
 
 	/**
