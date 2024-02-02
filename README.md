@@ -72,12 +72,19 @@ add_filter(
 Changelog
 ---------
 
-### 0.5 _(in progress)_
+### 0.5
 
-* Adds UI for authentication
 * **POSSIBLE BREAKING CHANGE**: Moves SearchPress integration to the `posts_pre_query`.
-* Updated the "Tested up to" the latest current version (6.4).
-* Removed the phpDoc `@author` field.
+* Adds UI for authentication
+* Trims trailing slashes from ES host value
+* Adds the `sp_search_uri` filter
+* Addresses phpcs issues
+* Disables flush via UI
+* Adjusts empty-string search integrations
+* Filters the log message for the error
+* Adds support for pasing an array of terms in SP_WP_Search
+* Cleans up inline documentation
+* Adds the `sp_request_response` action hook to the `SP_API` class
 
 ### 0.4.3
 
