@@ -15,8 +15,6 @@
  * @todo Trigger massive reindex (potentially) when indexed usermeta is edited
  * @todo Trigger massive reindex when term data is edited
  * @todo Changing permalinks should trigger full reindex?
- *
- * @author Matthew Boynes
  */
 class SP_Sync_Manager extends SP_Singleton {
 
@@ -29,27 +27,19 @@ class SP_Sync_Manager extends SP_Singleton {
 	public $published_posts = false;
 
 	/**
-	 * Setup the singleton.
+	 * Stores a cache of userdata to speed up indexing.
+	 *
+	 * @var array
 	 */
-	public function setup() {
-		if ( SP_Config()->active() ) {
-			// When posts & attachments get_updated, queue up syncs.
-			add_action( 'save_post', array( $this, 'sync_post' ) );
-			add_action( 'edit_attachment', array( $this, 'sync_post' ) );
-			add_action( 'add_attachment', array( $this, 'sync_post' ) );
-			add_action( 'deleted_post', array( $this, 'delete_post' ) );
-			add_action( 'trashed_post', array( $this, 'delete_post' ) );
-
-			// @TODO When terms or term relationships get updated, queue up syncs.
-			// @TODO When users get updated, queue up syncs for their posts.
-			// @TODO When post parents get updated, queue up syncs for their child posts.
-		}
-	}
+	public $users = [];
 
 	/**
-	 * Enqueue a single post to be indexed.
+	 * Sync a single post (on creation or update)
 	 *
-	 * @param int $post_id The post ID of the post to be indexed.
+	 * @todo if post should not be added, it's deleted (to account for unpublishing, etc). Make that more elegant.
+	 *
+	 * @param int $post_id The post ID of the post to be sync'd.
+	 * @access public
 	 */
 	public function sync_post( $post_id ) {
 		/**
@@ -317,7 +307,7 @@ class SP_Sync_Manager extends SP_Singleton {
 	 * @return int
 	 */
 	public function count_posts_indexed() {
-		$count = SP_API()->get( SP_API()->get_doc_type() . '/_count' );
+		$count = SP_API()->get( SP_API()->get_api_endpoint( '_count' ) );
 		return ! empty( $count->count ) ? intval( $count->count ) : 0;
 	}
 
@@ -425,4 +415,11 @@ class SP_Sync_Manager extends SP_Singleton {
 function SP_Sync_Manager() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	return SP_Sync_Manager::instance();
 }
-add_action( 'after_setup_theme', 'SP_Sync_Manager' );
+
+/**
+ * SP_Sync_Manager only gets instantiated when necessary, so we register these
+ * hooks outside of the class.
+ */
+if ( SP_Config()->active() ) {
+	sp_add_sync_hooks();
+}
