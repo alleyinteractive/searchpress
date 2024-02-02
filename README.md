@@ -64,7 +64,17 @@ add_filter(
 Changelog
 ---------
 
-### 0.4.2 _(in progress)_
+### 0.4.2
+
+* CLI improvements
+  * Improves PHPDoc
+  * Adds more CLI command examples
+  * Adds more standards from https://make.wordpress.org/cli/handbook/guides/commands-cookbook/
+  * Uses WP_CLI::log instead of WP_CLI::line
+  * The debug command checks for the existence of a valid post and adds a warning for SP_DEBUG and SAVEQUERIES
+  * Uses WP_CLI\Utils\get_flag_value to get flag values
+  * Uses quote instead of double quotes
+  * Adds support for --post-types argument
 
 ### 0.4.1
 
