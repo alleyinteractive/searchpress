@@ -81,9 +81,26 @@ Changelog
 
 ### 0.4.3
 
-* Adding support for Github Actions
-  * Test action for PHPCS
-  * Test action for unit tests
+* Manually check for queried taxonomy terms when building facets
+* Adds support for Github Actions
+  * Tests action for PHPCS
+  * Tests action for unit tests
+* Removes double underscore for single to fix PHP warning
+* Updates phpunit
+* Adds support for ES 8.x
+* Adds support for PHP 8.1, 8.2
+
+### 0.4.2
+
+* CLI improvements
+  * Improves PHPDoc
+  * Adds more CLI command examples
+  * Adds more standards from https://make.wordpress.org/cli/handbook/guides/commands-cookbook/
+  * Uses WP_CLI::log instead of WP_CLI::line
+  * The debug command checks for the existence of a valid post and adds a warning for SP_DEBUG and SAVEQUERIES
+  * Uses WP_CLI\Utils\get_flag_value to get flag values
+  * Uses quote instead of double quotes
+  * Adds support for --post-types argument
 
 ### 0.4.1
 
