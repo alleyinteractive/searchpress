@@ -178,7 +178,7 @@ Thank you for your interest in contributing to SearchPress! Here's a guide on ou
 2. Semantic versioning (`major.minor.patch`) is used, where bug fixes increment the `patch` and larger changes increment the `minor`. When we ship a `major` release, we’ll follow rules of backwards-compatible breakage more closely.
 3. Each release gets tagged in git with the release, e.g. `tag/v0.4.1`. See the [Releases page](https://github.com/alleyinteractive/searchpress/releases) for all releases.
 4. At any given time, there should be two active “next release” branches, one `minor` and one `patch`
-	* As a for-instance, if the current release is 0.4.1, then there should be a branch for `release/0.4.2` and a branch for `release/0.5`.
+	* For instance, if the current release is 0.4.1, then there should be a branch for `release/0.4.2` and a branch for `release/0.5`.
 	* When a release is shipped, at least a new branch should be created for the next `patch` release, e.g. if 0.4.2 ships then `release/0.4.3` should be created as part of that process. When 0.5.0 ships, then both `release/0.5.1` and `release/0.6` should be created.
 	* When a release is shipped, its corresponding branch is merged into `main` and deleted.
 	* **Purpose:** this allows us to make and prep larger changes over longer periods of time (using the next `minor` branch) without interrupting the ability to ship hotfixes.
