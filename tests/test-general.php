@@ -4,7 +4,7 @@
  * @group general
  */
 class Tests_General extends SearchPress_UnitTestCase {
-	public static function setUpBeforeClass() {
+	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
 
 		self::index(
@@ -35,7 +35,7 @@ class Tests_General extends SearchPress_UnitTestCase {
 		SP_Integration()->init_hooks();
 		$this->go_to( '/?s=trackback' );
 		$this->assertEquals( get_query_var( 's' ), 'trackback' );
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 	}
 
 	function test_settings() {

@@ -1,23 +1,32 @@
-# SearchPress [<img align="right" src="https://travis-ci.org/alleyinteractive/searchpress.svg?branch=master" />](https://travis-ci.org/alleyinteractive/searchpress)
+SearchPress
+===========
+
+![SearchPress](https://user-images.githubusercontent.com/465154/116134994-887eff80-a69e-11eb-8e6a-cd7c51a9a5eb.png)
 
 Elasticsearch integration for WordPress.
 
 
-Currently in Beta
------------------
+Release Information
+-------------------
 
-SearchPress is currently in beta. The most significant impact of this is backwards compatibility. Until SearchPress reaches its first full release (1.0), backwards compatibility will not be guaranteed. In most cases, this will only impact you if you're using SearchPress in an advanced or custom manner. That said, even if you aren't, it's best to perform a reindex after updating SearchPress.
+Each stable release gets tagged and you can [download releases from GitHub](https://github.com/alleyinteractive/searchpress/releases). `master` points to the latest stable release at any given time.
 
-Each stable release will be tagged and you'll be able to [download that release indefinitely](https://github.com/alleyinteractive/searchpress/releases).
+### Pre-Release Versions
 
-`master` should be considered a nightly build and should be tested carefully before deploying to production environments. `master` will never contain code known to not be stable, and SearchPress has a thorough battery of unit tests to help maintain that. Furthermore, SearchPress uses Travis CI to test against a range of versions of PHP, WordPress, and Elasticsearch to help maximize stability and minimize surprises.
+Pre-release development happens against `release/<version>` branches. Once a release is ready-to-ship, it is merged into `master` and tagged.
 
+### Backwards Compatibility & Breaking Changes
+
+We try to maintain backwards compatibility as much as possible. It's possible that releases will need to contain breaking changes from time to time, especially as Elasticsearch itself is a constantly changing product. Breaking changes will be detailed in release notes.
+
+SearchPress has a thorough battery of unit and integration tests to help add compatibility with each new Elasticsearch release, without compromising compatibility with older releases.
 
 Prerequisites
 -------------
 
-* [elasticsearch](https://www.elastic.co/products/elasticsearch) 1.7+; 5.0+ recommended.
-* PHP 5.3+; PHP 7 recommended.
+* [Elasticsearch](https://www.elastic.co/elasticsearch): 6.8+
+* PHP: 7.4+
+* WordPress: 5.9+
 
 
 Setup
@@ -25,7 +34,8 @@ Setup
 
 1. Upload to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
-3. You'll be prompted to add your elasticsearch endpoint and to index your posts
+3. You'll be prompted to add your Elasticsearch endpoint and to index your posts
+    * SearchPress provides a WP-CLI command for faster indexing on large sites
 4. Once indexing is complete, you're good to go!
 
 
@@ -62,9 +72,56 @@ add_filter(
 Changelog
 ---------
 
+### 0.5
+
+* **POSSIBLE BREAKING CHANGE**: Moves SearchPress integration to the `posts_pre_query`.
+* Adds UI for authentication
+* Trims trailing slashes from ES host value
+* Adds the `sp_search_uri` filter
+* Addresses phpcs issues
+* Disables flush via UI
+* Adjusts empty-string search integrations
+* Filters the log message for the error
+* Adds support for pasing an array of terms in SP_WP_Search
+* Cleans up inline documentation
+* Adds the `sp_request_response` action hook to the `SP_API` class
+
+### 0.4.3
+
+* Manually check for queried taxonomy terms when building facets
+* Adds support for Github Actions
+  * Tests action for PHPCS
+  * Tests action for unit tests
+* Removes double underscore for single to fix PHP warning
+* Updates phpunit
+* Adds support for ES 8.x
+* Adds support for PHP 8.1, 8.2
+
+### 0.4.2
+
+* CLI improvements
+  * Improves PHPDoc
+  * Adds more CLI command examples
+  * Adds more standards from https://make.wordpress.org/cli/handbook/guides/commands-cookbook/
+  * Uses WP_CLI::log instead of WP_CLI::line
+  * The debug command checks for the existence of a valid post and adds a warning for SP_DEBUG and SAVEQUERIES
+  * Uses WP_CLI\Utils\get_flag_value to get flag values
+  * Uses quote instead of double quotes
+  * Adds support for --post-types argument
+
+### 0.4.1
+
+* Updates grunt packages to latest versions
+* Documents deprecated/removed filters in 0.4.0
+* Improves handling of indexing batch with no indexable posts
+* Adds filter `sp_post_index_path` for single post paths
+* Adds filter `sp_bulk_index_path` for bulk index paths
+
 ### 0.4
 
 * **CRITICAL BREAKING CHANGE:** Post meta indexing is now opt-in. See README for more information.
+* **POTENTIAL BREAKING CHANGE:** Removes `sp_post_indexable_meta` filter
+* Removes `sp_post_ignored_postmeta` filter
 * Adds support for ES 5.x, 6.x, 7.x
 * Fixes indexing bug with parentless attachments
 * Fixes a bug with bulk syncing attachments

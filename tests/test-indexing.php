@@ -4,7 +4,7 @@
  * @group indexing
  */
 class Tests_Indexing extends SearchPress_UnitTestCase {
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		sp_index_flush_data();
