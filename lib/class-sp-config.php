@@ -32,6 +32,13 @@ class SP_Config extends SP_Singleton {
 	public $post_types;
 
 	/**
+	 * REST API namespace.
+	 *
+	 * @var string
+	 */
+	public $namespace = 'searchpress/v1';
+
+	/**
 	 * Stub for initializing the singleton.
 	 *
 	 * @codeCoverageIgnore
@@ -68,6 +75,15 @@ class SP_Config extends SP_Singleton {
 			 * @param array $post_statuses Valid post statuses to index.
 			 */
 			$this->post_statuses = apply_filters( 'sp_config_sync_statuses', $this->post_statuses );
+
+			// If we haven't hit `wp_loaded` yet, we don't want to cache the post
+			// statuses in the property, since not all post statuses may have been
+			// registered yet.
+			if ( ! did_action( 'wp_loaded' ) ) {
+				$uncached_post_statuses = $this->post_statuses;
+				$this->post_statuses    = null;
+				return $uncached_post_statuses;
+			}
 		}
 		return $this->post_statuses;
 	}
@@ -88,8 +104,8 @@ class SP_Config extends SP_Singleton {
 						'exclude_from_search' => false,
 					),
 					'names',
-					'or' 
-				) 
+					'or'
+				)
 			);
 
 			/**
@@ -104,6 +120,15 @@ class SP_Config extends SP_Singleton {
 			 * @param array $post_types Valid post types to index.
 			 */
 			$this->post_types = apply_filters( 'sp_config_sync_post_types', $this->post_types );
+
+			// If we haven't hit `wp_loaded` yet, we don't want to cache the post
+			// types in the property, since not all post types may have been
+			// registered yet.
+			if ( ! did_action( 'wp_loaded' ) ) {
+				$uncached_post_types = $this->post_types;
+				$this->post_types    = null;
+				return $uncached_post_types;
+			}
 		}
 		return $this->post_types;
 	}
@@ -134,7 +159,7 @@ class SP_Config extends SP_Singleton {
 					'analyzer' => array(
 						'default' => array(
 							'tokenizer' => 'standard',
-							'filter'    => array( 'standard', 'sp_word_delimiter', 'lowercase', 'stop', 'sp_snowball' ),
+							'filter'    => array( 'sp_word_delimiter', 'lowercase', 'stop', 'sp_snowball' ),
 							'language'  => 'English',
 						),
 					),
@@ -151,185 +176,189 @@ class SP_Config extends SP_Singleton {
 				),
 			),
 			'mappings' => array(
-				'post' => array(
-					'date_detection'    => false,
-					'dynamic_templates' => array(
-						array(
-							'template_meta' => array(
-								'path_match' => 'post_meta.*',
-								'mapping'    => array(
-									'type'       => 'object',
-									'properties' => array(
-										'value'    => array( 'type' => $analyzed_string_type ),
-										'raw'      => $not_analyzed_string,
-										'long'     => array( 'type' => 'long' ),
-										'double'   => array( 'type' => 'double' ),
-										'boolean'  => array( 'type' => 'boolean' ),
-										'date'     => array(
-											'type'   => 'date',
-											'format' => 'YYYY-MM-dd',
-										),
-										'datetime' => array(
-											'type'   => 'date',
-											'format' => 'YYYY-MM-dd HH:mm:ss',
-										),
-										'time'     => array(
-											'type'   => 'date',
-											'format' => 'HH:mm:ss',
-										),
+				'date_detection'    => false,
+				'dynamic_templates' => array(
+					array(
+						'template_meta' => array(
+							'path_match' => 'post_meta.*',
+							'mapping'    => array(
+								'type'       => 'object',
+								'properties' => array(
+									'value'    => array( 'type' => $analyzed_string_type ),
+									'raw'      => $not_analyzed_string,
+									'long'     => array( 'type' => 'long' ),
+									'double'   => array( 'type' => 'double' ),
+									'boolean'  => array( 'type' => 'boolean' ),
+									'date'     => array(
+										'type'   => 'date',
+										'format' => 'yyyy-MM-dd',
 									),
-								),
-							),
-						),
-						array(
-							'template_terms' => array(
-								'path_match' => 'terms.*',
-								'mapping'    => array(
-									'type'       => 'object',
-									'properties' => array(
-										'name'    => array(
-											'type'   => $analyzed_string_type,
-											'fields' => array(
-												'raw' => $not_analyzed_string,
-											),
-										),
-										'term_id' => array( 'type' => 'long' ),
-										'parent'  => array( 'type' => 'long' ),
-										'slug'    => $not_analyzed_string,
+									'datetime' => array(
+										'type'   => 'date',
+										'format' => 'yyyy-MM-dd HH:mm:ss',
+									),
+									'time'     => array(
+										'type'   => 'date',
+										'format' => 'HH:mm:ss',
 									),
 								),
 							),
 						),
 					),
-					'_all'              => array( 'enabled' => false ),
-					'properties'        => array(
-						'post_id'           => array( 'type' => 'long' ),
-						'post_author'       => array(
-							'type'       => 'object',
-							'properties' => array(
-								'user_id'       => array( 'type' => 'long' ),
-								'display_name'  => array( 'type' => $analyzed_string_type ),
-								'login'         => $not_analyzed_string,
-								'user_nicename' => $not_analyzed_string,
-							),
-						),
-						'post_date'         => array(
-							'type'           => 'object',
-							'include_in_all' => false,
-							'properties'     => array(
-								'date'              => array(
-									'type'   => 'date',
-									'format' => 'YYYY-MM-dd HH:mm:ss||YYYY-MM-dd',
+					array(
+						'template_terms' => array(
+							'path_match' => 'terms.*',
+							'mapping'    => array(
+								'type'       => 'object',
+								'properties' => array(
+									'name'    => array(
+										'type'   => $analyzed_string_type,
+										'fields' => array(
+											'raw' => $not_analyzed_string,
+										),
+									),
+									'term_id' => array( 'type' => 'long' ),
+									'parent'  => array( 'type' => 'long' ),
+									'slug'    => $not_analyzed_string,
 								),
-								'year'              => array( 'type' => 'short' ),
-								'month'             => array( 'type' => 'byte' ),
-								'day'               => array( 'type' => 'byte' ),
-								'hour'              => array( 'type' => 'byte' ),
-								'minute'            => array( 'type' => 'byte' ),
-								'second'            => array( 'type' => 'byte' ),
-								'week'              => array( 'type' => 'byte' ),
-								'day_of_week'       => array( 'type' => 'byte' ),
-								'day_of_year'       => array( 'type' => 'short' ),
-								'seconds_from_day'  => array( 'type' => 'integer' ),
-								'seconds_from_hour' => array( 'type' => 'short' ),
 							),
 						),
-						'post_date_gmt'     => array(
-							'type'           => 'object',
-							'include_in_all' => false,
-							'properties'     => array(
-								'date'              => array(
-									'type'   => 'date',
-									'format' => 'YYYY-MM-dd HH:mm:ss||YYYY-MM-dd',
-								),
-								'year'              => array( 'type' => 'short' ),
-								'month'             => array( 'type' => 'byte' ),
-								'day'               => array( 'type' => 'byte' ),
-								'hour'              => array( 'type' => 'byte' ),
-								'minute'            => array( 'type' => 'byte' ),
-								'second'            => array( 'type' => 'byte' ),
-								'week'              => array( 'type' => 'byte' ),
-								'day_of_week'       => array( 'type' => 'byte' ),
-								'day_of_year'       => array( 'type' => 'short' ),
-								'seconds_from_day'  => array( 'type' => 'integer' ),
-								'seconds_from_hour' => array( 'type' => 'short' ),
-							),
-						),
-						'post_modified'     => array(
-							'type'           => 'object',
-							'include_in_all' => false,
-							'properties'     => array(
-								'date'              => array(
-									'type'   => 'date',
-									'format' => 'YYYY-MM-dd HH:mm:ss||YYYY-MM-dd',
-								),
-								'year'              => array( 'type' => 'short' ),
-								'month'             => array( 'type' => 'byte' ),
-								'day'               => array( 'type' => 'byte' ),
-								'hour'              => array( 'type' => 'byte' ),
-								'minute'            => array( 'type' => 'byte' ),
-								'second'            => array( 'type' => 'byte' ),
-								'week'              => array( 'type' => 'byte' ),
-								'day_of_week'       => array( 'type' => 'byte' ),
-								'day_of_year'       => array( 'type' => 'short' ),
-								'seconds_from_day'  => array( 'type' => 'integer' ),
-								'seconds_from_hour' => array( 'type' => 'short' ),
-							),
-						),
-						'post_modified_gmt' => array(
-							'type'           => 'object',
-							'include_in_all' => false,
-							'properties'     => array(
-								'date'              => array(
-									'type'   => 'date',
-									'format' => 'YYYY-MM-dd HH:mm:ss||YYYY-MM-dd',
-								),
-								'year'              => array( 'type' => 'short' ),
-								'month'             => array( 'type' => 'byte' ),
-								'day'               => array( 'type' => 'byte' ),
-								'hour'              => array( 'type' => 'byte' ),
-								'minute'            => array( 'type' => 'byte' ),
-								'second'            => array( 'type' => 'byte' ),
-								'week'              => array( 'type' => 'byte' ),
-								'day_of_week'       => array( 'type' => 'byte' ),
-								'day_of_year'       => array( 'type' => 'short' ),
-								'seconds_from_day'  => array( 'type' => 'integer' ),
-								'seconds_from_hour' => array( 'type' => 'short' ),
-							),
-						),
-						'post_title'        => array(
-							'type'   => $analyzed_string_type,
-							'fields' => array(
-								'raw' => $not_analyzed_string,
-							),
-						),
-						'post_excerpt'      => array( 'type' => $analyzed_string_type ),
-						'post_content'      => array( 'type' => $analyzed_string_type ),
-						'post_status'       => $not_analyzed_string,
-						'parent_status'     => $not_analyzed_string,
-						'post_name'         => array(
-							'type'   => $analyzed_string_type,
-							'fields' => array(
-								'raw' => $not_analyzed_string,
-							),
-						),
-						'post_parent'       => array( 'type' => 'long' ),
-						'post_type'         => array(
-							'type'   => $analyzed_string_type,
-							'fields' => array(
-								'raw' => $not_analyzed_string,
-							),
-						),
-						'post_mime_type'    => $not_analyzed_string,
-						'post_password'     => $not_analyzed_string,
-						'menu_order'        => array( 'type' => 'integer' ),
-						'permalink'         => array( 'type' => $analyzed_string_type ),
-						'terms'             => array( 'type' => 'object' ),
-						'post_meta'         => array( 'type' => 'object' ),
 					),
+				),
+				'properties'        => array(
+					'post_id'           => array( 'type' => 'long' ),
+					'post_author'       => array(
+						'type'       => 'object',
+						'properties' => array(
+							'user_id'       => array( 'type' => 'long' ),
+							'display_name'  => array( 'type' => $analyzed_string_type ),
+							'login'         => $not_analyzed_string,
+							'user_nicename' => $not_analyzed_string,
+						),
+					),
+					'post_date'         => array(
+						'type'       => 'object',
+						'properties' => array(
+							'date'              => array(
+								'type'   => 'date',
+								'format' => 'yyyy-MM-dd HH:mm:ss||yyyy-MM-dd',
+							),
+							'year'              => array( 'type' => 'short' ),
+							'month'             => array( 'type' => 'byte' ),
+							'day'               => array( 'type' => 'byte' ),
+							'hour'              => array( 'type' => 'byte' ),
+							'minute'            => array( 'type' => 'byte' ),
+							'second'            => array( 'type' => 'byte' ),
+							'week'              => array( 'type' => 'byte' ),
+							'day_of_week'       => array( 'type' => 'byte' ),
+							'day_of_year'       => array( 'type' => 'short' ),
+							'seconds_from_day'  => array( 'type' => 'integer' ),
+							'seconds_from_hour' => array( 'type' => 'short' ),
+						),
+					),
+					'post_date_gmt'     => array(
+						'type'       => 'object',
+						'properties' => array(
+							'date'              => array(
+								'type'   => 'date',
+								'format' => 'yyyy-MM-dd HH:mm:ss||yyyy-MM-dd',
+							),
+							'year'              => array( 'type' => 'short' ),
+							'month'             => array( 'type' => 'byte' ),
+							'day'               => array( 'type' => 'byte' ),
+							'hour'              => array( 'type' => 'byte' ),
+							'minute'            => array( 'type' => 'byte' ),
+							'second'            => array( 'type' => 'byte' ),
+							'week'              => array( 'type' => 'byte' ),
+							'day_of_week'       => array( 'type' => 'byte' ),
+							'day_of_year'       => array( 'type' => 'short' ),
+							'seconds_from_day'  => array( 'type' => 'integer' ),
+							'seconds_from_hour' => array( 'type' => 'short' ),
+						),
+					),
+					'post_modified'     => array(
+						'type'       => 'object',
+						'properties' => array(
+							'date'              => array(
+								'type'   => 'date',
+								'format' => 'yyyy-MM-dd HH:mm:ss||yyyy-MM-dd',
+							),
+							'year'              => array( 'type' => 'short' ),
+							'month'             => array( 'type' => 'byte' ),
+							'day'               => array( 'type' => 'byte' ),
+							'hour'              => array( 'type' => 'byte' ),
+							'minute'            => array( 'type' => 'byte' ),
+							'second'            => array( 'type' => 'byte' ),
+							'week'              => array( 'type' => 'byte' ),
+							'day_of_week'       => array( 'type' => 'byte' ),
+							'day_of_year'       => array( 'type' => 'short' ),
+							'seconds_from_day'  => array( 'type' => 'integer' ),
+							'seconds_from_hour' => array( 'type' => 'short' ),
+						),
+					),
+					'post_modified_gmt' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'date'              => array(
+								'type'   => 'date',
+								'format' => 'yyyy-MM-dd HH:mm:ss||yyyy-MM-dd',
+							),
+							'year'              => array( 'type' => 'short' ),
+							'month'             => array( 'type' => 'byte' ),
+							'day'               => array( 'type' => 'byte' ),
+							'hour'              => array( 'type' => 'byte' ),
+							'minute'            => array( 'type' => 'byte' ),
+							'second'            => array( 'type' => 'byte' ),
+							'week'              => array( 'type' => 'byte' ),
+							'day_of_week'       => array( 'type' => 'byte' ),
+							'day_of_year'       => array( 'type' => 'short' ),
+							'seconds_from_day'  => array( 'type' => 'integer' ),
+							'seconds_from_hour' => array( 'type' => 'short' ),
+						),
+					),
+					'post_title'        => array(
+						'type'   => $analyzed_string_type,
+						'fields' => array(
+							'raw' => $not_analyzed_string,
+						),
+					),
+					'post_excerpt'      => array( 'type' => $analyzed_string_type ),
+					'post_content'      => array( 'type' => $analyzed_string_type ),
+					'post_status'       => $not_analyzed_string,
+					'parent_status'     => $not_analyzed_string,
+					'post_name'         => array(
+						'type'   => $analyzed_string_type,
+						'fields' => array(
+							'raw' => $not_analyzed_string,
+						),
+					),
+					'post_parent'       => array( 'type' => 'long' ),
+					'post_type'         => array(
+						'type'   => $analyzed_string_type,
+						'fields' => array(
+							'raw' => $not_analyzed_string,
+						),
+					),
+					'post_mime_type'    => $not_analyzed_string,
+					'post_password'     => $not_analyzed_string,
+					'menu_order'        => array( 'type' => 'integer' ),
+					'permalink'         => array( 'type' => $analyzed_string_type ),
+					'terms'             => array( 'type' => 'object' ),
+					'post_meta'         => array( 'type' => 'object' ),
 				),
 			),
 		);
+
+		/*
+		 * ES < 7.0 require mapping types.
+		 * See https://www.elastic.co/guide/en/elasticsearch/reference/7.0/removal-of-types.html.
+		 */
+		if ( sp_es_version_compare( '7.0', '<' ) ) {
+			$post_mapping        = $mapping['mappings'];
+			$mapping['mappings'] = array(
+				SP_API()->get_doc_type() => $post_mapping,
+			);
+		}
 
 		/**
 		 * Filter the mappings. Plugins and themes can customize the mappings
@@ -352,7 +381,7 @@ class SP_Config extends SP_Singleton {
 		$this->update_settings(
 			array(
 				'map_version' => apply_filters( 'sp_map_version', SP_MAP_VERSION ),
-			) 
+			)
 		);
 
 		return SP_API()->put( '', wp_json_encode( $mapping ) );
@@ -382,7 +411,11 @@ class SP_Config extends SP_Singleton {
 				'active'      => false,
 				'map_version' => 0,
 				'es_version'  => -1,
-			) 
+				'username'    => '',
+				'basic_auth'  => '',
+				'index'       => '',
+				'auth_header' => '',
+			)
 		);
 		return $this->settings;
 	}
@@ -407,7 +440,7 @@ class SP_Config extends SP_Singleton {
 	 * @param mixed  $value  Not used.
 	 * @return mixed The value for the setting.
 	 */
-	public function __call( $method, $value ) {
+	public function __call( $method, $value ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		return $this->get_setting( $method );
 	}
 
@@ -420,12 +453,29 @@ class SP_Config extends SP_Singleton {
 		if ( ! $this->settings ) {
 			$this->get_settings();
 		}
-		$old_settings   = $this->settings;
-		$this->settings = wp_parse_args( $new_settings, $this->settings );
-		update_option( 'sp_settings', $this->settings );
 
 		if ( ! empty( $new_settings['host'] ) ) {
+			$new_settings['host'] = untrailingslashit( $new_settings['host'] );
+		}
+
+		$old_settings   = $this->settings;
+		$this->settings = wp_parse_args( $new_settings, $this->settings );
+
+		update_option( 'sp_settings', $this->settings );
+		if ( ! empty( $new_settings['host'] ) ) {
 			SP_API()->host = $this->get_setting( 'host' );
+		}
+
+		if ( ! empty( $new_settings['basic_auth'] ) ) {
+			SP_API()->basic_auth = $this->get_setting( 'basic_auth' );
+		}
+
+		if ( ! empty( $new_settings['auth_header'] ) ) {
+			SP_API()->auth_header = $this->get_setting( 'auth_header' );
+		}
+
+		if ( ! empty( $new_settings['index'] ) ) {
+			SP_API()->index = $this->get_setting( 'index' );
 		}
 
 		/**
@@ -447,7 +497,7 @@ class SP_Config extends SP_Singleton {
 			$this->update_settings(
 				array(
 					'es_version' => $version,
-				) 
+				)
 			);
 		}
 	}
@@ -460,6 +510,18 @@ class SP_Config extends SP_Singleton {
 	public function get_es_version() {
 		$version = $this->get_setting( 'es_version' );
 		return -1 !== $version ? $version : SP_API()->version();
+	}
+
+	/**
+	 * Get the ES password hashed.
+	 *
+	 * @return string Hashed password.
+	 */
+	public function get_hashed_password() {
+		$basic_auth = $this->get_setting( 'basic_auth' );
+		$user_pass  = ! empty( $basic_auth ) ? base64_decode( $basic_auth ) : '';
+		$password   = strpos( $user_pass, ':' ) ? explode( ':', $user_pass )[1] : '';
+		return ! empty( $password ) ? hash( 'ripemd160', $password ) : '';
 	}
 }
 

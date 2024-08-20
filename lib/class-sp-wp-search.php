@@ -203,7 +203,10 @@ class SP_WP_Search extends SP_Search {
 		// Taxonomy terms.
 		if ( ! empty( $args['terms'] ) ) {
 			foreach ( (array) $args['terms'] as $tax => $terms ) {
-				if ( strpos( $terms, ',' ) ) {
+				if ( is_array( $terms ) ) {
+					$terms = $terms;
+					$comp  = 'or';
+				} elseif ( strpos( $terms, ',' ) ) {
 					$terms = explode( ',', $terms );
 					$comp  = 'or';
 				} else {
@@ -240,10 +243,7 @@ class SP_WP_Search extends SP_Search {
 			$es_query_args['query']['bool']['must'] = array_merge( $es_query_args['query']['bool']['must'], $filters );
 		}
 
-		// Fill in the query
-		// todo: add auto phrase searching.
-		// todo: add fuzzy searching to correct for spelling mistakes.
-		// todo: boost title, tag, and category matches.
+		// Fill in the query.
 		if ( ! empty( $args['query'] ) ) {
 			$multi_match = array(
 				array(
@@ -335,10 +335,12 @@ class SP_WP_Search extends SP_Search {
 						break;
 
 					case 'date_histogram':
+						$interval_param = sp_es_version_compare( '7.0' ) ? 'calendar_interval' : 'interval';
+
 						$es_query_args['aggregations'][ $label ] = array(
 							'date_histogram' => array(
-								'interval' => $facet['interval'],
-								'field'    => ! empty( $facet['field'] ) ? "{$facet['field']}.date" : 'post_date.date',
+								$interval_param => $facet['interval'],
+								'field'         => ! empty( $facet['field'] ) ? "{$facet['field']}.date" : 'post_date.date',
 							),
 						);
 
@@ -394,9 +396,20 @@ class SP_WP_Search extends SP_Search {
 	 * generate links/form fields. The name is suitable for display, and the
 	 * count is useful for your facet UI.
 	 *
+	 * @param array $options {
+	 *     Optional. Options for getting facet data.
+	 *
+	 *     @type boolean $exclude_current If true, excludes the currently-selected
+	 *                                    facets in the list. This is most helpful
+	 *                                    when outputting a list of links, but
+	 *                                    should probably be disabled if outputting
+	 *                                    a list of checkboxes. Defaults to true.
+	 * }
 	 * @return array See above for further details.
 	 */
-	public function get_facet_data() {
+	public function get_facet_data( $options = array() ) {
+		global $wp_query;
+
 		if ( empty( $this->facets ) ) {
 			return false;
 		}
@@ -407,7 +420,37 @@ class SP_WP_Search extends SP_Search {
 			return false;
 		}
 
+		$options = wp_parse_args(
+			$options,
+			array(
+				'exclude_current'     => true,
+				'join_existing_terms' => true,
+				'join_terms_logic'    => array(),
+			)
+		);
+
 		$facet_data = array();
+
+		/*
+		 * WordPress core will only store the first queried taxonomy term in the
+		 * query var for backwards compatibility, so we need to build a map of
+		 * queried terms from tax_query directly.
+		 */
+		$queried_terms = [];
+		if ( ! empty( $wp_query->tax_query->queries ) ) {
+			foreach ( $wp_query->tax_query->queries as $term_query ) {
+				if ( ! empty( $term_query['taxonomy'] ) && ! empty( $term_query['terms'] ) && is_array( $term_query['terms'] ) ) {
+					if ( empty( $queried_terms[ $term_query['taxonomy'] ] ) ) {
+						$queried_terms[ $term_query['taxonomy'] ] = $term_query['terms'];
+					} else {
+						$queried_terms[ $term_query['taxonomy'] ] = array_merge(
+							$queried_terms[ $term_query['taxonomy'] ],
+							$term_query['terms']
+						);
+					}
+				}
+			}
+		}
 
 		foreach ( $facets as $label => $facet ) {
 			if ( empty( $this->facets[ $label ] ) ) {
@@ -417,7 +460,10 @@ class SP_WP_Search extends SP_Search {
 			$facet_data[ $label ]          = $this->facets[ $label ];
 			$facet_data[ $label ]['items'] = array();
 
-			// All taxonomy terms are going to have the same query_var.
+			/*
+			 * All taxonomy terms are going to have the same query_var, so run
+			 * this before the loop.
+			 */
 			if ( 'taxonomy' === $this->facets[ $label ]['type'] ) {
 				$tax_query_var = $this->get_taxonomy_query_var( $this->facets[ $label ]['taxonomy'] );
 
@@ -425,7 +471,9 @@ class SP_WP_Search extends SP_Search {
 					continue;
 				}
 
-				$existing_term_slugs = ( get_query_var( $tax_query_var ) ) ? explode( ',', get_query_var( $tax_query_var ) ) : array();
+				$existing_term_slugs = ! empty( $queried_terms[ $this->facets[ $label ]['taxonomy'] ] )
+					? $queried_terms[ $this->facets[ $label ]['taxonomy'] ]
+					: array();
 			}
 
 			$items = array();
@@ -442,6 +490,7 @@ class SP_WP_Search extends SP_Search {
 				$datum = apply_filters( 'sp_search_facet_datum', false, $item, $this->facets );
 				if ( false === $datum ) {
 					$query_vars = array();
+					$selected   = false;
 
 					switch ( $this->facets[ $label ]['type'] ) {
 						case 'taxonomy':
@@ -452,13 +501,27 @@ class SP_WP_Search extends SP_Search {
 							}
 
 							// Don't allow refinement on a term we're already refining on.
-							if ( in_array( $term->slug, $existing_term_slugs, true ) ) {
+							$selected = in_array( $term->slug, $existing_term_slugs, true );
+							if ( $options['exclude_current'] && $selected ) {
 								continue 2;
 							}
 
-							$slugs = array_merge( $existing_term_slugs, array( $term->slug ) );
+							$slugs = array( $term->slug );
+							if ( $options['join_existing_terms'] ) {
+								$slugs = array_merge( $existing_term_slugs, $slugs );
+							}
 
-							$query_vars = array( $tax_query_var => implode( ',', $slugs ) );
+							$join_logic = ',';
+							if (
+								isset( $options['join_terms_logic'][ $this->facets[ $label ]['taxonomy'] ] )
+								&& '+' === $options['join_terms_logic'][ $this->facets[ $label ]['taxonomy'] ]
+							) {
+								$join_logic = '+';
+							}
+
+							$query_vars = array(
+								$tax_query_var => implode( $join_logic, $slugs ),
+							);
 							$name       = $term->name;
 
 							break;
@@ -493,26 +556,26 @@ class SP_WP_Search extends SP_Search {
 							switch ( $this->facets[ $label ]['interval'] ) {
 								case 'year':
 									$query_vars = array(
-										'year' => date( 'Y', $timestamp ),
+										'year' => gmdate( 'Y', $timestamp ),
 									);
-									$name       = date( 'Y', $timestamp );
+									$name       = gmdate( 'Y', $timestamp );
 									break;
 
 								case 'month':
 									$query_vars = array(
-										'year'     => date( 'Y', $timestamp ),
-										'monthnum' => date( 'n', $timestamp ),
+										'year'     => gmdate( 'Y', $timestamp ),
+										'monthnum' => gmdate( 'n', $timestamp ),
 									);
-									$name       = date( 'F Y', $timestamp );
+									$name       = gmdate( 'F Y', $timestamp );
 									break;
 
 								case 'day':
 									$query_vars = array(
-										'year'     => date( 'Y', $timestamp ),
-										'monthnum' => date( 'n', $timestamp ),
-										'day'      => date( 'j', $timestamp ),
+										'year'     => gmdate( 'Y', $timestamp ),
+										'monthnum' => gmdate( 'n', $timestamp ),
+										'day'      => gmdate( 'j', $timestamp ),
 									);
-									$name       = date( 'F j, Y', $timestamp );
+									$name       = gmdate( 'F j, Y', $timestamp );
 									break;
 
 								default:
@@ -529,6 +592,7 @@ class SP_WP_Search extends SP_Search {
 						'query_vars' => $query_vars,
 						'name'       => $name,
 						'count'      => $item['doc_count'],
+						'selected'   => $selected,
 					);
 				}
 

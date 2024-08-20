@@ -33,6 +33,29 @@
 	width: 500px;
 	max-width: 100%;
 }
+.tools_page_searchpress span.explanation {
+	display:block;
+	font-size: 90%;
+	padding-left: 24px;
+	font-style: italic;
+}
+.tools_page_searchpress div.host-index {
+	display: flex;
+}
+.tools_page_searchpress div.host-index p {
+	width: 300px;
+	margin-top: 0;
+}
+.tools_page_searchpress div.host-index input {
+	width: 100%;
+}
+.tools_page_searchpress div.host-index span {
+	padding: 2em 1em 0;
+}
+.tools_page_searchpress .auth-options label {
+	display: block;
+	margin-bottom: 3px;
+}
 #searchpress-stats {
 	margin: 20px 0;
 }

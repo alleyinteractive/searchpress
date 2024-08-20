@@ -7,34 +7,40 @@
  * @group integration
  */
 class Tests_Integration extends SearchPress_UnitTestCase {
+	public static function setUpBeforeClass(): void {
+		parent::setUpBeforeClass();
 
-	function setUp() {
-		parent::setUp();
-
-		$cat = $this->factory->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-demo' ) );
-		$tag = $this->factory->term->create( array( 'taxonomy' => 'post_tag', 'name' => 'tag-demo' ) );
-
-		$this->factory->post->create( array( 'post_title' => 'lorem-ipsum', 'post_date' => '2009-07-01 00:00:00', 'post_category' => array( $cat ) ) );
-		$this->factory->post->create( array( 'post_title' => 'comment-test', 'post_date' => '2009-08-01 00:00:00', 'post_category' => array( $cat ) ) );
-		$this->factory->post->create( array( 'post_title' => 'one-trackback', 'post_date' => '2009-09-01 00:00:00', 'post_category' => array( $cat ) ) );
-		$this->factory->post->create( array( 'post_title' => 'many-trackbacks', 'post_date' => '2009-10-01 00:00:00', 'post_category' => array( $cat ) ) );
-		$this->factory->post->create( array( 'post_title' => 'no-comments', 'post_date' => '2009-10-02 00:00:00' ) );
-
-		$this->factory->post->create( array( 'post_title' => 'one-comment', 'post_date' => '2009-11-01 00:00:00', 'tags_input' => array( $tag ) ) );
-		$this->factory->post->create( array( 'post_title' => 'contributor-post-approved', 'post_date' => '2009-12-01 00:00:00' ) );
-		$this->factory->post->create( array( 'post_title' => 'many-comments', 'post_date' => '2010-01-01 00:00:00' ) );
-		$this->factory->post->create( array( 'post_title' => 'simple-markup-test', 'post_date' => '2010-02-01 00:00:00', 'tags_input' => array( $tag ) ) );
-		$this->factory->post->create( array( 'post_title' => 'raw-html-code', 'post_date' => '2010-03-01 00:00:00', 'tags_input' => array( $tag ) ) );
+		$cat = self::factory()->term->create( array( 'taxonomy' => 'category', 'name' => 'cat-demo' ) );
+		$tag = self::factory()->term->create( array( 'taxonomy' => 'post_tag', 'name' => 'tag-demo' ) );
 
 		register_post_type( 'cpt', array( 'public' => true ) );
 		SP_Config()->post_types = null;
 		sp_searchable_post_types( true );
 
-		$this->factory->post->create( array( 'post_title' => 'cpt', 'post_date' => '2010-01-01 00:00:00', 'post_type' => 'cpt' ) );
-		$this->factory->post->create( array( 'post_title' => 'lorem-cpt', 'post_date' => '2010-01-01 00:00:00', 'post_type' => 'cpt' ) );
+		self::index(
+			array(
+				self::factory()->post->create( array( 'post_title' => 'lorem-ipsum', 'post_date' => '2009-07-01 00:00:00', 'post_category' => array( $cat ) ) ),
+				self::factory()->post->create( array( 'post_title' => 'comment-test', 'post_date' => '2009-08-01 00:00:00', 'post_category' => array( $cat ) ) ),
+				self::factory()->post->create( array( 'post_title' => 'one-trackback', 'post_date' => '2009-09-01 00:00:00', 'post_category' => array( $cat ) ) ),
+				self::factory()->post->create( array( 'post_title' => 'many-trackbacks', 'post_date' => '2009-10-01 00:00:00', 'post_category' => array( $cat ) ) ),
+				self::factory()->post->create( array( 'post_title' => 'no-comments', 'post_date' => '2009-10-02 00:00:00' ) ),
 
-		// Force refresh the index so the data is available immediately
-		SP_API()->post( '_refresh' );
+				self::factory()->post->create( array( 'post_title' => 'one-comment', 'post_date' => '2009-11-01 00:00:00', 'tags_input' => array( $tag ) ) ),
+				self::factory()->post->create( array( 'post_title' => 'contributor-post-approved', 'post_date' => '2009-12-01 00:00:00' ) ),
+				self::factory()->post->create( array( 'post_title' => 'many-comments', 'post_date' => '2010-01-01 00:00:00' ) ),
+				self::factory()->post->create( array( 'post_title' => 'simple-markup-test', 'post_date' => '2010-02-01 00:00:00', 'tags_input' => array( $tag ) ) ),
+				self::factory()->post->create( array( 'post_title' => 'raw-html-code', 'post_date' => '2010-03-01 00:00:00', 'tags_input' => array( $tag ) ) ),
+
+				self::factory()->post->create( array( 'post_title' => 'cpt', 'post_date' => '2010-01-01 00:00:00', 'post_type' => 'cpt' ) ),
+				self::factory()->post->create( array( 'post_title' => 'lorem-cpt', 'post_date' => '2010-01-01 00:00:00', 'post_type' => 'cpt' ) ),
+			)
+		);
+	}
+
+	public function setUp(): void {
+		parent::setUp();
+
+		register_post_type( 'cpt', array( 'public' => true ) );
 	}
 
 	function test_search_auto_integration() {
@@ -42,7 +48,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 		$this->assertEquals( get_query_var( 's' ), 'trackback' );
 		$this->assertTrue( is_search() );
 
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array(
 				'many-trackbacks',
@@ -64,7 +70,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 		$this->go_to( '/?s=cucumbers' );
 		$this->assertEquals( get_query_var( 's' ), 'cucumbers' );
 		$this->assertTrue( is_search() );
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals( 0, $GLOBALS['wp_query']->found_posts );
 	}
 
@@ -73,7 +79,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 		$this->assertEquals( get_query_var( 'year' ), '2010' );
 		$this->assertEmpty( get_query_var( 'monthnum' ) );
 		$this->assertEmpty( get_query_var( 'day' ) );
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array( 'simple-markup-test' ),
 			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
@@ -83,7 +89,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 		$this->assertEquals( get_query_var( 'year' ), '2009' );
 		$this->assertEquals( get_query_var( 'monthnum' ), '8' );
 		$this->assertEmpty( get_query_var( 'day' ) );
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array( 'comment-test' ),
 			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
@@ -93,7 +99,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 		$this->assertEquals( get_query_var( 'year' ), '2009' );
 		$this->assertEquals( get_query_var( 'monthnum' ), '11' );
 		$this->assertEquals( get_query_var( 'day' ), '1' );
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array( 'one-comment' ),
 			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
@@ -102,7 +108,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 
 	function test_sp_date_range() {
 		$this->go_to( '/?s=comment&sp[f]=2009-10-14&sp[t]=2009-12-31' );
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array( 'one-comment' ),
 			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
@@ -112,7 +118,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 	function test_terms() {
 		$this->go_to( '/?s=comment&category_name=cat-demo' );
 		$this->assertEquals( get_query_var( 'category_name' ), 'cat-demo' );
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array( 'comment-test' ),
 			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
@@ -120,7 +126,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 
 		$this->go_to( '/?s=comment&tag=tag-demo' );
 		$this->assertEquals( get_query_var( 'tag' ), 'tag-demo' );
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array( 'one-comment' ),
 			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
@@ -130,7 +136,7 @@ class Tests_Integration extends SearchPress_UnitTestCase {
 	function test_post_types() {
 		$this->go_to( '/?s=lorem&post_type=cpt' );
 		$this->assertEquals( get_query_var( 'post_type' ), 'cpt' );
-		$this->assertContains( 'SearchPress', $GLOBALS['wp_query']->request );
+		$this->assertStringContainsString( 'SearchPress', $GLOBALS['wp_query']->request );
 		$this->assertEquals(
 			array( 'lorem-cpt' ),
 			wp_list_pluck( $GLOBALS['wp_query']->posts, 'post_name' )
