@@ -295,7 +295,7 @@ class SearchPress_CLI_Command extends WP_CLI_Command {
 
 			WP_CLI::log(
 				sprintf(
-					'Indexing %1$s, %2$d at a time, starting on page %3$d',
+					'Indexing %1$s, %2$s at a time, starting on page %3$d',
 					$limit_text,
 					number_format( $assoc_args['bulk'] ),
 					absint( $assoc_args['page'] )
