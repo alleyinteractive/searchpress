@@ -142,7 +142,6 @@ Changelog
 * Overhaul of phpunit testing environment for performance
 * General coding standards cleanup
 
-
 ### 0.3
 
 * Adds heartbeat to monitor Elasticsearch
@@ -158,7 +157,6 @@ Changelog
 * Stores/checks mapping version
 * General code improvements
 
-
 ### 0.2
 
 * Adds unit testing
@@ -172,7 +170,26 @@ Changelog
 * Update to latest WP Coding Standards
 * Assorted bug fixes
 
-
 ### 0.1
 
 * First release!
+
+
+Contributing
+------------
+
+Thank you for your interest in contributing to SearchPress! Here's a guide on our branching and PR workflow.
+
+1. `main` reflects the latest stable release.
+	* **Purpose:** cloning the repo from `main` and keeping up to date with it is a stable release channel.
+2. Semantic versioning (`major.minor.patch`) is used, where bug fixes increment the `patch` and larger changes increment the `minor`. When we ship a `major` release, we’ll follow rules of backwards-compatible breakage more closely.
+3. Each release gets tagged in git with the release, e.g. `tag/v0.4.1`. See the [Releases page](https://github.com/alleyinteractive/searchpress/releases) for all releases.
+4. At any given time, there should be two active “next release” branches, one `minor` and one `patch`
+	* For instance, if the current release is 0.4.1, then there should be a branch for `release/0.4.2` and a branch for `release/0.5`.
+	* When a release is shipped, at least a new branch should be created for the next `patch` release, e.g. if 0.4.2 ships then `release/0.4.3` should be created as part of that process. When 0.5.0 ships, then both `release/0.5.1` and `release/0.6` should be created.
+	* When a release is shipped, its corresponding branch is merged into `main` and deleted.
+	* **Purpose:** this allows us to make and prep larger changes over longer periods of time (using the next `minor` branch) without interrupting the ability to ship hotfixes.
+5. PRs should not merge into `main`, they should merge into one of the release branches, deciding which one based on impact.
+6. If a PR is merged into the next `patch` release, then it should also be merged into the next `minor` release.
+
+All PRs into release branches will run GitHub actions to check for coding standards (PHPCS) and unit tests (PHPUnit).
