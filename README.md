@@ -72,6 +72,13 @@ add_filter(
 Changelog
 ---------
 
+### 0.5.1
+
+* Adds `sp_api_request_url` filter to filter the API url.
+* Fixes indexing error when using SP_DEBUG
+* Fixes possible fatal where 'sp' is set as a query_var but is not an array
+* Fixes CLI display of page size when page size is greater than 999
+
 ### 0.5
 
 * **POSSIBLE BREAKING CHANGE**: Moves SearchPress integration to the `posts_pre_query`.
