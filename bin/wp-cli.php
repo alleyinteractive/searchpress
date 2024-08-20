@@ -57,10 +57,18 @@ class SearchPress_CLI_Command extends WP_CLI_Command {
 			return;
 		}
 
-		$wp_object_cache->group_ops = array();
-		$wp_object_cache->stats = array();
-		$wp_object_cache->memcache_debug = array();
-		$wp_object_cache->cache = array();
+		if ( isset( $wp_object_cache->group_ops ) ) {
+			$wp_object_cache->group_ops = [];
+		}
+
+		if ( isset( $wp_object_cache->memcache_debug ) ) {
+			$wp_object_cache->memcache_debug = [];
+		}
+
+		if ( isset( $wp_object_cache->cache ) ) {
+			$wp_object_cache->cache = [];
+		}
+
 		if ( method_exists( $wp_object_cache, '__remoteset' ) ) {
 			$wp_object_cache->__remoteset();
 		}
@@ -287,7 +295,7 @@ class SearchPress_CLI_Command extends WP_CLI_Command {
 
 			WP_CLI::log(
 				sprintf(
-					'Indexing %1$s, %2$d at a time, starting on page %3$d',
+					'Indexing %1$s, %2$s at a time, starting on page %3$d',
 					$limit_text,
 					number_format( $assoc_args['bulk'] ),
 					absint( $assoc_args['page'] )

@@ -265,6 +265,13 @@ class SP_API extends SP_Singleton {
 				'body'   => $body,
 			)
 		);
+		/**
+		 * Filters the API URL directly before the request is made.
+		 *
+		 * @param string $url The URL of the request.
+		 * @param array $request_params The request params.
+		 */
+		$url = apply_filters( 'sp_api_request_url', $url, $request_params );
 
 		$result = sp_remote_request( $url, $request_params );
 
