@@ -22,41 +22,41 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 	}
 
 	public function post_statuses_data() {
-		return array(
-			//      status       index  search  ...register_post_status args
-			// -----------------+------+-------+--------------------------------
+		return [
+			// status       index  search  ...register_post_status args
+			// ------------+------+-------+--------------------------------
 			// Core post statuses
-			array( 'publish',    true,  true ),
-			array( 'future',     true,  false ),
-			array( 'draft',      true,  false ),
-			array( 'pending',    true,  false ),
-			array( 'private',    true,  false ),
-			array( 'trash',      false, false ),
-			array( 'auto-draft', false, false ),
-			array( 'inherit',    true,  true ), // 'inherit' without a parent
+			[ 'publish',    true,  true ],
+			[ 'future',     true,  false ],
+			[ 'draft',      true,  false ],
+			[ 'pending',    true,  false ],
+			[ 'private',    true,  false ],
+			[ 'trash',      false, false ],
+			[ 'auto-draft', false, false ],
+			[ 'inherit',    true,  false ], // 'inherit' without a parent
 
 			// custom post statuses
-			array( 'cps-1',      false, false, array() ), // Assumed to be internal
-			array( 'cps-2',      true,  true,  array( 'internal' => false ) ),
-			array( 'cps-3',      false, false, array( 'internal' => true ) ),
-			array( 'cps-4',      true,  true,  array( 'public' => false ) ),
-			array( 'cps-5',      true,  true,  array( 'public' => true ) ),
-			array( 'cps-6',      true,  true,  array( 'public' => true, 'exclude_from_search' => false ) ),
-			array( 'cps-7',      true,  false, array( 'public' => true, 'exclude_from_search' => true ) ),
-			array( 'cps-8',      true,  false, array( 'public' => true, 'private' => true ) ),
-			array( 'cps-9',      true,  false, array( 'public' => true, 'protected' => true ) ),
-			array( 'cps-10',     false, false, array( 'public' => true, 'internal' => true ) ),
-			array( 'cps-11',     true,  false, array( 'private' => true ) ),
-			array( 'cps-12',     true,  false, array( 'protected' => true ) ),
-			array( 'cps-13',     false, false, array( 'exclude_from_search' => false ) ), // Assumed to be internal
-			array( 'cps-14',     false, false, array( 'exclude_from_search' => true ) ), // Assumed to be internal
-			array( 'cps-15',     true,  true,  array( 'internal' => false, 'exclude_from_search' => false ) ),
-			array( 'cps-16',     true,  false, array( 'internal' => false, 'exclude_from_search' => true ) ),
-			array( 'cps-17',     true,  false, array( 'private' => true, 'exclude_from_search' => false ) ),
-			array( 'cps-18',     true,  false, array( 'private' => true, 'exclude_from_search' => true ) ),
-			array( 'cps-19',     true,  false, array( 'protected' => true, 'exclude_from_search' => false ) ),
-			array( 'cps-20',     true,  false, array( 'protected' => true, 'exclude_from_search' => true ) ),
-		);
+			[ 'cps-1',      false, false, [] ], // Assumed to be internal
+			[ 'cps-2',      true,  true,  [ 'internal' => false ] ],
+			[ 'cps-3',      false, false, [ 'internal' => true ] ],
+			[ 'cps-4',      true,  true,  [ 'public' => false ] ],
+			[ 'cps-5',      true,  true,  [ 'public' => true ] ],
+			[ 'cps-6',      true,  true,  [ 'public' => true, 'exclude_from_search' => false ] ],
+			[ 'cps-7',      true,  false, [ 'public' => true, 'exclude_from_search' => true ] ],
+			[ 'cps-8',      true,  false, [ 'public' => true, 'private' => true ] ],
+			[ 'cps-9',      true,  false, [ 'public' => true, 'protected' => true ] ],
+			[ 'cps-10',     false, false, [ 'public' => true, 'internal' => true ] ],
+			[ 'cps-11',     true,  false, [ 'private' => true ] ],
+			[ 'cps-12',     true,  false, [ 'protected' => true ] ],
+			[ 'cps-13',     false, false, [ 'exclude_from_search' => false ] ], // Assumed to be internal
+			[ 'cps-14',     false, false, [ 'exclude_from_search' => true ] ], // Assumed to be internal
+			[ 'cps-15',     true,  true,  [ 'internal' => false, 'exclude_from_search' => false ] ],
+			[ 'cps-16',     true,  false, [ 'internal' => false, 'exclude_from_search' => true ] ],
+			[ 'cps-17',     true,  false, [ 'private' => true, 'exclude_from_search' => false ] ],
+			[ 'cps-18',     true,  false, [ 'private' => true, 'exclude_from_search' => true ] ],
+			[ 'cps-19',     true,  false, [ 'protected' => true, 'exclude_from_search' => false ] ],
+			[ 'cps-20',     true,  false, [ 'protected' => true, 'exclude_from_search' => true ] ],
+		];
 	}
 
 	/**
@@ -85,10 +85,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		SP_API()->post( '_refresh' );
 
 		// Test the indexability of this status
-		$results = $this->search_and_get_field( array( 'query' => 'test post', 'post_status' => $status ) );
+		$results = SP_API()->get( SP_API()->get_api_endpoint( '_doc', $post_id ), '', ARRAY_A );
 		$this->assertSame(
 			$index,
-			! empty( $results ),
+			! empty( $results['_source']['post_id'] ) && $results['_source']['post_id'] === $post_id,
 			'Post status should' . ( $index ? ' ' : ' not ' ) . 'be indexed'
 		);
 
@@ -103,7 +103,7 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 
 	public function test_post_status_inherit_publish() {
 		$post_id = self::factory()->post->create();
-		$attachment_id = self::factory()->attachment->create_object( 'image.jpg', $post_id, array(
+		self::factory()->attachment->create_object( 'image.jpg', $post_id, array(
 			'post_mime_type' => 'image/jpeg',
 			'post_type'      => 'attachment',
 			'post_title'     => 'test attachment',
@@ -114,14 +114,14 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		// Test the searchability (and inherent indexability) of this status
 		$this->assertSame(
 			array( 'test-attachment-1' ),
-			$this->search_and_get_field( array( 'query' => 'test attachment' ) ),
+			$this->search_and_get_field( array( 'query' => 'test attachment', 'post_status' => [ 'inherit', 'publish' ] ) ),
 			'Inherit publish status should be searchable'
 		);
 	}
 
 	public function test_post_status_inherit_draft() {
 		$post_id = self::factory()->post->create( array( 'post_status' => 'draft' ) );
-		$attachment_id = self::factory()->attachment->create_object( 'image.jpg', $post_id, array(
+		self::factory()->attachment->create_object( 'image.jpg', $post_id, array(
 			'post_mime_type' => 'image/jpeg',
 			'post_type'      => 'attachment',
 			'post_title'     => 'test attachment',
@@ -138,47 +138,47 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 	}
 
 	public function test_orphan_post_status_inherit() {
-		$attachment_id = self::factory()->attachment->create_object( 'image.jpg', 0, array(
+		self::factory()->attachment->create_object( 'image.jpg', 0, [
 			'post_mime_type' => 'image/jpeg',
 			'post_type'      => 'attachment',
 			'post_title'     => 'test attachment',
 			'post_name'      => 'test-attachment-3',
-		) );
+		] );
 		SP_API()->post( '_refresh' );
 
 		// Test the searchability (and inherent indexability) of this status
 		$this->assertSame(
-			array( 'test-attachment-3' ),
-			$this->search_and_get_field( array( 'query' => 'test attachment' ) ),
-			'Inherit status without parent should be searchable'
+			[],
+			$this->search_and_get_field( [ 'query' => 'test attachment' ] ),
+			'Inherit status without parent should not be searchable'
 		);
 	}
 
 	public function post_types_data() {
-		return array(
-			//      post type       index  search  ...register_post_type args
-			// --------------------+------+-------+-----------------------------
+		return [
+			// post type       index  search  ...register_post_type args
+			// ---------------+------+-------+-----------------------------
 			// Core post types
-			array( 'post',          true,  true ),
-			array( 'page',          true,  true ),
-			array( 'attachment',    true,  true ),
-			array( 'revision',      false, false ),
-			array( 'nav_menu_item', false, false ),
+			[ 'post',          true,  true ],
+			[ 'page',          true,  true ],
+			[ 'attachment',    true,  false ],
+			[ 'revision',      false, false ],
+			[ 'nav_menu_item', false, false ],
 
 			// Custom post types
-			array( 'cpt-1',         false, false, array() ),
-			array( 'cpt-2',         true,  true,  array( 'public' => true ) ),
-			array( 'cpt-3',         true,  false, array( 'show_ui' => true ) ),
-			array( 'cpt-4',         true,  true,  array( 'exclude_from_search' => false ) ),
-			array( 'cpt-5',         true,  true,  array( 'public' => true, 'exclude_from_search' => false ) ),
-			array( 'cpt-6',         true,  false, array( 'public' => true, 'exclude_from_search' => true ) ),
-			array( 'cpt-7',         true,  true,  array( 'show_ui' => true, 'exclude_from_search' => false ) ),
-			array( 'cpt-8',         true,  false, array( 'show_ui' => true, 'exclude_from_search' => true ) ),
-			array( 'cpt-9',         true,  true,  array( 'public' => true, 'show_ui' => false ) ),
-			array( 'cpt-10',        true,  true,  array( 'public' => true, 'show_ui' => true ) ),
-			array( 'cpt-11',        true,  true,  array( 'public' => true, 'show_ui' => false, 'exclude_from_search' => false ) ),
-			array( 'cpt-12',        true,  false, array( 'public' => true, 'show_ui' => true, 'exclude_from_search' => true ) ),
-		);
+			[ 'cpt-1',         false, false, [] ],
+			[ 'cpt-2',         true,  true,  [ 'public' => true ] ],
+			[ 'cpt-3',         true,  false, [ 'show_ui' => true ] ],
+			[ 'cpt-4',         true,  true,  [ 'exclude_from_search' => false ] ],
+			[ 'cpt-5',         true,  true,  [ 'public' => true, 'exclude_from_search' => false ] ],
+			[ 'cpt-6',         true,  false, [ 'public' => true, 'exclude_from_search' => true ] ],
+			[ 'cpt-7',         true,  true,  [ 'show_ui' => true, 'exclude_from_search' => false ] ],
+			[ 'cpt-8',         true,  false, [ 'show_ui' => true, 'exclude_from_search' => true ] ],
+			[ 'cpt-9',         true,  true,  [ 'public' => true, 'show_ui' => false ] ],
+			[ 'cpt-10',        true,  true,  [ 'public' => true, 'show_ui' => true ] ],
+			[ 'cpt-11',        true,  true,  [ 'public' => true, 'show_ui' => false, 'exclude_from_search' => false ] ],
+			[ 'cpt-12',        true,  false, [ 'public' => true, 'show_ui' => true, 'exclude_from_search' => true ] ],
+		];
 	}
 
 	/**
@@ -212,10 +212,10 @@ class Tests_Indexing extends SearchPress_UnitTestCase {
 		SP_API()->post( '_refresh' );
 
 		// Test the indexability of this type
-		$results = $this->search_and_get_field( array( 'query' => 'test post', 'post_type' => $type ) );
+		$results = SP_API()->get( SP_API()->get_api_endpoint( '_doc', $post_id ), '', ARRAY_A );
 		$this->assertSame(
 			$index,
-			! empty( $results ),
+			! empty( $results['_source']['post_id'] ) && $results['_source']['post_id'] === $post_id,
 			'Post type should' . ( $index ? ' ' : ' not ' ) . 'be indexed'
 		);
 

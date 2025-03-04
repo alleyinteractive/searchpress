@@ -164,21 +164,33 @@ class SP_WP_Search extends SP_Search {
 		if ( empty( $args['post_status'] ) || 'any' === $args['post_status'] ) {
 			$args['post_status'] = sp_searchable_post_statuses();
 		}
-		$filters[] = array(
-			'bool' => array(
-				'should' => array(
-					array( 'terms' => array( 'post_status' => (array) $args['post_status'] ) ),
-					array(
-						'bool' => array(
-							'must' => array(
-								array( 'terms' => array( 'post_status' => array( 'inherit' ) ) ),
-								array( 'terms' => array( 'parent_status' => (array) $args['post_status'] ) ),
-							),
-						),
-					),
-				),
-			),
-		);
+		if ( ! is_array( $args['post_status'] ) ) {
+			$args['post_status'] = (array) $args['post_status'];
+		}
+		if ( in_array( 'inherit', $args['post_status'], true ) && [ 'inherit' ] !== $args['post_status'] ) {
+			$other_statuses = array_values( array_diff( $args['post_status'], [ 'inherit' ] ) );
+			$filters[]      = [
+				'bool' => [
+					'should' => [
+						[
+							'terms' => [
+								'post_status' => $other_statuses,
+							],
+						],
+						[
+							'bool' => [
+								'filter' => [
+									[ 'terms' => [ 'post_status' => [ 'inherit' ] ] ],
+									[ 'terms' => [ 'parent_status' => $other_statuses ] ],
+								],
+							],
+						],
+					],
+				],
+			];
+		} else {
+			$filters[] = [ 'terms' => [ 'post_status' => $args['post_status'] ] ];
+		}
 
 		// Author.
 		// @todo Add support for comma-delim terms like wp_query.
