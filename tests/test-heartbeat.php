@@ -81,13 +81,11 @@ class Tests_Heartbeat extends SearchPress_UnitTestCase {
 		$host = SP_Config()->get_setting( 'host' );
 		SP_Config()->update_settings( array( 'host' => 'http://asdftestblog1.files.wordpress.com' ) );
 
-		update_option( 'sp_heartbeat', time() - SP_Heartbeat()->thresholds['alert'] );
-		SP_Heartbeat()->get_last_beat( true );
+		SP_Heartbeat()->record_pulse( time() - SP_Heartbeat()->thresholds['alert'], time() );
 		$alert_status = SP_Heartbeat()->get_status();
 		$has_pulse_alert = SP_Heartbeat()->has_pulse();
 
-		update_option( 'sp_heartbeat', time() - SP_Heartbeat()->thresholds['shutdown'] );
-		SP_Heartbeat()->get_last_beat( true );
+		SP_Heartbeat()->record_pulse( time() - SP_Heartbeat()->thresholds['shutdown'], time() );
 		$shutdown_status = SP_Heartbeat()->get_status();
 		$has_pulse_shutdown = SP_Heartbeat()->has_pulse();
 
@@ -114,8 +112,7 @@ class Tests_Heartbeat extends SearchPress_UnitTestCase {
 		$host = SP_Config()->get_setting( 'host' );
 		SP_Config()->update_settings( array( 'host' => 'http://asdftestblog1.files.wordpress.com' ) );
 
-		update_option( 'sp_heartbeat', time() - SP_Heartbeat()->thresholds['shutdown'] );
-		SP_Heartbeat()->get_last_beat( true );
+		SP_Heartbeat()->record_pulse( time() - SP_Heartbeat()->thresholds['shutdown'], time() );
 		$shutdown_ready = apply_filters( 'sp_ready', null );
 
 		SP_Config()->update_settings( array( 'host' => $host ) );
@@ -131,5 +128,32 @@ class Tests_Heartbeat extends SearchPress_UnitTestCase {
 	public function test_ready_override() {
 		$this->assertTrue( SP_Heartbeat()->is_ready( null ) );
 		$this->assertFalse( SP_Heartbeat()->is_ready( false ) );
+	}
+
+	public function test_heartbeat_migration() {
+		// Heartbeat option was originally just a timestamp.
+		update_option( 'sp_heartbeat', 1700000000 );
+		$last_beat = SP_Heartbeat()->get_last_beat( true );
+
+		$this->assertIsArray( $last_beat );
+		$this->assertSame( $last_beat, get_option( 'sp_heartbeat' ) );
+		$this->assertSame( 1700000000, $last_beat['queried'] );
+		$this->assertSame( 1700000000, $last_beat['verified'] );
+	}
+
+	/**
+	 * @group stale-heartbeat
+	 */
+	public function test_stale_heartbeat_rechecks_in_non_admin_screen() {
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
+		$this->assertFalse( is_admin() );
+
+		$time = time() - SP_Heartbeat()->thresholds['shutdown'] - 10;
+		SP_Heartbeat()->record_pulse( $time, $time );
+		$this->assertSame( 'stale', SP_Heartbeat()->get_status() );
+
+		SP_Heartbeat()->beat_result = null;
+		$this->assertTrue( apply_filters( 'sp_ready', null ) );
+		$this->assertSame( 'stale', SP_Heartbeat()->get_status() );
 	}
 }

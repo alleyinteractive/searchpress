@@ -73,6 +73,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 	 */
 	function test_admin() {
 		$this->assertInstanceOf( SP_Admin::class, SP_Admin() );
+		$this->assertTrue( is_admin() );
 	}
 
 	/**
@@ -223,9 +224,8 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 			'sp_sync_nonce' => wp_create_nonce( 'sp_sync' ),
 		);
 
-		// Kill the heartbeat
-		SP_Config()->update_settings( array( 'host' => 'http://asdftestblog1.files.wordpress.com' ) );
-		$beat_result = SP_Heartbeat()->check_beat( true );
+		// Kill the heartbeat.
+		SP_Heartbeat()->beat_result = 'invalid';
 
 		/**
 		 * @see Tests_Admin::prevent_redirect() For how wp_die() is leveraged here.
@@ -410,17 +410,40 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 	public function test_admin_notices_heartbeat_last_seen() {
 		$this->expectOutputRegex( '/The Elasticsearch server was last seen/' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
-		update_option( 'sp_heartbeat', time() - SP_Heartbeat()->thresholds['alert'] );
-		SP_Heartbeat()->get_last_beat( true );
+		SP_Heartbeat()->record_pulse( time() - SP_Heartbeat()->thresholds['alert'] - 10 );
 		SP_Admin()->admin_notices();
 	}
 
 	public function test_admin_notices_heartbeat_shutdown() {
 		$this->expectOutputRegex( '/SearchPress has deactivated itself/' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
-		update_option( 'sp_heartbeat', time() - SP_Heartbeat()->thresholds['shutdown'] );
-		SP_Heartbeat()->get_last_beat( true );
+		SP_Heartbeat()->record_pulse( time() - SP_Heartbeat()->thresholds['shutdown'] - 10 );
 		SP_Admin()->admin_notices();
+	}
+
+	/**
+	 * @group stale-heartbeat
+	 */
+	public function test_admin_notices_heartbeat_stale() {
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
+		$time = time() - SP_Heartbeat()->thresholds['shutdown'] - 10;
+		SP_Heartbeat()->record_pulse( $time, $time );
+		$this->assertSame( 'stale', SP_Heartbeat()->get_status() );
+		$this->assertEmpty( get_echo( [ SP_Admin(), 'admin_notices' ] ) );
+	}
+
+	/**
+	 * @group stale-heartbeat
+	 */
+	public function test_stale_heartbeat_rechecks_in_admin_screen() {
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
+		$time = time() - SP_Heartbeat()->thresholds['shutdown'] - 10;
+		SP_Heartbeat()->record_pulse( $time, $time );
+		$this->assertSame( 'stale', SP_Heartbeat()->get_status() );
+
+		SP_Heartbeat()->beat_result = null;
+		$this->assertTrue( apply_filters( 'sp_ready', null ) );
+		$this->assertSame( 'ok', SP_Heartbeat()->get_status() );
 	}
 
 	public function test_admin_notices_map_version() {

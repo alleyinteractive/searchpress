@@ -426,7 +426,7 @@ class SP_Admin extends SP_Singleton {
 					return array(
 						__( 'OK', 'searchpress' ),
 						// translators: amount of time since last heartbeat (e.g., 36 minutes).
-						sprintf( __( 'SearchPress is active and the Elasticsearch server was last seen %s ago.', 'searchpress' ), human_time_diff( SP_Heartbeat()->get_last_beat(), time() ) ),
+						sprintf( __( 'SearchPress is active and the Elasticsearch server was last seen %s ago.', 'searchpress' ), human_time_diff( SP_Heartbeat()->last_seen(), time() ) ),
 					);
 				case 'alert':
 					return array(
@@ -746,7 +746,7 @@ class SP_Admin extends SP_Singleton {
 		}
 
 		$heartbeat_status = SP_Heartbeat()->get_status();
-		if ( 'ok' !== $heartbeat_status ) {
+		if ( 'ok' !== $heartbeat_status && 'stale' !== $heartbeat_status ) {
 			$message_escaped = esc_html__( 'SearchPress cannot reach the Elasticsearch server!', 'searchpress' );
 			if ( 'never' === $heartbeat_status && ! $this->is_settings_page() ) {
 				$message_escaped .= sprintf(
@@ -756,7 +756,7 @@ class SP_Admin extends SP_Singleton {
 				);
 			} elseif ( 'never' !== $heartbeat_status ) {
 				// translators: amount of time with units (e.g., 36 minutes).
-				$message_escaped .= ' ' . sprintf( esc_html__( 'The Elasticsearch server was last seen %s ago.', 'searchpress' ), human_time_diff( SP_Heartbeat()->get_last_beat(), time() ) );
+				$message_escaped .= ' ' . sprintf( esc_html__( 'The Elasticsearch server was last seen %s ago.', 'searchpress' ), human_time_diff( SP_Heartbeat()->last_seen(), time() ) );
 			}
 			if ( 'shutdown' === $heartbeat_status ) {
 				$message_escaped .= "\n" . esc_html__( "SearchPress has deactivated itself to preserve site search for your visitors. Your site will use WordPress' built-in search until the Elasticsearch server comes back online.", 'searchpress' );
