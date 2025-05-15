@@ -46,15 +46,19 @@ class SP_Admin extends SP_Singleton {
 		$this->allow_flushing = ! apply_filters( 'sp_disable_flush_via_ui', false );
 
 		if ( current_user_can( $this->capability ) ) {
-			add_action( 'admin_menu', array( $this, 'admin_menu' ) );
-			add_action( 'admin_post_sp_full_sync', array( $this, 'full_sync' ) );
-			add_action( 'admin_post_sp_cancel_sync', array( $this, 'cancel_sync' ) );
-			add_action( 'admin_post_sp_settings', array( $this, 'save_settings' ) );
-			add_action( 'admin_post_sp_clear_log', array( $this, 'clear_log' ) );
-			add_action( 'admin_post_sp_active_toggle', array( $this, 'active_toggle' ) );
-			add_action( 'wp_ajax_sp_sync_status', array( $this, 'sp_sync_status' ) );
-			add_action( 'admin_notices', array( $this, 'admin_notices' ) );
-			add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
+			if ( SP_Heartbeat()->get_status() === 'stale' ) {
+				// If the heartbeat is stale, update it.
+				add_action( 'admin_init', [ SP_Heartbeat(), 'check_beat' ] );
+			}
+			add_action( 'admin_menu', [ $this, 'admin_menu' ] );
+			add_action( 'admin_post_sp_full_sync', [ $this, 'full_sync' ] );
+			add_action( 'admin_post_sp_cancel_sync', [ $this, 'cancel_sync' ] );
+			add_action( 'admin_post_sp_settings', [ $this, 'save_settings' ] );
+			add_action( 'admin_post_sp_clear_log', [ $this, 'clear_log' ] );
+			add_action( 'admin_post_sp_active_toggle', [ $this, 'active_toggle' ] );
+			add_action( 'wp_ajax_sp_sync_status', [ $this, 'sp_sync_status' ] );
+			add_action( 'admin_notices', [ $this, 'admin_notices' ] );
+			add_action( 'admin_enqueue_scripts', [ $this, 'assets' ] );
 		}
 	}
 
