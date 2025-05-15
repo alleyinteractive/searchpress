@@ -72,8 +72,8 @@ class SP_Heartbeat extends SP_Singleton {
 		];
 
 		$this->maybe_schedule_cron();
-		add_filter( 'sp_ready', array( $this, 'is_ready' ) );
-		add_action( $this->cron_event, array( $this, 'check_beat' ) );
+		add_filter( 'sp_ready', [ $this, 'is_ready' ] );
+		add_action( $this->cron_event, [ $this, 'check_beat' ] );
 	}
 
 	/**
@@ -156,7 +156,7 @@ class SP_Heartbeat extends SP_Singleton {
 	 * @return bool
 	 */
 	protected function is_heartbeat_below_threshold( string $threshold, ?int $compared_to = null ): bool {
-		return ( $compared_to ?? time() ) - $this->last_beat['verified'] < $this->thresholds[ $threshold ];
+		return ( $compared_to ?? time() ) - $this->last_seen() < $this->thresholds[ $threshold ];
 	}
 
 	/**
@@ -165,7 +165,7 @@ class SP_Heartbeat extends SP_Singleton {
 	 * @return bool
 	 */
 	protected function is_heartbeat_stale(): bool {
-		return time() - $this->last_beat['queried'] > $this->intervals['stale'];
+		return time() - $this->get_last_beat()['queried'] > $this->intervals['stale'];
 	}
 
 	/**
@@ -176,8 +176,6 @@ class SP_Heartbeat extends SP_Singleton {
 	 */
 	public function has_pulse( string $threshold = 'shutdown' ): bool {
 		if ( $this->is_heartbeat_below_threshold( $threshold ) ) {
-//			var_dump(wp_debug_backtrace_summary());
-//			die('here');
 			return true;
 		} elseif ( is_admin() ) {
 			// There's no heartbeat, but this is an admin request, so query it now.
