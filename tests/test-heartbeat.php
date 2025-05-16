@@ -145,7 +145,7 @@ class Tests_Heartbeat extends SearchPress_UnitTestCase {
 	 * @group stale-heartbeat
 	 */
 	public function test_stale_heartbeat_rechecks_in_non_admin_screen() {
-		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( $this->factory->user->create( [ 'role' => 'administrator' ] ) );
 		$this->assertFalse( is_admin() );
 
 		$time = time() - SP_Heartbeat()->thresholds['shutdown'] - 10;
