@@ -425,7 +425,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 	 * @group stale-heartbeat
 	 */
 	public function test_admin_notices_heartbeat_stale() {
-		wp_set_current_user( $this->factory->user->create( [ 'role' => 'administrator' ) ] );
+		wp_set_current_user( $this->factory->user->create( [ 'role' => 'administrator' ] ) );
 		$time = time() - SP_Heartbeat()->thresholds['shutdown'] - 10;
 		SP_Heartbeat()->record_pulse( $time, $time );
 		$this->assertSame( 'stale', SP_Heartbeat()->get_status() );
