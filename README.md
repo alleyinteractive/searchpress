@@ -72,6 +72,11 @@ add_filter(
 Changelog
 ---------
 
+### 0.5.2
+
+* **POSSIBLE BREAKING CHANGE** Refactors `SP_Heartbeat` to store the last time the beat was checked as well as the last time the beat was verified. `SP_Heartbeat::get_last_beat()` previously returned an int, but now returns an array.
+* Includes assorted improvements for IDE static analysis.
+
 ### 0.5.1
 
 * Adds `sp_api_request_url` filter to filter the API url.

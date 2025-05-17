@@ -83,6 +83,7 @@ jobs:
 
       - name: Set up WordPress
         run: |
+          sudo apt-get update && sudo apt-get install subversion
           bash <(curl -s "https://raw.githubusercontent.com/wp-cli/sample-plugin/master/bin/install-wp-tests.sh") wordpress_test root '' 127.0.0.1 ${{ matrix.wp_version }}
           rm -rf "${WP_CORE_DIR}wp-content/plugins"
           mkdir -p "${WP_CORE_DIR}wp-content/plugins/searchpress"
