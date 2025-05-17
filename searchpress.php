@@ -3,7 +3,7 @@
  * Plugin Name: SearchPress
  * Plugin URI: http://searchpress.org
  * Description: Elasticsearch integration for WordPress.
- * Version: 0.5.2
+ * Version: 0.6
  * Author: Matthew Boynes, Alley Interactive
  * Author URI: https://alley.com
  *
