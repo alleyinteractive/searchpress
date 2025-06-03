@@ -20,7 +20,7 @@ class Tests_Search_Suggest extends SearchPress_UnitTestCase {
 	 */
 	protected static $hooked;
 
-	public static function setUpBeforeClass() {
+	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
 
 		// Enable the Search Suggestions feature.
@@ -35,7 +35,7 @@ class Tests_Search_Suggest extends SearchPress_UnitTestCase {
 		self::index( array( self::$matching_post, self::$unmatching_post ) );
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		if ( ! self::$hooked ) {
@@ -43,7 +43,7 @@ class Tests_Search_Suggest extends SearchPress_UnitTestCase {
 		}
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		self::$hooked = false;
 
 		parent::tearDown();

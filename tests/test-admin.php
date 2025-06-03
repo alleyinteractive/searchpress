@@ -8,7 +8,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 	protected $old_wp_scripts, $old_wp_styles;
 	protected $old_screen;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		SP_Heartbeat()->record_pulse();
 
@@ -35,7 +35,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		add_filter( 'wp_redirect', array( $this, 'prevent_redirect' ) );
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		wp_set_current_user( $this->current_user );
 
 		SP_Sync_Meta()->reset( 'save' );
@@ -72,7 +72,8 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 	 * Simply ensure that this works.
 	 */
 	function test_admin() {
-		SP_Admin();
+		$this->assertInstanceOf( SP_Admin::class, SP_Admin() );
+		$this->assertTrue( is_admin() );
 	}
 
 	/**
@@ -88,11 +89,10 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 
 	/**
 	 * Ensure that non-admins don't have access to the settings screen.
-	 *
-	 * @expectedException WPDieException
-	 * @expectedExceptionMessage You do not have sufficient permissions to access this page.
 	 */
 	function test_settings_page_no_access() {
+		$this->expectException( \WPDieException::class );
+		$this->expectExceptionMessage( 'You do not have sufficient permissions to access this page.' );
 		// Ensure that editors don't have access to the settings
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'editor' ) ) );
 		SP_Admin()->setup();
@@ -109,19 +109,15 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		SP_Admin()->settings_page();
 	}
 
-	/**
-	 * @expectedException WPDieException
-	 * @expectedExceptionMessage You do not have sufficient permissions to access this page.
-	 */
 	public function test_save_settings_no_access() {
+		$this->expectException( \WPDieException::class );
+		$this->expectExceptionMessage( 'You do not have sufficient permissions to access this page.' );
 		SP_Admin()->save_settings();
 	}
 
-	/**
-	 * @expectedException WPDieException
-	 * @expectedExceptionMessage You are not authorized to perform that action
-	 */
 	public function test_save_settings_invalid_nonce() {
+		$this->expectException( \WPDieException::class );
+		$this->expectExceptionMessage( 'You are not authorized to perform that action' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		SP_Admin()->save_settings();
 	}
@@ -139,7 +135,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		try {
 			SP_Admin()->save_settings();
 			$this->fail( 'Failed to save settings' );
-		} catch ( WPDieException $e ) {
+		} catch ( \WPDieException $e ) {
 			// Make sure the settings didn't change
 			$this->assertSame( $sp_settings, get_option( 'sp_settings' ) );
 			// Verify the redirect url
@@ -162,7 +158,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		try {
 			SP_Admin()->save_settings();
 			$this->fail( 'Failed to save settings' );
-		} catch ( WPDieException $e ) {
+		} catch ( \WPDieException $e ) {
 			// Make sure the settings updated
 			$new_settings = get_option( 'sp_settings' );
 			$this->assertNotSame( $sp_settings, $new_settings );
@@ -185,25 +181,21 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		try {
 			SP_Admin()->save_settings();
 			$this->fail( 'Failed to save settings' );
-		} catch ( WPDieException $e ) {
+		} catch ( \WPDieException $e ) {
 			// Verify the redirect url
 			$this->assertSame( admin_url( 'tools.php?page=searchpress' ), $e->getMessage() );
 		}
 	}
 
-	/**
-	 * @expectedException WPDieException
-	 * @expectedExceptionMessage You do not have sufficient permissions to access this page.
-	 */
 	public function test_trigger_full_sync_no_access() {
+		$this->expectException( \WPDieException::class );
+		$this->expectExceptionMessage( 'You do not have sufficient permissions to access this page.' );
 		SP_Admin()->full_sync();
 	}
 
-	/**
-	 * @expectedException WPDieException
-	 * @expectedExceptionMessage You are not authorized to perform that action
-	 */
 	public function test_trigger_full_sync_invalid_nonce() {
+		$this->expectException( \WPDieException::class );
+		$this->expectExceptionMessage( 'You are not authorized to perform that action' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		SP_Admin()->full_sync();
 	}
@@ -220,7 +212,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		try {
 			SP_Admin()->full_sync();
 			$this->fail( 'Failed to trigger full sync' );
-		} catch ( WPDieException $e ) {
+		} catch ( \WPDieException $e ) {
 			// Verify the redirect url
 			$this->assertSame( admin_url( 'tools.php?page=searchpress' ), $e->getMessage() );
 		}
@@ -232,9 +224,8 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 			'sp_sync_nonce' => wp_create_nonce( 'sp_sync' ),
 		);
 
-		// Kill the heartbeat
-		SP_Config()->update_settings( array( 'host' => 'http://asdftestblog1.files.wordpress.com' ) );
-		$beat_result = SP_Heartbeat()->check_beat( true );
+		// Kill the heartbeat.
+		SP_Heartbeat()->beat_result = 'invalid';
 
 		/**
 		 * @see Tests_Admin::prevent_redirect() For how wp_die() is leveraged here.
@@ -242,25 +233,21 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		try {
 			SP_Admin()->full_sync();
 			$this->fail( 'Failed to trigger full sync' );
-		} catch ( WPDieException $e ) {
+		} catch ( \WPDieException $e ) {
 			// Verify the redirect url
 			$this->assertSame( admin_url( 'tools.php?page=searchpress&error=' . SP_ERROR_NO_BEAT ), $e->getMessage() );
 		}
 	}
 
-	/**
-	 * @expectedException WPDieException
-	 * @expectedExceptionMessage You do not have sufficient permissions to access this page.
-	 */
 	public function test_trigger_cancel_sync_no_access() {
+		$this->expectException( \WPDieException::class );
+		$this->expectExceptionMessage( 'You do not have sufficient permissions to access this page.' );
 		SP_Admin()->cancel_sync();
 	}
 
-	/**
-	 * @expectedException WPDieException
-	 * @expectedExceptionMessage You are not authorized to perform that action
-	 */
 	public function test_trigger_cancel_sync_invalid_nonce() {
+		$this->expectException( \WPDieException::class );
+		$this->expectExceptionMessage( 'You are not authorized to perform that action' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		SP_Admin()->cancel_sync();
 	}
@@ -277,25 +264,21 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		try {
 			SP_Admin()->cancel_sync();
 			$this->fail( 'Failed to trigger full sync' );
-		} catch ( WPDieException $e ) {
+		} catch ( \WPDieException $e ) {
 			// Verify the redirect url
 			$this->assertSame( admin_url( 'tools.php?page=searchpress&cancel=1' ), $e->getMessage() );
 		}
 	}
 
-	/**
-	 * @expectedException WPDieException
-	 * @expectedExceptionMessage You do not have sufficient permissions to access this page.
-	 */
 	public function test_trigger_clear_log_no_access() {
+		$this->expectException( \WPDieException::class );
+		$this->expectExceptionMessage( 'You do not have sufficient permissions to access this page.' );
 		SP_Admin()->clear_log();
 	}
 
-	/**
-	 * @expectedException WPDieException
-	 * @expectedExceptionMessage You are not authorized to perform that action
-	 */
 	public function test_trigger_clear_log_invalid_nonce() {
+		$this->expectException( \WPDieException::class );
+		$this->expectExceptionMessage( 'You are not authorized to perform that action' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		SP_Admin()->clear_log();
 	}
@@ -312,25 +295,21 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		try {
 			SP_Admin()->clear_log();
 			$this->fail( 'Failed to trigger full sync' );
-		} catch ( WPDieException $e ) {
+		} catch ( \WPDieException $e ) {
 			// Verify the redirect url
 			$this->assertSame( admin_url( 'tools.php?page=searchpress&clear_log=1' ), $e->getMessage() );
 		}
 	}
 
-	/**
-	 * @expectedException WPDieException
-	 * @expectedExceptionMessage You do not have sufficient permissions to access this page.
-	 */
 	public function test_trigger_active_toggle_no_access() {
+		$this->expectException( \WPDieException::class );
+		$this->expectExceptionMessage( 'You do not have sufficient permissions to access this page.' );
 		SP_Admin()->active_toggle();
 	}
 
-	/**
-	 * @expectedException WPDieException
-	 * @expectedExceptionMessage You are not authorized to perform that action
-	 */
 	public function test_trigger_active_toggle_invalid_nonce() {
+		$this->expectException( \WPDieException::class );
+		$this->expectExceptionMessage( 'You are not authorized to perform that action' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		SP_Admin()->active_toggle();
 	}
@@ -351,7 +330,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		try {
 			SP_Admin()->active_toggle();
 			$this->fail( 'Failed to toggle active state' );
-		} catch ( WPDieException $e ) {
+		} catch ( \WPDieException $e ) {
 			// Verify the redirect url
 			$this->assertSame( admin_url( 'tools.php?page=searchpress' ), $e->getMessage() );
 			$this->assertSame( true, SP_Config()->get_setting( 'active' ) );
@@ -373,7 +352,7 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 		try {
 			SP_Admin()->active_toggle();
 			$this->fail( 'Failed to toggle active state' );
-		} catch ( WPDieException $e ) {
+		} catch ( \WPDieException $e ) {
 			// Verify the redirect url
 			$this->assertSame( admin_url( 'tools.php?page=searchpress' ), $e->getMessage() );
 			$this->assertSame( false, SP_Config()->get_setting( 'active' ) );
@@ -431,17 +410,40 @@ class Tests_Admin extends SearchPress_UnitTestCase {
 	public function test_admin_notices_heartbeat_last_seen() {
 		$this->expectOutputRegex( '/The Elasticsearch server was last seen/' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
-		update_option( 'sp_heartbeat', time() - SP_Heartbeat()->thresholds['alert'] );
-		SP_Heartbeat()->get_last_beat( true );
+		SP_Heartbeat()->record_pulse( time() - SP_Heartbeat()->thresholds['alert'] - 10 );
 		SP_Admin()->admin_notices();
 	}
 
 	public function test_admin_notices_heartbeat_shutdown() {
 		$this->expectOutputRegex( '/SearchPress has deactivated itself/' );
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
-		update_option( 'sp_heartbeat', time() - SP_Heartbeat()->thresholds['shutdown'] );
-		SP_Heartbeat()->get_last_beat( true );
+		SP_Heartbeat()->record_pulse( time() - SP_Heartbeat()->thresholds['shutdown'] - 10 );
 		SP_Admin()->admin_notices();
+	}
+
+	/**
+	 * @group stale-heartbeat
+	 */
+	public function test_admin_notices_heartbeat_stale() {
+		wp_set_current_user( $this->factory->user->create( [ 'role' => 'administrator' ] ) );
+		$time = time() - SP_Heartbeat()->thresholds['shutdown'] - 10;
+		SP_Heartbeat()->record_pulse( $time, $time );
+		$this->assertSame( 'stale', SP_Heartbeat()->get_status() );
+		$this->assertEmpty( get_echo( [ SP_Admin(), 'admin_notices' ] ) );
+	}
+
+	/**
+	 * @group stale-heartbeat
+	 */
+	public function test_stale_heartbeat_rechecks_in_admin_screen() {
+		wp_set_current_user( $this->factory->user->create( [ 'role' => 'administrator' ] ) );
+		$time = time() - SP_Heartbeat()->thresholds['shutdown'] - 10;
+		SP_Heartbeat()->record_pulse( $time, $time );
+		$this->assertSame( 'stale', SP_Heartbeat()->get_status() );
+
+		SP_Heartbeat()->beat_result = null;
+		$this->assertTrue( apply_filters( 'sp_ready', null ) );
+		$this->assertSame( 'ok', SP_Heartbeat()->get_status() );
 	}
 
 	public function test_admin_notices_map_version() {

@@ -6,7 +6,7 @@
 class Tests_Post extends WP_UnitTestCase {
 	protected static $sp_post;
 
-	public static function setUpBeforeClass() {
+	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
 
 		add_filter(

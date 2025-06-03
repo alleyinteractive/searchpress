@@ -46,15 +46,19 @@ class SP_Admin extends SP_Singleton {
 		$this->allow_flushing = ! apply_filters( 'sp_disable_flush_via_ui', false );
 
 		if ( current_user_can( $this->capability ) ) {
-			add_action( 'admin_menu', array( $this, 'admin_menu' ) );
-			add_action( 'admin_post_sp_full_sync', array( $this, 'full_sync' ) );
-			add_action( 'admin_post_sp_cancel_sync', array( $this, 'cancel_sync' ) );
-			add_action( 'admin_post_sp_settings', array( $this, 'save_settings' ) );
-			add_action( 'admin_post_sp_clear_log', array( $this, 'clear_log' ) );
-			add_action( 'admin_post_sp_active_toggle', array( $this, 'active_toggle' ) );
-			add_action( 'wp_ajax_sp_sync_status', array( $this, 'sp_sync_status' ) );
-			add_action( 'admin_notices', array( $this, 'admin_notices' ) );
-			add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
+			if ( SP_Heartbeat()->get_status() === 'stale' ) {
+				// If the heartbeat is stale, update it.
+				add_action( 'admin_init', [ SP_Heartbeat(), 'check_beat' ] );
+			}
+			add_action( 'admin_menu', [ $this, 'admin_menu' ] );
+			add_action( 'admin_post_sp_full_sync', [ $this, 'full_sync' ] );
+			add_action( 'admin_post_sp_cancel_sync', [ $this, 'cancel_sync' ] );
+			add_action( 'admin_post_sp_settings', [ $this, 'save_settings' ] );
+			add_action( 'admin_post_sp_clear_log', [ $this, 'clear_log' ] );
+			add_action( 'admin_post_sp_active_toggle', [ $this, 'active_toggle' ] );
+			add_action( 'wp_ajax_sp_sync_status', [ $this, 'sp_sync_status' ] );
+			add_action( 'admin_notices', [ $this, 'admin_notices' ] );
+			add_action( 'admin_enqueue_scripts', [ $this, 'assets' ] );
 		}
 	}
 
@@ -426,7 +430,7 @@ class SP_Admin extends SP_Singleton {
 					return array(
 						__( 'OK', 'searchpress' ),
 						// translators: amount of time since last heartbeat (e.g., 36 minutes).
-						sprintf( __( 'SearchPress is active and the Elasticsearch server was last seen %s ago.', 'searchpress' ), human_time_diff( SP_Heartbeat()->get_last_beat(), time() ) ),
+						sprintf( __( 'SearchPress is active and the Elasticsearch server was last seen %s ago.', 'searchpress' ), human_time_diff( SP_Heartbeat()->last_seen(), time() ) ),
 					);
 				case 'alert':
 					return array(
@@ -746,7 +750,7 @@ class SP_Admin extends SP_Singleton {
 		}
 
 		$heartbeat_status = SP_Heartbeat()->get_status();
-		if ( 'ok' !== $heartbeat_status ) {
+		if ( 'ok' !== $heartbeat_status && 'stale' !== $heartbeat_status ) {
 			$message_escaped = esc_html__( 'SearchPress cannot reach the Elasticsearch server!', 'searchpress' );
 			if ( 'never' === $heartbeat_status && ! $this->is_settings_page() ) {
 				$message_escaped .= sprintf(
@@ -756,7 +760,7 @@ class SP_Admin extends SP_Singleton {
 				);
 			} elseif ( 'never' !== $heartbeat_status ) {
 				// translators: amount of time with units (e.g., 36 minutes).
-				$message_escaped .= ' ' . sprintf( esc_html__( 'The Elasticsearch server was last seen %s ago.', 'searchpress' ), human_time_diff( SP_Heartbeat()->get_last_beat(), time() ) );
+				$message_escaped .= ' ' . sprintf( esc_html__( 'The Elasticsearch server was last seen %s ago.', 'searchpress' ), human_time_diff( SP_Heartbeat()->last_seen(), time() ) );
 			}
 			if ( 'shutdown' === $heartbeat_status ) {
 				$message_escaped .= "\n" . esc_html__( "SearchPress has deactivated itself to preserve site search for your visitors. Your site will use WordPress' built-in search until the Elasticsearch server comes back online.", 'searchpress' );

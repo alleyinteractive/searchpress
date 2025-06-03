@@ -1,0 +1,40 @@
+{
+  "name": "alleyinteractive/searchpress",
+  "description": "Elasticsearch integration for WordPress.",
+  "type": "wordpress-plugin",
+  "keywords": [
+    "wordpress",
+    "plugin",
+    "search",
+    "searchpress",
+    "faceted search",
+    "performance"
+  ],
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "Alley Interactive",
+      "email": "noreply@alley.co"
+    }
+  ],
+  "require-dev": {
+    "alleyinteractive/alley-coding-standards": "^0.3.0",
+    "php": ">=7.4",
+    "yoast/phpunit-polyfills": "^1.0"
+  },
+  "scripts": {
+    "phpcbf": "phpcbf .",
+    "phpcs": "phpcs . --basepath=.",
+    "phpunit": "phpunit",
+    "setup": [
+      "composer install"
+    ]
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "alleyinteractive/composer-wordpress-autoloader": true
+    },
+    "sort-packages": true
+  }
+}

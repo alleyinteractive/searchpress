@@ -6,15 +6,17 @@
  */
 
 /**
- * Base Singleton Class
+ * Base Singleton Class.
+ *
+ * @template Instance of static
  */
 abstract class SP_Singleton {
 	/**
 	 * Holds references to the singleton instances.
 	 *
-	 * @var array
+	 * @var array<Instance>
 	 */
-	private static $instances;
+	private static array $instances;
 
 	/**
 	 * Ensure singletons can't be instantiated outside the `instance()` method.
@@ -26,12 +28,12 @@ abstract class SP_Singleton {
 	/**
 	 * Get an instance of the class.
 	 *
-	 * @return SP_Singleton
+	 * @return Instance
 	 */
 	public static function instance() {
 		$class_name = get_called_class();
 		if ( ! isset( self::$instances[ $class_name ] ) ) {
-			self::$instances[ $class_name ] = new $class_name();
+			self::$instances[ $class_name ] = new static();
 			self::$instances[ $class_name ]->setup();
 		}
 		return self::$instances[ $class_name ];

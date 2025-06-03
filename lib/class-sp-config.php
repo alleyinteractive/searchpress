@@ -6,7 +6,17 @@
  */
 
 /**
- * SearchPress configuration
+ * SearchPress configuration.
+ *
+ * @method string     host()        Host setting value.
+ * @method bool       must_init()   If SP needs to be initialized.
+ * @method bool       active()      If SP is active.
+ * @method int        map_version() Stored mapping version.
+ * @method int|string es_version()  Stored ES version.
+ * @method string     username()    Auth username.
+ * @method string     basic_auth()  Hashed basic auth info.
+ * @method string     index()       ES index name.
+ * @method string     auth_header() Authentication header.
  */
 class SP_Config extends SP_Singleton {
 

@@ -1,4 +1,25 @@
-/report/
+# Build files
+report
+node_modules
+vendor
+
+# Log files
+*.log
+
+# Cache files
+.phpcs/*.json
+.phpunit.result.cache
+
+# Ignore temporary OS files
 .DS_Store
-.svn
-/.idea
+.DS_Store?
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.thumbsdb
+
+# IDE files
+*.code-workspace
+.idea
+.vscode
